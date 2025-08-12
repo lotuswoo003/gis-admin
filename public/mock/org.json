@@ -1,0 +1,25 @@
+{
+    "list": [
+        {
+            "id": 1,
+            "name": "示例企业",
+            "type": "企业",
+            "province": "北京市",
+            "city": "北京市",
+            "district": "朝阳区",
+            "address": "朝阳路100号",
+            "createTime": "2024-01-01"
+        },
+        {
+            "id": 2,
+            "name": "测试机构",
+            "type": "政府",
+            "province": "上海市",
+            "city": "上海市",
+            "district": "浦东新区",
+            "address": "世纪大道200号",
+            "createTime": "2024-02-01"
+        }
+    ],
+    "pageTotal": 2
+}
