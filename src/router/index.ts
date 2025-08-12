@@ -50,20 +50,29 @@ const routes: RouteRecordRaw[] = [
                 },
                 component: () => import(/* webpackChunkName: "system-menu" */ '../views/system/menu.vue'),
             },
-            {
-                path: '/system-org',
-                name: 'system-org',
-                meta: {
-                    title: '组织管理',
-                    permiss: '14',
-                },
-                component: () => import(/* webpackChunkName: "system-org" */ '../views/system/org.vue'),
-            },
-            {
-                path: '/table',
-                name: 'basetable',
-                meta: {
-                    title: '基础表格',
+              {
+                  path: '/system-org',
+                  name: 'system-org',
+                  meta: {
+                      title: '组织管理',
+                      permiss: '14',
+                  },
+                  component: () => import(/* webpackChunkName: "system-org" */ '../views/system/org.vue'),
+              },
+              {
+                  path: '/system-dict',
+                  name: 'system-dict',
+                  meta: {
+                      title: '字典管理',
+                      permiss: '15',
+                  },
+                  component: () => import(/* webpackChunkName: "system-dict" */ '../views/system/dict.vue'),
+              },
+              {
+                  path: '/table',
+                  name: 'basetable',
+                  meta: {
+                      title: '基础表格',
                     permiss: '31',
                 },
                 component: () => import(/* webpackChunkName: "table" */ '../views/table/basetable.vue'),

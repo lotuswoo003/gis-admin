@@ -27,3 +27,10 @@ export const fetchOrgData = () => {
         method: 'get'
     });
 };
+
+export const fetchDictData = () => {
+    return request({
+        url: './mock/dict.json',
+        method: 'get'
+    });
+};
