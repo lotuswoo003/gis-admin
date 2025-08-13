@@ -3,7 +3,7 @@ import type { PostalCodeListResponse } from '@/types/postal-code';
 
 export interface PostalCodeParams {
     level: number;
-    parentId: number;
+    parentId: string;
 }
 
 export const fetchPostalCodeList = (data: PostalCodeParams) => {
