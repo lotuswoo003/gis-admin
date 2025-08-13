@@ -33,9 +33,9 @@ import type { PostalCode } from '@/types/postal-code';
 import { fetchPostalCodeList } from '@/api/postal-code';
 
 interface RegionModel {
-  provinceName?: string;
-  cityName?: string;
-  districtName?: string;
+  provinceId?: number;
+  cityId?: number;
+  districtId?: number;
 }
 
 const props = defineProps<{ modelValue?: RegionModel }>();
@@ -53,29 +53,14 @@ const emit = defineEmits(['change']);
 onMounted(async () => {
   const res = await fetchPostalCodeList({ level: 1, parentId: -1 });
   provinces.value = res.data;
-  if (props.modelValue?.provinceName) {
-    const p = provinces.value.find(
-      (item) => item.displayName === props.modelValue!.provinceName
-    );
-    if (p) {
-      provinceId.value = p.id;
-      await onProvinceChange(p.id);
-      if (props.modelValue?.cityName) {
-        const c = cities.value.find(
-          (item) => item.displayName === props.modelValue!.cityName
-        );
-        if (c) {
-          cityId.value = c.id;
-          await onCityChange(c.id);
-          if (props.modelValue?.districtName) {
-            const d = districts.value.find(
-              (item) => item.displayName === props.modelValue!.districtName
-            );
-            if (d) {
-              districtId.value = d.id;
-            }
-          }
-        }
+  if (props.modelValue?.provinceId) {
+    provinceId.value = props.modelValue.provinceId;
+    await onProvinceChange(props.modelValue.provinceId);
+    if (props.modelValue.cityId) {
+      cityId.value = props.modelValue.cityId;
+      await onCityChange(props.modelValue.cityId);
+      if (props.modelValue.districtId) {
+        districtId.value = props.modelValue.districtId;
       }
     }
   }
