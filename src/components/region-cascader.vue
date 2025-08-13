@@ -52,7 +52,7 @@ const emit = defineEmits(['change']);
 
 onMounted(async () => {
   const res = await fetchPostalCodeList({ level: 1, parentId: -1 });
-  provinces.value = res.data;
+  provinces.value = res.data.data;
   if (props.modelValue?.provinceId) {
     provinceId.value = props.modelValue.provinceId;
     await onProvinceChange(props.modelValue.provinceId);
@@ -72,14 +72,14 @@ const onProvinceChange = async (val: number) => {
   cities.value = [];
   counties.value = [];
   const res = await fetchPostalCodeList({ level: 2, parentId: val });
-  cities.value = res.data;
+  cities.value = res.data.data;
 };
 
 const onCityChange = async (val: number) => {
   countyId.value = null;
   counties.value = [];
   const res = await fetchPostalCodeList({ level: 3, parentId: val });
-  counties.value = res.data;
+  counties.value = res.data.data;
 };
 
 watch([provinceId, cityId, countyId], () => {

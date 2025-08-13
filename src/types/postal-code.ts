@@ -9,3 +9,9 @@ export interface PostalCode {
     updatedAt: string;
     deletedAt: string | null;
 }
+
+export interface PostalCodeListResponse {
+    code: number;
+    message: string;
+    data: PostalCode[];
+}

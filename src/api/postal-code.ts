@@ -1,4 +1,5 @@
 import request from '../utils/request';
+import type { PostalCodeListResponse } from '@/types/postal-code';
 
 export interface PostalCodeParams {
     level: number;
@@ -6,9 +7,9 @@ export interface PostalCodeParams {
 }
 
 export const fetchPostalCodeList = (data: PostalCodeParams) => {
-    return request({
+    return request<PostalCodeListResponse>({
         url: '/postal-code/list',
         method: 'post',
-        data
+        data,
     });
 };
