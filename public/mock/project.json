@@ -1,0 +1,14 @@
+{
+    "list": [
+        {
+            "id": 1,
+            "name": "示例项目",
+            "partyAName": "甲方A",
+            "partyBName": "乙方B",
+            "startTime": "2024-01-01",
+            "endTime": "2024-06-01",
+            "center": "120.0,30.0"
+        }
+    ],
+    "pageTotal": 1
+}

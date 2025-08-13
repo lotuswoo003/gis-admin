@@ -38,6 +38,12 @@ export const menuData: Menus[] = [
                   title: '组织管理',
               },
               {
+                  id: '16',
+                  pid: '1',
+                  index: '/system-project',
+                  title: '项目管理',
+              },
+              {
                   id: '15',
                   pid: '1',
                   index: '/system-dict',

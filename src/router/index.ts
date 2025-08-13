@@ -60,6 +60,15 @@ const routes: RouteRecordRaw[] = [
                   component: () => import(/* webpackChunkName: "system-org" */ '../views/system/org.vue'),
               },
               {
+                  path: '/system-project',
+                  name: 'system-project',
+                  meta: {
+                      title: '项目管理',
+                      permiss: '16',
+                  },
+                  component: () => import(/* webpackChunkName: "system-project" */ '../views/system/project.vue'),
+              },
+              {
                   path: '/system-dict',
                   name: 'system-dict',
                   meta: {
