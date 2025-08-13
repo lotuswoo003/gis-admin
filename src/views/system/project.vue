@@ -89,8 +89,8 @@ const page = reactive({
 const tableData = ref<Project[]>([]);
 const getData = async () => {
     const res = await fetchProjectPage({ page: page.index, size: page.size, name: query.name });
-    tableData.value = (res.data.records || []) as Project[];
-    page.total = res.data.total || 0;
+    tableData.value = (res.data.data.records || []) as Project[];
+    page.total = res.data.data.total || 0;
 };
 getData();
 
@@ -117,7 +117,7 @@ const isEdit = ref(false);
 const rowData = ref({});
 const handleEdit = async (row: Project) => {
     const res = await getProject(row.id);
-    const { createTime, updateTime, ...data } = res.data;
+    const { createTime, updateTime, ...data } = res.data.data;
     rowData.value = data;
     isEdit.value = true;
     visible.value = true;
@@ -147,7 +147,7 @@ const viewData = ref({
 });
 const handleView = async (row: Project) => {
     const res = await getProject(row.id);
-    viewData.value.row = res.data;
+    viewData.value.row = res.data.data;
     viewData.value.list = [
         { prop: 'id', label: '项目ID' },
         { prop: 'name', label: '项目名称' },

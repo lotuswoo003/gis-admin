@@ -67,8 +67,8 @@ const page = reactive({
 const tableData = ref<Organization[]>([]);
 const getData = async () => {
     const res = await fetchOrganizationPage({ page: page.index, size: page.size, name: query.name });
-    tableData.value = (res.data.records || []) as Organization[];
-    page.total = res.data.total || 0;
+    tableData.value = (res.data.data.records || []) as Organization[];
+    page.total = res.data.data.total || 0;
 };
 getData();
 
@@ -99,7 +99,7 @@ const isEdit = ref(false);
 const rowData = ref({});
 const handleEdit = async (row: Organization) => {
     const res = await getOrganization(row.id);
-    const { createTime, updateTime, ...data } = res.data;
+    const { createTime, updateTime, ...data } = res.data.data;
     rowData.value = data;
     isEdit.value = true;
     visible.value = true;
@@ -130,8 +130,8 @@ const viewData = ref({
 const handleView = async (row: Organization) => {
     const res = await getOrganization(row.id);
     viewData.value.row = {
-        ...res.data,
-        type: typeOptions.find(o => o.value === res.data.type)?.label || res.data.type,
+        ...res.data.data,
+        type: typeOptions.find(o => o.value === res.data.data.type)?.label || res.data.data.type,
     };
     viewData.value.list = [
         { prop: 'name', label: '组织名称' },
