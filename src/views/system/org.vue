@@ -94,8 +94,8 @@ let options = ref<FormOption>({
                 { label: '其他', value: '其他' },
             ],
         },
-        { type: 'region', label: '省市区', prop: 'provinceId', required: true },
-        { type: 'input', label: '地址', prop: 'address', required: true },
+        { type: 'region', label: '省市区', prop: 'provinceId', required: true, span: 24 },
+        { type: 'input', label: '地址', prop: 'address', required: true, span: 24 },
         { type: 'date', label: '创建时间', prop: 'createTime', required: true, format: 'YYYY-MM-DD' },
     ]
 });

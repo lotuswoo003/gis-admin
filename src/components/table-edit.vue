@@ -1,8 +1,8 @@
 <template>
 	<el-form ref="formRef" :model="form" :rules="rules" :label-width="options.labelWidth">
-		<el-row>
-			<el-col :span="options.span" v-for="item in options.list">
-				<el-form-item :label="item.label" :prop="item.prop">
+                <el-row>
+                        <el-col v-for="item in options.list" :span="item.span || options.span">
+                                <el-form-item :label="item.label" :prop="item.prop">
 					<!-- 文本框、数字框、下拉框、日期框、开关、上传 -->
 					<el-input v-if="item.type === 'input'" v-model="form[item.prop]" :disabled="item.disabled"
 						:placeholder="item.placeholder" clearable></el-input>

@@ -9,6 +9,7 @@ export interface FormOptionList {
     prop: string;
     label: string;
     type: string;
+    span?: number;
     placeholder?: string;
     disabled?: boolean;
     opts?: any[];
