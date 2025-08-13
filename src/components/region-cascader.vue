@@ -16,9 +16,9 @@
         :value="item.id"
       />
     </el-select>
-    <el-select v-model="districtId" placeholder="请选择区" :disabled="!cityId" class="select">
+    <el-select v-model="countyId" placeholder="请选择区" :disabled="!cityId" class="select">
       <el-option
-        v-for="item in districts"
+        v-for="item in counties"
         :key="item.id"
         :label="item.displayName"
         :value="item.id"
@@ -35,18 +35,18 @@ import { fetchPostalCodeList } from '@/api/postal-code';
 interface RegionModel {
   provinceId?: number;
   cityId?: number;
-  districtId?: number;
+  countyId?: number;
 }
 
 const props = defineProps<{ modelValue?: RegionModel }>();
 
 const provinces = ref<PostalCode[]>([]);
 const cities = ref<PostalCode[]>([]);
-const districts = ref<PostalCode[]>([]);
+const counties = ref<PostalCode[]>([]);
 
 const provinceId = ref<number | null>(null);
 const cityId = ref<number | null>(null);
-const districtId = ref<number | null>(null);
+const countyId = ref<number | null>(null);
 
 const emit = defineEmits(['change']);
 
@@ -59,8 +59,8 @@ onMounted(async () => {
     if (props.modelValue.cityId) {
       cityId.value = props.modelValue.cityId;
       await onCityChange(props.modelValue.cityId);
-      if (props.modelValue.districtId) {
-        districtId.value = props.modelValue.districtId;
+      if (props.modelValue.countyId) {
+        countyId.value = props.modelValue.countyId;
       }
     }
   }
@@ -68,28 +68,28 @@ onMounted(async () => {
 
 const onProvinceChange = async (val: number) => {
   cityId.value = null;
-  districtId.value = null;
+  countyId.value = null;
   cities.value = [];
-  districts.value = [];
+  counties.value = [];
   const res = await fetchPostalCodeList({ level: 2, parentId: val });
   cities.value = res.data;
 };
 
 const onCityChange = async (val: number) => {
-  districtId.value = null;
-  districts.value = [];
+  countyId.value = null;
+  counties.value = [];
   const res = await fetchPostalCodeList({ level: 3, parentId: val });
-  districts.value = res.data;
+  counties.value = res.data;
 };
 
-watch([provinceId, cityId, districtId], () => {
+watch([provinceId, cityId, countyId], () => {
   emit('change', {
     provinceId: provinceId.value,
     provinceName: provinces.value.find((p) => p.id === provinceId.value)?.displayName,
     cityId: cityId.value,
     cityName: cities.value.find((c) => c.id === cityId.value)?.displayName,
-    districtId: districtId.value,
-    districtName: districts.value.find((d) => d.id === districtId.value)?.displayName,
+    countyId: countyId.value,
+    countyName: counties.value.find((d) => d.id === countyId.value)?.displayName,
   });
 });
 </script>

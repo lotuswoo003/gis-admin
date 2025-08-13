@@ -26,7 +26,7 @@
                                         </el-upload>
                                         <RegionCascader
                                                 v-else-if="item.type === 'region'"
-                                                :model-value="{ provinceId: form.provinceId, cityId: form.cityId, districtId: form.districtId }"
+                                                :model-value="{ provinceId: form.provinceId, cityId: form.cityId, countyId: form.countyId }"
                                                 @change="handleRegionChange"
                                         />
                                         <slot :name="item.prop" v-else>
@@ -95,15 +95,15 @@ const handleRegionChange = (val: {
         provinceName?: string;
         cityId?: number | null;
         cityName?: string;
-        districtId?: number | null;
-        districtName?: string;
+        countyId?: number | null;
+        countyName?: string;
 }) => {
         form.value.provinceId = val.provinceId;
         form.value.province = val.provinceName || '';
         form.value.cityId = val.cityId;
         form.value.city = val.cityName || '';
-        form.value.districtId = val.districtId;
-        form.value.district = val.districtName || '';
+        form.value.countyId = val.countyId;
+        form.value.county = val.countyName || '';
 };
 
 </script>
