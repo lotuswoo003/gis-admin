@@ -2,11 +2,13 @@
 	"name": "vue-manage-system",
 	"version": "5.5.0",
 	"private": true,
-	"scripts": {
-		"dev": "vite",
-		"build": "vue-tsc --noEmit && vite build",
-		"serve": "vite preview"
-	},
+        "scripts": {
+                "dev": "vite",
+                "build": "vue-tsc --noEmit && vite build",
+                "build:dev": "vue-tsc --noEmit && vite build --mode development",
+                "build:prod": "vue-tsc --noEmit && vite build --mode production",
+                "serve": "vite preview"
+        },
 	"dependencies": {
 		"@element-plus/icons-vue": "*",
 		"@wangeditor/editor": "^5.1.23",
