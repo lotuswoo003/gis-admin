@@ -92,7 +92,6 @@ let options = ref<FormOption>({
         },
         { type: 'region', label: '省市区', prop: 'provinceId', required: true, span: 24 },
         { type: 'input', label: '地址', prop: 'address', required: true, span: 24 },
-        { type: 'date', label: '创建时间', prop: 'createTime', required: true, format: 'YYYY-MM-DD' },
     ]
 });
 const visible = ref(false);
@@ -100,15 +99,17 @@ const isEdit = ref(false);
 const rowData = ref({});
 const handleEdit = async (row: Organization) => {
     const res = await getOrganization(row.id);
-    rowData.value = res.data;
+    const { createTime, updateTime, ...data } = res.data;
+    rowData.value = data;
     isEdit.value = true;
     visible.value = true;
 };
 const updateData = async (form: any) => {
+    const { createTime, updateTime, ...payload } = form;
     if (isEdit.value) {
-        await updateOrganization(form);
+        await updateOrganization(payload);
     } else {
-        await saveOrganization(form);
+        await saveOrganization(payload);
     }
     ElMessage.success('操作成功');
     closeDialog();
