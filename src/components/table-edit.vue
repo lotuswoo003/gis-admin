@@ -91,11 +91,11 @@ const handleAvatarSuccess: UploadProps['onSuccess'] = (response, uploadFile) => 
 };
 
 const handleRegionChange = (val: {
-        provinceId?: number | null;
+        provinceId?: string | null;
         provinceName?: string;
-        cityId?: number | null;
+        cityId?: string | null;
         cityName?: string;
-        countyId?: number | null;
+        countyId?: string | null;
         countyName?: string;
 }) => {
         form.value.provinceId = val.provinceId;

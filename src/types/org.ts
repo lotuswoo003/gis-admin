@@ -5,9 +5,9 @@ export interface Organization {
     province: string;
     city: string;
     county: string;
-    provinceId?: number;
-    cityId?: number;
-    countyId?: number;
+    provinceId?: string;
+    cityId?: string;
+    countyId?: string;
     address: string;
     createTime: string;
 }
@@ -24,9 +24,9 @@ export interface OrganizationSave {
     province: string;
     city: string;
     county: string;
-    provinceId: number;
-    cityId: number;
-    countyId: number;
+    provinceId: string;
+    cityId: string;
+    countyId: string;
     address: string;
 }
 
