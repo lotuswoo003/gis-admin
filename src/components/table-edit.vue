@@ -17,16 +17,21 @@
 					<el-switch v-else-if="item.type === 'switch'" v-model="form[item.prop]"
 						:active-value="item.activeValue" :inactive-value="item.inactiveValue"
 						:active-text="item.activeText" :inactive-text="item.inactiveText"></el-switch>
-					<el-upload v-else-if="item.type === 'upload'" class="avatar-uploader" action="#"
-						:show-file-list="false" :on-success="handleAvatarSuccess">
-						<img v-if="form[item.prop]" :src="form[item.prop]" class="avatar" />
-						<el-icon v-else class="avatar-uploader-icon">
-							<Plus />
-						</el-icon>
-					</el-upload>
-					<slot :name="item.prop" v-else>
+                                        <el-upload v-else-if="item.type === 'upload'" class="avatar-uploader" action="#"
+                                                :show-file-list="false" :on-success="handleAvatarSuccess">
+                                                <img v-if="form[item.prop]" :src="form[item.prop]" class="avatar" />
+                                                <el-icon v-else class="avatar-uploader-icon">
+                                                        <Plus />
+                                                </el-icon>
+                                        </el-upload>
+                                        <RegionCascader
+                                                v-else-if="item.type === 'region'"
+                                                :model-value="{ provinceName: form.province, cityName: form.city, districtName: form.district }"
+                                                @change="handleRegionChange"
+                                        />
+                                        <slot :name="item.prop" v-else>
 
-					</slot>
+                                        </slot>
 				</el-form-item>
 			</el-col>
 		</el-row>
@@ -82,7 +87,17 @@ const saveEdit = (formEl: FormInstance | undefined) => {
 };
 
 const handleAvatarSuccess: UploadProps['onSuccess'] = (response, uploadFile) => {
-	form.value.thumb = URL.createObjectURL(uploadFile.raw!);
+        form.value.thumb = URL.createObjectURL(uploadFile.raw!);
+};
+
+const handleRegionChange = (val: {
+        provinceName?: string;
+        cityName?: string;
+        districtName?: string;
+}) => {
+        form.value.province = val.provinceName || '';
+        form.value.city = val.cityName || '';
+        form.value.district = val.districtName || '';
 };
 
 </script>
