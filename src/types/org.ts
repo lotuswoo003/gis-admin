@@ -9,7 +9,7 @@ export interface Organization {
     cityId?: string;
     countyId?: string;
     address: string;
-    createTime: string;
+    createdAt: string;
 }
 
 export interface OrganizationPageQuery {

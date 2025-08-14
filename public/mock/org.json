@@ -8,7 +8,7 @@
             "city": "北京市",
             "county": "朝阳区",
             "address": "朝阳路100号",
-            "createTime": "2024-01-01"
+            "createdAt": "2024-01-01T00:00:00Z"
         },
         {
             "id": 2,
@@ -18,7 +18,7 @@
             "city": "上海市",
             "county": "浦东新区",
             "address": "世纪大道200号",
-            "createTime": "2024-02-01"
+            "createdAt": "2024-02-01T00:00:00Z"
         }
     ],
     "pageTotal": 2

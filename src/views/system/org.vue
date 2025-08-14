@@ -56,7 +56,7 @@ let columns = ref([
     { prop: 'city', label: '市' },
     { prop: 'county', label: '区' },
     { prop: 'address', label: '地址' },
-    { prop: 'createTime', label: '创建时间' },
+    { prop: 'createdAt', label: '创建时间', formatter: (val: string) => val ? val.split('T')[0] : '' },
     { prop: 'operator', label: '操作', width: 250 },
 ]);
 const page = reactive({
@@ -99,13 +99,13 @@ const isEdit = ref(false);
 const rowData = ref({});
 const handleEdit = async (row: Organization) => {
     const res = await getOrganization(row.id);
-    const { createTime, updateTime, ...data } = res.data.data;
+    const { createdAt, updatedAt, ...data } = res.data.data;
     rowData.value = data;
     isEdit.value = true;
     visible.value = true;
 };
 const updateData = async (form: any) => {
-    const { createTime, updateTime, ...payload } = form;
+    const { createdAt, updatedAt, ...payload } = form;
     if (isEdit.value) {
         await updateOrganization(payload);
     } else {
@@ -132,6 +132,7 @@ const handleView = async (row: Organization) => {
     viewData.value.row = {
         ...res.data.data,
         type: typeOptions.find(o => o.value === res.data.data.type)?.label || res.data.data.type,
+        createdAt: res.data.data.createdAt ? res.data.data.createdAt.split('T')[0] : '',
     };
     viewData.value.list = [
         { prop: 'name', label: '组织名称' },
@@ -140,7 +141,7 @@ const handleView = async (row: Organization) => {
         { prop: 'city', label: '市' },
         { prop: 'county', label: '区' },
         { prop: 'address', label: '地址' },
-        { prop: 'createTime', label: '创建时间' },
+        { prop: 'createdAt', label: '创建时间' },
     ];
     visible1.value = true;
 };
