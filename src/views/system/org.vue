@@ -24,12 +24,17 @@ import { ref, reactive } from 'vue';
 import { ElMessage } from 'element-plus';
 import { CirclePlusFilled } from '@element-plus/icons-vue';
 import { Organization } from '@/types/org';
-import { fetchOrgData } from '@/api';
+import { fetchOrganizationPage, getOrganization, saveOrganization, updateOrganization } from '@/api/organization';
 import TableCustom from '@/components/table-custom.vue';
 import TableDetail from '@/components/table-detail.vue';
 import TableSearch from '@/components/table-search.vue';
 import TableEdit from '@/components/table-edit.vue';
 import { FormOption, FormOptionList } from '@/types/form-option';
+
+const typeOptions = [
+    { label: '政府', value: '1' },
+    { label: '企业', value: '2' },
+];
 
 // 查询相关
 const query = reactive({
@@ -46,12 +51,12 @@ const handleSearch = () => {
 let columns = ref([
     { type: 'index', label: '序号', width: 55, align: 'center' },
     { prop: 'name', label: '组织名称' },
-    { prop: 'type', label: '组织类型' },
+    { prop: 'type', label: '组织类型', formatter: (val: string) => typeOptions.find(o => o.value === val)?.label || '' },
     { prop: 'province', label: '省' },
     { prop: 'city', label: '市' },
-    { prop: 'district', label: '区' },
+    { prop: 'county', label: '区' },
     { prop: 'address', label: '地址' },
-    { prop: 'createTime', label: '创建时间' },
+    { prop: 'createdAt', label: '创建时间', formatter: (val: string) => val ? val.split('T')[0] : '' },
     { prop: 'operator', label: '操作', width: 250 },
 ]);
 const page = reactive({
@@ -61,14 +66,9 @@ const page = reactive({
 });
 const tableData = ref<Organization[]>([]);
 const getData = async () => {
-    const res = await fetchOrgData();
-    let list: Organization[] = res.data.list;
-    if (query.name) {
-        list = list.filter(item => item.name.includes(query.name));
-    }
-    page.total = list.length;
-    const start = (page.index - 1) * page.size;
-    tableData.value = list.slice(start, start + page.size);
+    const res = await fetchOrganizationPage({ page: page.index, size: page.size, name: query.name });
+    tableData.value = (res.data.data.records || []) as Organization[];
+    page.total = res.data.data.total || 0;
 };
 getData();
 
@@ -88,28 +88,29 @@ let options = ref<FormOption>({
             label: '组织类型',
             prop: 'type',
             required: true,
-            opts: [
-                { label: '企业', value: '企业' },
-                { label: '政府', value: '政府' },
-                { label: '其他', value: '其他' },
-            ],
+            opts: typeOptions,
         },
-        { type: 'input', label: '省', prop: 'province', required: true },
-        { type: 'input', label: '市', prop: 'city', required: true },
-        { type: 'input', label: '区', prop: 'district', required: true },
-        { type: 'input', label: '地址', prop: 'address', required: true },
-        { type: 'date', label: '创建时间', prop: 'createTime', required: true, format: 'YYYY-MM-DD' },
+        { type: 'region', label: '省市区', prop: 'provinceId', required: true, span: 24 },
+        { type: 'input', label: '地址', prop: 'address', required: true, span: 24 },
     ]
 });
 const visible = ref(false);
 const isEdit = ref(false);
 const rowData = ref({});
-const handleEdit = (row: Organization) => {
-    rowData.value = { ...row };
+const handleEdit = async (row: Organization) => {
+    const res = await getOrganization(row.id);
+    const { createdAt, updatedAt, ...data } = res.data.data;
+    rowData.value = data;
     isEdit.value = true;
     visible.value = true;
 };
-const updateData = () => {
+const updateData = async (form: any) => {
+    const { createdAt, updatedAt, ...payload } = form;
+    if (isEdit.value) {
+        await updateOrganization(payload);
+    } else {
+        await saveOrganization(payload);
+    }
     ElMessage.success('操作成功');
     closeDialog();
     getData();
@@ -126,16 +127,21 @@ const viewData = ref({
     row: {},
     list: [] as any[],
 });
-const handleView = (row: Organization) => {
-    viewData.value.row = { ...row };
+const handleView = async (row: Organization) => {
+    const res = await getOrganization(row.id);
+    viewData.value.row = {
+        ...res.data.data,
+        type: typeOptions.find(o => o.value === res.data.data.type)?.label || res.data.data.type,
+        createdAt: res.data.data.createdAt ? res.data.data.createdAt.split('T')[0] : '',
+    };
     viewData.value.list = [
         { prop: 'name', label: '组织名称' },
         { prop: 'type', label: '组织类型' },
         { prop: 'province', label: '省' },
         { prop: 'city', label: '市' },
-        { prop: 'district', label: '区' },
+        { prop: 'county', label: '区' },
         { prop: 'address', label: '地址' },
-        { prop: 'createTime', label: '创建时间' },
+        { prop: 'createdAt', label: '创建时间' },
     ];
     visible1.value = true;
 };

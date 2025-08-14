@@ -21,13 +21,6 @@ export const fetchRoleData = () => {
     });
 };
 
-export const fetchOrgData = () => {
-    return request({
-        url: './mock/org.json',
-        method: 'get'
-    });
-};
-
 export const fetchDictData = () => {
     return request({
         url: './mock/dict.json',

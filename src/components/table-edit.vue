@@ -1,8 +1,8 @@
 <template>
 	<el-form ref="formRef" :model="form" :rules="rules" :label-width="options.labelWidth">
-		<el-row>
-			<el-col :span="options.span" v-for="item in options.list">
-				<el-form-item :label="item.label" :prop="item.prop">
+                <el-row>
+                        <el-col v-for="item in options.list" :span="item.span || options.span">
+                                <el-form-item :label="item.label" :prop="item.prop">
 					<!-- 文本框、数字框、下拉框、日期框、开关、上传 -->
 					<el-input v-if="item.type === 'input'" v-model="form[item.prop]" :disabled="item.disabled"
 						:placeholder="item.placeholder" clearable></el-input>
@@ -17,16 +17,21 @@
 					<el-switch v-else-if="item.type === 'switch'" v-model="form[item.prop]"
 						:active-value="item.activeValue" :inactive-value="item.inactiveValue"
 						:active-text="item.activeText" :inactive-text="item.inactiveText"></el-switch>
-					<el-upload v-else-if="item.type === 'upload'" class="avatar-uploader" action="#"
-						:show-file-list="false" :on-success="handleAvatarSuccess">
-						<img v-if="form[item.prop]" :src="form[item.prop]" class="avatar" />
-						<el-icon v-else class="avatar-uploader-icon">
-							<Plus />
-						</el-icon>
-					</el-upload>
-					<slot :name="item.prop" v-else>
+                                        <el-upload v-else-if="item.type === 'upload'" class="avatar-uploader" action="#"
+                                                :show-file-list="false" :on-success="handleAvatarSuccess">
+                                                <img v-if="form[item.prop]" :src="form[item.prop]" class="avatar" />
+                                                <el-icon v-else class="avatar-uploader-icon">
+                                                        <Plus />
+                                                </el-icon>
+                                        </el-upload>
+                                        <RegionCascader
+                                                v-else-if="item.type === 'region'"
+                                                :model-value="{ provinceId: form.provinceId, cityId: form.cityId, countyId: form.countyId }"
+                                                @change="handleRegionChange"
+                                        />
+                                        <slot :name="item.prop" v-else>
 
-					</slot>
+                                        </slot>
 				</el-form-item>
 			</el-col>
 		</el-row>
@@ -82,7 +87,23 @@ const saveEdit = (formEl: FormInstance | undefined) => {
 };
 
 const handleAvatarSuccess: UploadProps['onSuccess'] = (response, uploadFile) => {
-	form.value.thumb = URL.createObjectURL(uploadFile.raw!);
+        form.value.thumb = URL.createObjectURL(uploadFile.raw!);
+};
+
+const handleRegionChange = (val: {
+        provinceId?: string | null;
+        provinceName?: string;
+        cityId?: string | null;
+        cityName?: string;
+        countyId?: string | null;
+        countyName?: string;
+}) => {
+        form.value.provinceId = val.provinceId;
+        form.value.province = val.provinceName || '';
+        form.value.cityId = val.cityId;
+        form.value.city = val.cityName || '';
+        form.value.countyId = val.countyId;
+        form.value.county = val.countyName || '';
 };
 
 </script>

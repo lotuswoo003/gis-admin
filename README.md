@@ -62,7 +62,10 @@ npm install         // 安装项目依赖，等待安装完成之后，安装失
 npm run dev
 
 // 执行构建命令，生成的dist文件夹放在服务器下即可访问
-npm run build
+// 开发/测试环境
+npm run build:dev
+// 生产环境
+npm run build:prod
 ```
 
 ## 项目截图
