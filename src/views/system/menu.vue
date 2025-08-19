@@ -62,14 +62,15 @@ const page = reactive({
 });
 
 const parentMap = new Map<string, string>();
-const getOptions = (data: Permission[]): any[] => {
+const getOptions = (data: Permission[] | undefined | null): any[] => {
+    if (!Array.isArray(data)) return [];
     return data.map(item => {
         parentMap.set(item.id, item.name);
         const option: any = {
             label: item.name,
             value: item.id,
         };
-        if (item.children && item.children.length) {
+        if (Array.isArray(item.children) && item.children.length) {
             option.children = getOptions(item.children);
         }
         return option;
@@ -81,16 +82,18 @@ const cascaderOptions = ref<any[]>([]);
 const loadData = async () => {
     parentMap.clear();
     const treeRes = await listPermissions({});
-    const treeData: Permission[] = treeRes.data || [];
+    const treeData: Permission[] = Array.isArray(treeRes.data)
+        ? treeRes.data
+        : treeRes.data?.records || treeRes.data?.data?.records || [];
     cascaderOptions.value = getOptions(treeData);
 
     const pageRes = await fetchPermissionPage({ page: page.index, rows: page.rows });
-    const list: Permission[] = pageRes.data.data.records || [];
+    const list: Permission[] = pageRes.data?.data?.records || pageRes.data?.records || [];
     list.forEach(item => {
         item.parentName = parentMap.get(item.parentId) || '';
     });
     permissionData.value = list;
-    page.total = pageRes.data.data.total || 0;
+    page.total = pageRes.data?.data?.total ?? pageRes.data?.total ?? 0;
 };
 
 onMounted(loadData);
