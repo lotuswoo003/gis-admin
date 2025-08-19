@@ -13,10 +13,3 @@ export const fetchUserData = () => {
         method: 'get'
     });
 };
-
-export const fetchRoleData = () => {
-    return request<{ list: any[]; pageTotal: number }>({
-        url: './mock/role.json',
-        method: 'get'
-    });
-};

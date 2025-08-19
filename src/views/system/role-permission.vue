@@ -3,7 +3,7 @@
         <el-tree
             class="mgb10"
             ref="tree"
-            :data="data"
+            :data="treeData"
             node-key="id"
             default-expand-all
             show-checkbox
@@ -14,62 +14,42 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { ElTree } from 'element-plus';
-import { menuData } from '@/components/menu';
+import { ref, onMounted } from 'vue';
+import { ElTree, ElMessage } from 'element-plus';
+import { listPermissions } from '@/api/permission';
+import { getRolePermissionIds, updateRolePermissions } from '@/api/role';
+import type { Permission } from '@/types/permission';
 
-const props = defineProps({
-    permissOptions: {
-        type: Object,
-        required: true,
-    },
+const props = defineProps<{ roleId: string }>();
+
+const treeData = ref<any[]>([]);
+const checkedKeys = ref<string[]>([]);
+const tree = ref<InstanceType<typeof ElTree>>();
+
+const buildTree = (data: Permission[]): any[] => {
+    return data.map(item => {
+        const node: any = { id: item.id, label: item.name };
+        if (Array.isArray(item.children) && item.children.length) {
+            node.children = buildTree(item.children);
+        }
+        return node;
+    });
+};
+
+onMounted(async () => {
+    const permRes = await listPermissions({});
+    treeData.value = buildTree(permRes.data || []);
+    const checkedRes = await getRolePermissionIds(props.roleId);
+    checkedKeys.value = checkedRes.data || [];
 });
 
-const menuObj = ref({});
-// const data = menuData.map((item) => {
-//     if (item.children) {
-//         menuObj.value[item.id] = item.children.map((sub) => sub.id);
-//     }
-//     return {
-//         id: item.id,
-//         label: item.title,
-//         children: item.children?.map((child) => {
-//             return {
-//                 id: child.id,
-//                 label: child.title,
-//             };
-//         }),
-//     };
-// });
-
-const getTreeData = (data) => {
-    return data.map((item) => {
-        const obj: any = {
-            id: item.id,
-            label: item.title,
-        };
-        if (item.children) {
-            menuObj.value[item.id] = item.children.map((sub) => sub.id);
-            obj.children = getTreeData(item.children);
-        }
-        return obj;
-    });
-};
-const data = getTreeData(menuData);
-const checkData = (data: string[]) => {
-    return data.filter((item) => {
-        return !menuObj.value[item] || data.toString().includes(menuObj.value[item].toString());
-    });
-};
-// 获取当前权限
-const checkedKeys = ref<string[]>(checkData(props.permissOptions.permiss));
-
-// 保存权限
-const tree = ref<InstanceType<typeof ElTree>>();
-const onSubmit = () => {
-    // 获取选中的权限
-    const keys = [...tree.value!.getCheckedKeys(false), ...tree.value!.getHalfCheckedKeys()] as number[];
-    console.log(keys);
+const onSubmit = async () => {
+    const keys = [
+        ...tree.value!.getCheckedKeys(false),
+        ...tree.value!.getHalfCheckedKeys(),
+    ] as string[];
+    await updateRolePermissions(props.roleId, { permissionIds: keys });
+    ElMessage.success('保存成功');
 };
 </script>
 
