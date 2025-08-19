@@ -82,18 +82,16 @@ const cascaderOptions = ref<any[]>([]);
 const loadData = async () => {
     parentMap.clear();
     const treeRes = await listPermissions({});
-    const treeData: Permission[] = Array.isArray(treeRes.data)
-        ? treeRes.data
-        : treeRes.data?.records || treeRes.data?.data?.records || [];
+    const treeData: Permission[] = treeRes.data || [];
     cascaderOptions.value = getOptions(treeData);
 
     const pageRes = await fetchPermissionPage({ page: page.index, rows: page.rows });
-    const list: Permission[] = pageRes.data?.data?.records || pageRes.data?.records || [];
+    const list: Permission[] = pageRes.data.records || [];
     list.forEach(item => {
         item.parentName = parentMap.get(item.parentId) || '';
     });
     permissionData.value = list;
-    page.total = pageRes.data?.data?.total ?? pageRes.data?.total ?? 0;
+    page.total = pageRes.data.total || 0;
 };
 
 onMounted(loadData);
@@ -133,7 +131,7 @@ const openAdd = () => {
 };
 const handleEdit = async (row: Permission) => {
     const res = await getPermission(row.id);
-    rowData.value = res.data || {};
+    rowData.value = res.data;
     isEdit.value = true;
     visible.value = true;
 };

@@ -122,7 +122,7 @@ const page = reactive({
 const tableData = ref<DictType[]>([]);
 const getData = async () => {
     const res = await listDict();
-    let list: DictType[] = res.data.data || [];
+    let list: DictType[] = res.data || [];
     if (query.dictName) {
         list = list.filter(item => item.dictName.includes(query.dictName));
     }

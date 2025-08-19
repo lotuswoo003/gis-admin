@@ -1,29 +1,33 @@
 {
-    "list": [
-        {
-            "id": 1,
-            "dict_name": "企业身份",
-            "dict_type": "companyType",
-            "app_code": "admin",
-            "values": [
-                {
-                    "id": 1,
-                    "label": "政府",
-                    "dict_type": "companyType",
-                    "value": "government",
-                    "description": "政府类型",
-                    "sort": 1
-                },
-                {
-                    "id": 2,
-                    "label": "企业",
-                    "dict_type": "companyType",
-                    "value": "enterprise",
-                    "description": "企业类型",
-                    "sort": 2
-                }
-            ]
-        }
-    ],
-    "pageTotal": 1
+    "code": 0,
+    "message": "success",
+    "data": {
+        "list": [
+            {
+                "id": 1,
+                "dict_name": "企业身份",
+                "dict_type": "companyType",
+                "app_code": "admin",
+                "values": [
+                    {
+                        "id": 1,
+                        "label": "政府",
+                        "dict_type": "companyType",
+                        "value": "government",
+                        "description": "政府类型",
+                        "sort": 1
+                    },
+                    {
+                        "id": 2,
+                        "label": "企业",
+                        "dict_type": "companyType",
+                        "value": "enterprise",
+                        "description": "企业类型",
+                        "sort": 2
+                    }
+                ]
+            }
+        ],
+        "pageTotal": 1
+    }
 }

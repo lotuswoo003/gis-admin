@@ -1,3 +1,5 @@
+import type { ApiResponse } from './response';
+
 export interface PostalCode {
     id: number;
     name: string;
@@ -10,8 +12,4 @@ export interface PostalCode {
     deletedAt: string | null;
 }
 
-export interface PostalCodeListResponse {
-    code: number;
-    message: string;
-    data: PostalCode[];
-}
+export type PostalCodeListResponse = ApiResponse<PostalCode[]>;

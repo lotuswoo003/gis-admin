@@ -28,6 +28,20 @@ Please check the version of vue2 in [tag V4.2.0](https://github.com/lin-xin/vue-
 
 The scheme as a set of multi-function background frame templates, suitable for most of the WEB management system development. Convenient development fast simple good components based on Vue3 and ElementPlus. Color separation of color style, support manual switch themes, and it is convenient to use a custom theme color.
 
+## API Specification
+
+All backend APIs return the following format:
+
+```
+{
+  "code": 0,
+  "message": "success",
+  "data": { /* actual data */ }
+}
+```
+
+`code` equal to `0` means success and `data` holds the business payload.
+
 ## Function
 
 -   [x] Element-UI

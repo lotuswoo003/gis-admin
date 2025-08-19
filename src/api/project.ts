@@ -1,8 +1,8 @@
 import request from '@/utils/request';
-import type { ProjectPageQuery, ProjectSave, ProjectUpdate } from '@/types/project';
+import type { ProjectPageQuery, ProjectSave, ProjectUpdate, Project } from '@/types/project';
 
 export const fetchProjectPage = (data: ProjectPageQuery) => {
-    return request({
+    return request<{ total: number; records: Project[] }>({
         url: '/project/page',
         method: 'post',
         data,
@@ -10,14 +10,14 @@ export const fetchProjectPage = (data: ProjectPageQuery) => {
 };
 
 export const getProject = (id: number) => {
-    return request({
+    return request<Project>({
         url: `/project/get/${id}`,
         method: 'get',
     });
 };
 
 export const saveProject = (data: ProjectSave) => {
-    return request({
+    return request<boolean>({
         url: '/project/save',
         method: 'post',
         data,
@@ -25,7 +25,7 @@ export const saveProject = (data: ProjectSave) => {
 };
 
 export const updateProject = (data: ProjectUpdate) => {
-    return request({
+    return request<boolean>({
         url: '/project/update',
         method: 'post',
         data,

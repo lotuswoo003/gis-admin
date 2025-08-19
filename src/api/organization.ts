@@ -1,8 +1,8 @@
 import request from '@/utils/request';
-import type { OrganizationPageQuery, OrganizationSave, OrganizationUpdate } from '@/types/org';
+import type { OrganizationPageQuery, OrganizationSave, OrganizationUpdate, Organization } from '@/types/org';
 
 export const fetchOrganizationPage = (data: OrganizationPageQuery) => {
-    return request({
+    return request<{ total: number; records: Organization[] }>({
         url: '/organization/page',
         method: 'post',
         data,
@@ -10,14 +10,14 @@ export const fetchOrganizationPage = (data: OrganizationPageQuery) => {
 };
 
 export const getOrganization = (id: number) => {
-    return request({
+    return request<Organization>({
         url: `/organization/get/${id}`,
         method: 'get',
     });
 };
 
 export const saveOrganization = (data: OrganizationSave) => {
-    return request({
+    return request<boolean>({
         url: '/organization/save',
         method: 'post',
         data,
@@ -25,7 +25,7 @@ export const saveOrganization = (data: OrganizationSave) => {
 };
 
 export const updateOrganization = (data: OrganizationUpdate) => {
-    return request({
+    return request<boolean>({
         url: '/organization/update',
         method: 'post',
         data,
