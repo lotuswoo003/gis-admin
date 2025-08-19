@@ -4,7 +4,7 @@
             <TableCustom :columns="columns" :tableData="permissionData" row-key="id" :has-pagination="false"
                 :viewFunc="handleView" :delFunc="handleDelete" :editFunc="handleEdit">
                 <template #toolbarBtn>
-                    <el-button type="warning" :icon="CirclePlusFilled" @click="visible = true">新增</el-button>
+                <el-button type="warning" :icon="CirclePlusFilled" @click="openAdd">新增</el-button>
                 </template>
             </TableCustom>
 
@@ -32,8 +32,8 @@ import { CirclePlusFilled } from '@element-plus/icons-vue';
 import TableCustom from '@/components/table-custom.vue';
 import TableDetail from '@/components/table-detail.vue';
 import { FormOption } from '@/types/form-option';
-import { listPermissions } from '@/api/permission';
-import type { Permission } from '@/types/permission';
+import { listPermissions, getPermission, createPermission, updatePermission, deletePermission } from '@/api/permission';
+import type { Permission, PermissionCreateRequest, PermissionUpdateRequest } from '@/types/permission';
 
 // 表格相关
 let columns = ref([
@@ -104,13 +104,26 @@ let options = ref<FormOption>({
 const visible = ref(false);
 const isEdit = ref(false);
 const rowData = ref<Permission>({} as Permission);
-const handleEdit = (row: Permission) => {
-    rowData.value = { ...row };
+const openAdd = () => {
+    rowData.value = {} as Permission;
+    isEdit.value = false;
+    visible.value = true;
+};
+const handleEdit = async (row: Permission) => {
+    const res = await getPermission(row.id);
+    rowData.value = res.data || {};
     isEdit.value = true;
     visible.value = true;
 };
-const updateData = () => {
+const updateData = async (form: Permission) => {
+    if (isEdit.value) {
+        await updatePermission(form as PermissionUpdateRequest);
+    } else {
+        await createPermission(form as PermissionCreateRequest);
+    }
+    ElMessage.success('操作成功');
     closeDialog();
+    loadData();
 };
 
 const closeDialog = () => {
@@ -124,41 +137,25 @@ const viewData = ref({
     row: {},
     list: [] as any[],
 });
-const handleView = (row: Permission) => {
-    viewData.value.row = { ...row };
+const handleView = async (row: Permission) => {
+    const res = await getPermission(row.id);
+    viewData.value.row = { ...res.data, parentName: row.parentName };
     viewData.value.list = [
-        {
-            prop: 'id',
-            label: '菜单ID',
-        },
-        {
-            prop: 'parentName',
-            label: '父节点',
-        },
-        {
-            prop: 'name',
-            label: '菜单名称',
-        },
-        {
-            prop: 'code',
-            label: '权限编码',
-        },
-        {
-            prop: 'path',
-            label: '路径',
-        },
-        {
-            prop: 'disableFlag',
-            label: '是否禁用',
-            value: row.disableFlag ? '是' : '否',
-        },
+        { prop: 'id', label: '菜单ID' },
+        { prop: 'parentName', label: '父节点' },
+        { prop: 'name', label: '菜单名称' },
+        { prop: 'code', label: '权限编码' },
+        { prop: 'path', label: '路径' },
+        { prop: 'disableFlag', label: '是否禁用', value: res.data.disableFlag ? '是' : '否' },
     ];
     visible1.value = true;
 };
 
 // 删除相关
-const handleDelete = (row: Permission) => {
+const handleDelete = async (row: Permission) => {
+    await deletePermission(row.id);
     ElMessage.success('删除成功');
+    loadData();
 }
 </script>
 

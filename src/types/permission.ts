@@ -1,3 +1,18 @@
+export interface Permission {
+    id: string;
+    name: string;
+    code: string;
+    description: string;
+    path: string;
+    parentId: string;
+    type: string;
+    sort: number;
+    disableFlag: number;
+    parentName?: string;
+    treePath?: string;
+    children?: Permission[];
+}
+
 export interface PermissionCreateRequest {
     name: string;
     code: string;
