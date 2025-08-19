@@ -13,6 +13,12 @@ export interface Permission {
     children?: Permission[];
 }
 
+export interface PermissionPageQuery {
+    page: number;
+    rows: number;
+    name?: string;
+}
+
 export interface PermissionCreateRequest {
     name: string;
     code: string;

@@ -1,13 +1,22 @@
 <template>
     <div>
         <div class="container">
-            <TableCustom :columns="columns" :tableData="permissionData" row-key="id" :has-pagination="false"
-                :viewFunc="handleView" :delFunc="handleDelete" :editFunc="handleEdit">
+            <TableCustom
+                :columns="columns"
+                :tableData="permissionData"
+                row-key="id"
+                :total="page.total"
+                :current-page="page.index"
+                :page-size="page.rows"
+                :viewFunc="handleView"
+                :delFunc="handleDelete"
+                :editFunc="handleEdit"
+                :change-page="changePage"
+            >
                 <template #toolbarBtn>
-                <el-button type="warning" :icon="CirclePlusFilled" @click="openAdd">新增</el-button>
+                    <el-button type="warning" :icon="CirclePlusFilled" @click="openAdd">新增</el-button>
                 </template>
             </TableCustom>
-
         </div>
         <el-dialog :title="isEdit ? '编辑' : '新增'" v-model="visible" width="700px" destroy-on-close
             :close-on-click-modal="false" @close="closeDialog">
@@ -26,13 +35,13 @@
 </template>
 
 <script setup lang="ts" name="system-menu">
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, reactive } from 'vue';
 import { ElMessage } from 'element-plus';
 import { CirclePlusFilled } from '@element-plus/icons-vue';
 import TableCustom from '@/components/table-custom.vue';
 import TableDetail from '@/components/table-detail.vue';
 import { FormOption } from '@/types/form-option';
-import { listPermissions, getPermission, createPermission, updatePermission, deletePermission } from '@/api/permission';
+import { listPermissions, fetchPermissionPage, getPermission, createPermission, updatePermission, deletePermission } from '@/api/permission';
 import type { Permission, PermissionCreateRequest, PermissionUpdateRequest } from '@/types/permission';
 
 // 表格相关
@@ -46,9 +55,16 @@ let columns = ref([
 ])
 
 const permissionData = ref<Permission[]>([]);
+const page = reactive({
+    index: 1,
+    rows: 10,
+    total: 0,
+});
 
+const parentMap = new Map<string, string>();
 const getOptions = (data: Permission[]): any[] => {
     return data.map(item => {
+        parentMap.set(item.id, item.name);
         const option: any = {
             label: item.name,
             value: item.id,
@@ -60,26 +76,29 @@ const getOptions = (data: Permission[]): any[] => {
     });
 };
 
-const buildParentName = (items: Permission[], parent?: Permission) => {
-    items.forEach(item => {
-        item.parentName = parent ? parent.name : '';
-        if (item.children && item.children.length) {
-            buildParentName(item.children, item);
-        }
-    });
-};
-
 const cascaderOptions = ref<any[]>([]);
 
 const loadData = async () => {
-    const res = await listPermissions({});
-    const data: Permission[] = res.data || [];
-    buildParentName(data);
-    permissionData.value = data;
-    cascaderOptions.value = getOptions(data);
+    parentMap.clear();
+    const treeRes = await listPermissions({});
+    const treeData: Permission[] = treeRes.data || [];
+    cascaderOptions.value = getOptions(treeData);
+
+    const pageRes = await fetchPermissionPage({ page: page.index, rows: page.rows });
+    const list: Permission[] = pageRes.data.data.records || [];
+    list.forEach(item => {
+        item.parentName = parentMap.get(item.parentId) || '';
+    });
+    permissionData.value = list;
+    page.total = pageRes.data.data.total || 0;
 };
 
 onMounted(loadData);
+
+const changePage = (val: number) => {
+    page.index = val;
+    loadData();
+};
 
 // 新增/编辑弹窗相关
 let options = ref<FormOption>({

@@ -1,5 +1,5 @@
 import request from '@/utils/request';
-import type { PermissionCreateRequest, PermissionUpdateRequest } from '@/types/permission';
+import type { PermissionCreateRequest, PermissionUpdateRequest, PermissionPageQuery } from '@/types/permission';
 
 export const getPermission = (id: string) => {
     return request({
@@ -11,6 +11,14 @@ export const getPermission = (id: string) => {
 export const listPermissions = (data: Record<string, any>) => {
     return request({
         url: '/permission/list',
+        method: 'post',
+        data,
+    });
+};
+
+export const fetchPermissionPage = (data: PermissionPageQuery) => {
+    return request({
+        url: '/permission/page',
         method: 'post',
         data,
     });
