@@ -136,10 +136,16 @@ const handleEdit = async (row: Permission) => {
     visible.value = true;
 };
 const updateData = async (form: Permission) => {
+    const payload: Permission = {
+        ...form,
+        parentId: Array.isArray(rowData.value.parentId)
+            ? (rowData.value.parentId as any[])[rowData.value.parentId.length - 1]
+            : rowData.value.parentId,
+    } as Permission;
     if (isEdit.value) {
-        await updatePermission(form as PermissionUpdateRequest);
+        await updatePermission(payload as PermissionUpdateRequest);
     } else {
-        await createPermission(form as PermissionCreateRequest);
+        await createPermission(payload as PermissionCreateRequest);
     }
     ElMessage.success('操作成功');
     closeDialog();
