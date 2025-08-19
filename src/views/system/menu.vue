@@ -1,15 +1,10 @@
 <template>
     <div>
         <div class="container">
-            <TableCustom :columns="columns" :tableData="menuData" row-key="index" :has-pagination="false"
+            <TableCustom :columns="columns" :tableData="permissionData" row-key="id" :has-pagination="false"
                 :viewFunc="handleView" :delFunc="handleDelete" :editFunc="handleEdit">
                 <template #toolbarBtn>
                     <el-button type="warning" :icon="CirclePlusFilled" @click="visible = true">新增</el-button>
-                </template>
-                <template #icon="{ rows }">
-                    <el-icon>
-                        <component :is="rows.icon"></component>
-                    </el-icon>
                 </template>
             </TableCustom>
 
@@ -17,74 +12,99 @@
         <el-dialog :title="isEdit ? '编辑' : '新增'" v-model="visible" width="700px" destroy-on-close
             :close-on-click-modal="false" @close="closeDialog">
             <TableEdit :form-data="rowData" :options="options" :edit="isEdit" :update="updateData">
-                <template #parent>
-                    <el-cascader v-model="rowData.pid" :options="cascaderOptions" :props="{ checkStrictly: true }"
+                <template #parentId>
+                    <el-cascader v-model="rowData.parentId" :options="cascaderOptions" :props="{ checkStrictly: true }"
                         clearable />
                 </template>
             </TableEdit>
         </el-dialog>
         <el-dialog title="查看详情" v-model="visible1" width="700px" destroy-on-close>
             <TableDetail :data="viewData">
-                <template #icon="{ rows }">
-                    <el-icon>
-                        <component :is="rows.icon"></component>
-                    </el-icon>
-                </template>
             </TableDetail>
         </el-dialog>
     </div>
 </template>
 
 <script setup lang="ts" name="system-menu">
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import { CirclePlusFilled } from '@element-plus/icons-vue';
-import { Menus } from '@/types/menu';
 import TableCustom from '@/components/table-custom.vue';
 import TableDetail from '@/components/table-detail.vue';
 import { FormOption } from '@/types/form-option';
-import { menuData } from '@/components/menu';
+import { listPermissions } from '@/api/permission';
+import type { Permission } from '@/types/permission';
 
 // 表格相关
 let columns = ref([
-    { prop: 'title', label: '菜单名称', align: 'left' },
-    { prop: 'icon', label: '图标' },
-    { prop: 'index', label: '路由路径' },
-    { prop: 'permiss', label: '权限标识' },
+    { prop: 'name', label: '菜单名称', align: 'left' },
+    { prop: 'code', label: '权限编码' },
+    { prop: 'parentName', label: '父节点' },
+    { prop: 'disableFlag', label: '是否禁用', formatter: (val: number) => (val ? '是' : '否') },
+    { prop: 'path', label: '路径' },
     { prop: 'operator', label: '操作', width: 250 },
 ])
 
-const getOptions = (data: any) => {
-    return data.map(item => {
-        const a: any = {
-            label: item.title,
-            value: item.id,
-        }
-        if (item.children) {
-            a.children = getOptions(item.children)
-        }
-        return a
-    })
-}
-const cascaderOptions = ref(getOptions(menuData));
+const permissionData = ref<Permission[]>([]);
 
+const getOptions = (data: Permission[]): any[] => {
+    return data.map(item => {
+        const option: any = {
+            label: item.name,
+            value: item.id,
+        };
+        if (item.children && item.children.length) {
+            option.children = getOptions(item.children);
+        }
+        return option;
+    });
+};
+
+const buildParentName = (items: Permission[], parent?: Permission) => {
+    items.forEach(item => {
+        item.parentName = parent ? parent.name : '';
+        if (item.children && item.children.length) {
+            buildParentName(item.children, item);
+        }
+    });
+};
+
+const cascaderOptions = ref<any[]>([]);
+
+const loadData = async () => {
+    const res = await listPermissions({});
+    const data: Permission[] = res.data || [];
+    buildParentName(data);
+    permissionData.value = data;
+    cascaderOptions.value = getOptions(data);
+};
+
+onMounted(loadData);
 
 // 新增/编辑弹窗相关
 let options = ref<FormOption>({
     labelWidth: '100px',
     span: 12,
     list: [
-        { type: 'input', label: '菜单名称', prop: 'title', required: true },
-        { type: 'input', label: '路由路径', prop: 'index', required: true },
-        { type: 'input', label: '图标', prop: 'icon' },
-        { type: 'input', label: '权限标识', prop: 'permiss' },
-        { type: 'parent', label: '父菜单', prop: 'parent' },
+        { type: 'input', label: '菜单名称', prop: 'name', required: true },
+        { type: 'input', label: '权限编码', prop: 'code', required: true },
+        { type: 'input', label: '路径', prop: 'path', required: true },
+        { type: 'parent', label: '父节点', prop: 'parentId' },
+        {
+            type: 'switch',
+            label: '是否禁用',
+            prop: 'disableFlag',
+            activeValue: 1,
+            inactiveValue: 0,
+            activeText: '禁用',
+            inactiveText: '启用'
+        },
     ]
 })
 const visible = ref(false);
 const isEdit = ref(false);
-const rowData = ref<any>({});
-const handleEdit = (row: Menus) => {
+const rowData = ref<Permission>({} as Permission);
+const handleEdit = (row: Permission) => {
     rowData.value = { ...row };
     isEdit.value = true;
     visible.value = true;
@@ -102,41 +122,42 @@ const closeDialog = () => {
 const visible1 = ref(false);
 const viewData = ref({
     row: {},
-    list: []
+    list: [] as any[],
 });
-const handleView = (row: Menus) => {
-    viewData.value.row = { ...row }
+const handleView = (row: Permission) => {
+    viewData.value.row = { ...row };
     viewData.value.list = [
         {
             prop: 'id',
             label: '菜单ID',
         },
         {
-            prop: 'pid',
-            label: '父菜单ID',
+            prop: 'parentName',
+            label: '父节点',
         },
         {
-            prop: 'title',
+            prop: 'name',
             label: '菜单名称',
         },
         {
-            prop: 'index',
-            label: '路由路径',
+            prop: 'code',
+            label: '权限编码',
         },
         {
-            prop: 'permiss',
-            label: '权限标识',
+            prop: 'path',
+            label: '路径',
         },
         {
-            prop: 'icon',
-            label: '图标',
+            prop: 'disableFlag',
+            label: '是否禁用',
+            value: row.disableFlag ? '是' : '否',
         },
-    ]
+    ];
     visible1.value = true;
 };
 
 // 删除相关
-const handleDelete = (row: Menus) => {
+const handleDelete = (row: Permission) => {
     ElMessage.success('删除成功');
 }
 </script>
