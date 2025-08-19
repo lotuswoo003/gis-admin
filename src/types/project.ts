@@ -9,7 +9,7 @@ export interface Project {
 }
 
 export interface ProjectPageQuery {
-    size: number;
+    rows: number;
     page: number;
     name?: string;
 }

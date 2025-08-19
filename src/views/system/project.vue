@@ -83,12 +83,12 @@ let columns = ref([
 ]);
 const page = reactive({
     index: 1,
-    size: 10,
+    rows: 10,
     total: 0,
 });
 const tableData = ref<Project[]>([]);
 const getData = async () => {
-    const res = await fetchProjectPage({ page: page.index, size: page.size, name: query.name });
+    const res = await fetchProjectPage({ page: page.index, rows: page.rows, name: query.name });
     tableData.value = (res.data.data.records || []) as Project[];
     page.total = res.data.data.total || 0;
 };

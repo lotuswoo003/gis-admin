@@ -61,12 +61,12 @@ let columns = ref([
 ]);
 const page = reactive({
     index: 1,
-    size: 10,
+    rows: 10,
     total: 0,
 });
 const tableData = ref<Organization[]>([]);
 const getData = async () => {
-    const res = await fetchOrganizationPage({ page: page.index, size: page.size, name: query.name });
+    const res = await fetchOrganizationPage({ page: page.index, rows: page.rows, name: query.name });
     tableData.value = (res.data.data.records || []) as Organization[];
     page.total = res.data.data.total || 0;
 };

@@ -13,7 +13,7 @@ export interface Organization {
 }
 
 export interface OrganizationPageQuery {
-    size: number;
+    rows: number;
     page: number;
     name?: string;
 }

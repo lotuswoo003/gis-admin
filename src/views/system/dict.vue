@@ -116,7 +116,7 @@ let columns = ref([
 ]);
 const page = reactive({
     index: 1,
-    size: 10,
+    rows: 10,
     total: 0,
 });
 const tableData = ref<DictType[]>([]);
@@ -127,8 +127,8 @@ const getData = async () => {
         list = list.filter(item => item.dictName.includes(query.dictName));
     }
     page.total = list.length;
-    const start = (page.index - 1) * page.size;
-    tableData.value = list.slice(start, start + page.size);
+    const start = (page.index - 1) * page.rows;
+    tableData.value = list.slice(start, start + page.rows);
 };
 getData();
 

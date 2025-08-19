@@ -52,7 +52,7 @@ let columns = ref([
 ])
 const page = reactive({
     index: 1,
-    size: 10,
+    rows: 10,
     total: 0,
 })
 const tableData = ref<User[]>([]);
