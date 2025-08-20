@@ -124,6 +124,16 @@ let options = ref<FormOption>({
         { type: 'input', label: '路径', prop: 'path', required: true },
         { type: 'parent', label: '父节点', prop: 'parentId' },
         {
+            type: 'select',
+            label: '类型',
+            prop: 'type',
+            required: true,
+            opts: [
+                { label: '菜单', value: '1' },
+                { label: '按钮', value: '2' },
+            ],
+        },
+        {
             type: 'switch',
             label: '是否禁用',
             prop: 'disableFlag',
@@ -136,9 +146,9 @@ let options = ref<FormOption>({
 })
 const visible = ref(false);
 const isEdit = ref(false);
-const rowData = ref<Permission>({} as Permission);
+const rowData = ref<Permission>({ type: '1' } as Permission);
 const openAdd = () => {
-    rowData.value = {} as Permission;
+    rowData.value = { type: '1' } as Permission;
     isEdit.value = false;
     visible.value = true;
 };
