@@ -1,5 +1,6 @@
 <template>
     <div>
+        <TableSearch :query="query" :options="searchOpt" :search="handleSearch" />
         <div class="container">
             <TableCustom
                 :columns="columns"
@@ -8,13 +9,16 @@
                 :total="page.total"
                 :current-page="page.index"
                 :page-size="page.rows"
-                :viewFunc="handleView"
                 :delFunc="handleDelete"
                 :editFunc="handleEdit"
                 :change-page="changePage"
             >
                 <template #toolbarBtn>
                     <el-button type="warning" :icon="CirclePlusFilled" @click="openAdd">新增</el-button>
+                </template>
+                <template #operator="{ rows }">
+                    <el-button type="primary" size="small" :icon="Edit" @click="handleEdit(rows)">编辑</el-button>
+                    <el-button type="danger" size="small" :icon="Delete" @click="handleDelete(rows)">删除</el-button>
                 </template>
             </TableCustom>
         </div>
@@ -27,20 +31,16 @@
                 </template>
             </TableEdit>
         </el-dialog>
-        <el-dialog title="查看详情" v-model="visible1" width="700px" destroy-on-close>
-            <TableDetail :data="viewData">
-            </TableDetail>
-        </el-dialog>
     </div>
 </template>
 
 <script setup lang="ts" name="system-menu">
 import { onMounted, ref, reactive } from 'vue';
 import { ElMessage } from 'element-plus';
-import { CirclePlusFilled } from '@element-plus/icons-vue';
+import { CirclePlusFilled, Edit, Delete } from '@element-plus/icons-vue';
 import TableCustom from '@/components/table-custom.vue';
-import TableDetail from '@/components/table-detail.vue';
-import { FormOption } from '@/types/form-option';
+import TableSearch from '@/components/table-search.vue';
+import { FormOption, FormOptionList } from '@/types/form-option';
 import { listPermissions, fetchPermissionPage, getPermission, createPermission, updatePermission, deletePermission } from '@/api/permission';
 import type { Permission, PermissionCreateRequest, PermissionUpdateRequest } from '@/types/permission';
 
@@ -49,9 +49,10 @@ let columns = ref([
     { prop: 'name', label: '菜单名称', align: 'left' },
     { prop: 'code', label: '权限编码' },
     { prop: 'parentName', label: '父节点' },
+    { prop: 'type', label: '类型', formatter: (val: string) => (val === '1' ? '菜单' : '按钮') },
     { prop: 'disableFlag', label: '是否禁用', formatter: (val: number) => (val ? '是' : '否') },
     { prop: 'path', label: '路径' },
-    { prop: 'operator', label: '操作', width: 250 },
+    { prop: 'operator', label: '操作', width: 200 },
 ])
 
 const permissionData = ref<Permission[]>([]);
@@ -60,6 +61,18 @@ const page = reactive({
     rows: 10,
     total: 0,
 });
+
+// 查询相关
+const query = reactive({
+    name: '',
+});
+const searchOpt = ref<FormOptionList[]>([
+    { type: 'input', label: '菜单名称：', prop: 'name' },
+]);
+const handleSearch = () => {
+    page.index = 1;
+    loadData();
+};
 
 const parentMap = new Map<string, string>();
 const getOptions = (data: Permission[] | undefined | null): any[] => {
@@ -85,7 +98,7 @@ const loadData = async () => {
     const treeData: Permission[] = treeRes.data || [];
     cascaderOptions.value = getOptions(treeData);
 
-    const pageRes = await fetchPermissionPage({ page: page.index, rows: page.rows });
+    const pageRes = await fetchPermissionPage({ page: page.index, rows: page.rows, name: query.name });
     const list: Permission[] = pageRes.data.records || [];
     list.forEach(item => {
         item.parentName = parentMap.get(item.parentId) || '';
@@ -155,26 +168,6 @@ const updateData = async (form: Permission) => {
 const closeDialog = () => {
     visible.value = false;
     isEdit.value = false;
-};
-
-// 查看详情弹窗相关
-const visible1 = ref(false);
-const viewData = ref({
-    row: {},
-    list: [] as any[],
-});
-const handleView = async (row: Permission) => {
-    const res = await getPermission(row.id);
-    viewData.value.row = { ...res.data, parentName: row.parentName };
-    viewData.value.list = [
-        { prop: 'id', label: '菜单ID' },
-        { prop: 'parentName', label: '父节点' },
-        { prop: 'name', label: '菜单名称' },
-        { prop: 'code', label: '权限编码' },
-        { prop: 'path', label: '路径' },
-        { prop: 'disableFlag', label: '是否禁用', value: res.data.disableFlag ? '是' : '否' },
-    ];
-    visible1.value = true;
 };
 
 // 删除相关
