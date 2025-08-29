@@ -16,6 +16,16 @@ export default defineConfig({
 			resolvers: [ElementPlusResolver()]
 		})
 	],
+    server: {
+        proxy: {
+            '/codex-api': {
+                target: 'http://192.168.106.97:10200',
+                changeOrigin: true,
+                secure: false,
+                rewrite: (path) => path.replace(/^\/codex-api/, ''),
+            },
+        },
+    },
 	optimizeDeps: {
 		include: ['schart.js']
 	},

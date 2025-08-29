@@ -8,6 +8,10 @@ const service = axios.create({
 
 service.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
+        // Normalize URL to avoid double slashes when combining with baseURL
+        if (typeof config.url === 'string') {
+            config.url = config.url.replace(/^\/+/, '');
+        }
         const token = localStorage.getItem('accessToken');
         if (token) {
             config.headers = config.headers || {};

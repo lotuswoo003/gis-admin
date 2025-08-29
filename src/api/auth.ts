@@ -13,9 +13,8 @@ export interface Token {
 
 export const loginByPassword = (data: LoginPasswordRequest) => {
   return request<Token>({
-    url: '/login/password',
+    url: 'sys/login/password',
     method: 'post',
     data,
   });
 };
-
