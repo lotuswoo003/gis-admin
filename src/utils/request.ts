@@ -1,4 +1,4 @@
-import axios, { AxiosError, InternalAxiosRequestConfig, AxiosRequestConfig } from 'axios';
+import axios, { AxiosError, InternalAxiosRequestConfig, AxiosRequestConfig, AxiosHeaders } from 'axios';
 import type { ApiResponse } from '@/types/response';
 
 const service = axios.create({
@@ -14,8 +14,11 @@ service.interceptors.request.use(
         }
         const token = localStorage.getItem('accessToken');
         if (token) {
-            config.headers = config.headers || {};
-            (config.headers as any)['Authorization'] = `Bearer ${token}`;
+            const headers = config.headers instanceof AxiosHeaders
+                ? config.headers
+                : new AxiosHeaders(config.headers as any);
+            headers.set('Authorization', `Bearer ${token}`);
+            config.headers = headers;
         }
         return config;
     },
@@ -34,8 +37,8 @@ service.interceptors.response.use(
                 if (res.code === 0) return res as any;
                 return Promise.reject(res?.message || 'Error');
             }
-            // Fallback: some endpoints may return raw payload (e.g., Token)
-            return data as any;
+            // Wrap raw payload (e.g., Token) to ApiResponse shape
+            return { code: 0, message: 'success', data } as any;
         }
         return Promise.reject('Error');
     },
@@ -45,7 +48,7 @@ service.interceptors.response.use(
     }
 );
 
-const request = <T>(config: AxiosRequestConfig): Promise<ApiResponse<T> | T> => {
+const request = <T>(config: AxiosRequestConfig): Promise<ApiResponse<T>> => {
     return service(config);
 };
 

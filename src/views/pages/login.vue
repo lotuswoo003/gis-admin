@@ -82,8 +82,8 @@
         return false;
       }
       try {
-        const res: any = await loginByPassword({ account: param.account, password: param.password });
-        const token: Token = (res?.data && (res.data as any).accessToken) ? res.data : res;
+        const res = await loginByPassword({ account: param.account, password: param.password });
+        const token: Token = res.data as Token;
         if (!token?.accessToken) throw new Error('未获取到 accessToken');
         localStorage.setItem('accessToken', token.accessToken);
         ElMessage.success('登录成功');
@@ -173,4 +173,3 @@
       color: #787878;
   }
   </style>
-
