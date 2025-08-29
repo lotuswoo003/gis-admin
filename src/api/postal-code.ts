@@ -8,7 +8,7 @@ export interface PostalCodeParams {
 
 export const fetchPostalCodeList = (data: PostalCodeParams) => {
     return request<PostalCode[]>({
-        url: '/postal-code/list',
+        url: 'sys/postal-code/list',
         method: 'post',
         data,
     });

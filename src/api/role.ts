@@ -3,14 +3,14 @@ import type { Role, RoleCreateRequest, RoleUpdateRequest, RolePageRequest } from
 
 export const getRole = (id: string) => {
     return request<Role>({
-        url: `/roles/get/${id}`,
+        url: `sys/roles/get/${id}`,
         method: 'post',
     });
 };
 
 export const listRoles = (data: Record<string, any>) => {
     return request<Role[]>({
-        url: '/roles/list',
+        url: 'sys/roles/list',
         method: 'post',
         data,
     });
@@ -18,7 +18,7 @@ export const listRoles = (data: Record<string, any>) => {
 
 export const fetchRolePage = (data: RolePageRequest) => {
     return request<{ total: number; records: Role[] }>({
-        url: '/roles/page',
+        url: 'sys/roles/page',
         method: 'post',
         data,
     });
@@ -26,7 +26,7 @@ export const fetchRolePage = (data: RolePageRequest) => {
 
 export const createRole = (data: RoleCreateRequest) => {
     return request<boolean>({
-        url: '/roles/create',
+        url: 'sys/roles/create',
         method: 'post',
         data,
     });
@@ -34,7 +34,7 @@ export const createRole = (data: RoleCreateRequest) => {
 
 export const updateRole = (data: RoleUpdateRequest) => {
     return request<boolean>({
-        url: '/roles/update',
+        url: 'sys/roles/update',
         method: 'post',
         data,
     });
@@ -42,14 +42,14 @@ export const updateRole = (data: RoleUpdateRequest) => {
 
 export const deleteRole = (id: string) => {
     return request<boolean>({
-        url: `/roles/delete/${id}`,
+        url: `sys/roles/delete/${id}`,
         method: 'post',
     });
 };
 
 export const assignRole = (userId: string, data: { roleId: string }) => {
     return request<boolean>({
-        url: `/roles/assign/${userId}`,
+        url: `sys/roles/assign/${userId}`,
         method: 'post',
         data,
     });
@@ -57,14 +57,14 @@ export const assignRole = (userId: string, data: { roleId: string }) => {
 
 export const getRolePermissionIds = (roleId: string) => {
     return request<string[]>({
-        url: `/roles/permission/get/${roleId}`,
+        url: `sys/roles/permission/get/${roleId}`,
         method: 'post',
     });
 };
 
 export const updateRolePermissions = (roleId: string, data: { permissionIds: string[] }) => {
     return request<boolean>({
-        url: `/roles/permission/update/${roleId}`,
+        url: `sys/roles/permission/update/${roleId}`,
         method: 'post',
         data,
     });

@@ -3,7 +3,7 @@ import type { ProjectPageQuery, ProjectSave, ProjectUpdate, Project } from '@/ty
 
 export const fetchProjectPage = (data: ProjectPageQuery) => {
     return request<{ total: number; records: Project[] }>({
-        url: '/project/page',
+        url: 'sys/project/page',
         method: 'post',
         data,
     });
@@ -11,14 +11,14 @@ export const fetchProjectPage = (data: ProjectPageQuery) => {
 
 export const getProject = (id: number) => {
     return request<Project>({
-        url: `/project/get/${id}`,
+        url: `sys/project/get/${id}`,
         method: 'get',
     });
 };
 
 export const saveProject = (data: ProjectSave) => {
     return request<boolean>({
-        url: '/project/save',
+        url: 'sys/project/save',
         method: 'post',
         data,
     });
@@ -26,7 +26,7 @@ export const saveProject = (data: ProjectSave) => {
 
 export const updateProject = (data: ProjectUpdate) => {
     return request<boolean>({
-        url: '/project/update',
+        url: 'sys/project/update',
         method: 'post',
         data,
     });

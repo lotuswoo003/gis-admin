@@ -3,7 +3,7 @@ import type { OrganizationPageQuery, OrganizationSave, OrganizationUpdate, Organ
 
 export const fetchOrganizationPage = (data: OrganizationPageQuery) => {
     return request<{ total: number; records: Organization[] }>({
-        url: '/organization/page',
+        url: 'sys/organization/page',
         method: 'post',
         data,
     });
@@ -11,14 +11,14 @@ export const fetchOrganizationPage = (data: OrganizationPageQuery) => {
 
 export const getOrganization = (id: number) => {
     return request<Organization>({
-        url: `/organization/get/${id}`,
+        url: `sys/organization/get/${id}`,
         method: 'get',
     });
 };
 
 export const saveOrganization = (data: OrganizationSave) => {
     return request<boolean>({
-        url: '/organization/save',
+        url: 'sys/organization/save',
         method: 'post',
         data,
     });
@@ -26,7 +26,7 @@ export const saveOrganization = (data: OrganizationSave) => {
 
 export const updateOrganization = (data: OrganizationUpdate) => {
     return request<boolean>({
-        url: '/organization/update',
+        url: 'sys/organization/update',
         method: 'post',
         data,
     });

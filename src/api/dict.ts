@@ -4,7 +4,7 @@ import { DictType } from '@/types/dict';
 // 获取字典类型列表
 export const listDict = () => {
   return request<DictType[]>({
-    url: '/dict',
+    url: 'sys/dict',
     method: 'get',
   });
 };
@@ -12,7 +12,7 @@ export const listDict = () => {
 // 根据ID获取字典类型详情
 export const getDict = (id: string) => {
   return request<DictType>({
-    url: `/dict/${id}`,
+    url: `sys/dict/${id}`,
     method: 'get',
   });
 };
@@ -20,7 +20,7 @@ export const getDict = (id: string) => {
 // 新增字典类型
 export const createDict = (data: DictType) => {
   return request<boolean>({
-    url: '/dict',
+    url: 'sys/dict',
     method: 'post',
     data,
   });
@@ -29,7 +29,7 @@ export const createDict = (data: DictType) => {
 // 编辑字典类型
 export const updateDict = (id: string, data: DictType) => {
   return request<boolean>({
-    url: `/dict/${id}`,
+    url: `sys/dict/${id}`,
     method: 'put',
     data,
   });
@@ -38,7 +38,7 @@ export const updateDict = (id: string, data: DictType) => {
 // 删除字典类型
 export const deleteDict = (id: string) => {
   return request<boolean>({
-    url: `/dict/${id}`,
+    url: `sys/dict/${id}`,
     method: 'delete',
   });
 };
