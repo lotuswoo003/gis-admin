@@ -1,7 +1,10 @@
 <template>
   <div class="menu-page">
     <div class="left">
-      <div class="left-header">菜单</div>
+      <div class="left-header">
+        <el-input v-model="menuKeyword" placeholder="搜索菜单" clearable @input="applyMenuFilter" style="margin-right:8px;width: 160px;" />
+        <el-button type="primary" :icon="CirclePlusFilled" @click="openAddMenu">新增菜单</el-button>
+      </div>
       <el-tree
         class="menu-tree"
         :data="menuTree"
@@ -14,7 +17,7 @@
     <div class="right">
       <div class="right-header">
         <div>操作权限</div>
-        <el-button type="primary" :icon="CirclePlusFilled" @click="openAdd" :disabled="!selectedMenuId">新增按钮</el-button>
+        <el-button type="primary" :icon="CirclePlusFilled" @click="openAdd" :disabled="!selectedMenuId">新增权限</el-button>
       </div>
       <TableCustom
         :columns="columns"
@@ -32,6 +35,9 @@
     <el-dialog :title="isEdit ? '编辑权限' : '新增权限'" v-model="visible" width="700px" destroy-on-close :close-on-click-modal="false" @close="closeDialog">
       <TableEdit :form-data="rowData" :options="options" :edit="isEdit" :update="updateData" />
     </el-dialog>
+    <el-dialog title="新增菜单" v-model="menuVisible" width="700px" destroy-on-close :close-on-click-modal="false">
+      <TableEdit :form-data="menuRowData" :options="menuOptions" :edit="false" :update="saveMenu" />
+    </el-dialog>
   </div>
 </template>
 
@@ -47,6 +53,8 @@ import type { Permission, PermissionCreateRequest, PermissionUpdateRequest } fro
 
 // 左侧树：仅展示 type=1 的菜单
 const menuTree = ref<any[]>([]);
+const menuTreeRaw = ref<any[]>([]);
+const menuKeyword = ref('');
 const selectedMenuId = ref<string>('');
 
 const buildMenuTree = (data: Permission[] | undefined | null): any[] => {
@@ -62,7 +70,17 @@ const buildMenuTree = (data: Permission[] | undefined | null): any[] => {
 
 const loadMenuTree = async () => {
   const res = await listPermissions({});
-  menuTree.value = buildMenuTree(res.data || []);
+  menuTreeRaw.value = buildMenuTree(res.data || []);
+  applyMenuFilter();
+};
+
+const applyMenuFilter = () => {
+  const kw = menuKeyword.value.trim();
+  if (!kw) { menuTree.value = menuTreeRaw.value; return; }
+  const filter = (nodes: any[]): any[] => nodes
+    .map(n => ({ ...n, children: n.children ? filter(n.children) : [] }))
+    .filter(n => n.label.includes(kw) || (n.children && n.children.length));
+  menuTree.value = filter(menuTreeRaw.value);
 };
 
 // 右侧按钮权限列表：parentId = 左侧选中，且 type=2
@@ -86,7 +104,7 @@ const columns = ref([
   { prop: 'operator', label: '操作', width: 200 },
 ]);
 
-// 弹窗与表单
+// 弹窗与表单（按钮权限）
 const visible = ref(false);
 const isEdit = ref(false);
 const rowData = ref<Permission>({ type: '2' } as Permission);
@@ -97,8 +115,6 @@ let options = ref<FormOption>({
   list: [
     { type: 'input', label: '名称', prop: 'name', required: true },
     { type: 'input', label: '权限编码', prop: 'code', required: true },
-    { type: 'input', label: '路径', prop: 'path' },
-    { type: 'select', label: '类型', prop: 'type', required: true, opts: [ { label: '按钮', value: '2' } ] },
     { type: 'switch', label: '是否禁用', prop: 'disableFlag', activeValue: 1, inactiveValue: 0, activeText: '禁用', inactiveText: '启用' },
   ]
 });
@@ -121,6 +137,7 @@ const updateData = async (form: Permission) => {
   const payload: Permission = {
     ...form,
     type: '2',
+    path: '',
     parentId: selectedMenuId.value,
   } as Permission;
   if (isEdit.value) {
@@ -147,14 +164,44 @@ const handleDelete = async (row: Permission) => {
 onMounted(async () => {
   await loadMenuTree();
 });
+
+// 菜单新增弹窗与保存
+const menuVisible = ref(false);
+const menuRowData = ref<Permission>({ type: '1' } as Permission);
+let menuOptions = ref<FormOption>({
+  labelWidth: '100px',
+  span: 12,
+  list: [
+    { type: 'input', label: '菜单名称', prop: 'name', required: true },
+    { type: 'input', label: '权限编码', prop: 'code', required: true },
+    { type: 'input', label: '路径', prop: 'path', required: false },
+    { type: 'switch', label: '是否禁用', prop: 'disableFlag', activeValue: 1, inactiveValue: 0, activeText: '禁用', inactiveText: '启用' },
+  ]
+});
+
+const openAddMenu = () => {
+  menuRowData.value = { type: '1', parentId: selectedMenuId.value || '' } as Permission;
+  menuVisible.value = true;
+};
+
+const saveMenu = async (form: Permission) => {
+  const payload: Permission = {
+    ...form,
+    type: '1',
+    parentId: selectedMenuId.value || '',
+  } as Permission;
+  await createPermission(payload as PermissionCreateRequest);
+  ElMessage.success('新增菜单成功');
+  menuVisible.value = false;
+  await loadMenuTree();
+};
 </script>
 
 <style scoped>
 .menu-page { display: flex; gap: 16px; }
 .left { width: 280px; border: 1px solid #eee; border-radius: 4px; padding: 12px; background: #fff; }
-.left-header { font-weight: 600; margin-bottom: 8px; }
+.left-header { display: flex; align-items: center; gap: 8px; font-weight: 600; margin-bottom: 8px; }
 .menu-tree { max-height: calc(100vh - 260px); overflow: auto; }
 .right { flex: 1; border: 1px solid #eee; border-radius: 4px; padding: 12px; background: #fff; }
 .right-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: 600; }
 </style>
-
