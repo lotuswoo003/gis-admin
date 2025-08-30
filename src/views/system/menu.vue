@@ -15,7 +15,10 @@
       >
         <template #default="{ node, data }">
           <span class="tree-node">
-            <span class="label">{{ node.label }}</span>
+            <el-tooltip v-if="data.desc" :content="data.desc" placement="top">
+              <span class="label">{{ node.label }}</span>
+            </el-tooltip>
+            <span v-else class="label">{{ node.label }}</span>
             <el-link type="primary" :underline="false" @click.stop="openEditMenu(data)" class="edit-link">修改</el-link>
           </span>
         </template>
@@ -33,6 +36,12 @@
         :delFunc="handleDelete"
         :editFunc="handleEdit"
       >
+        <template #name="{ rows }">
+          <el-tooltip v-if="rows.description" :content="rows.description" placement="top">
+            <span>{{ rows.name }}</span>
+          </el-tooltip>
+          <span v-else>{{ rows.name }}</span>
+        </template>
         <template #operator="{ rows }">
           <el-button type="primary" size="small" :icon="Edit" @click="handleEdit(rows)">编辑</el-button>
           <el-button type="danger" size="small" :icon="Delete" @click="handleDelete(rows)">删除</el-button>
@@ -82,6 +91,7 @@ const buildMenuTree = (data: Permission[] | undefined | null): any[] => {
     .map(item => ({
       id: item.id,
       label: item.name,
+      desc: item.description,
       children: buildMenuTree(item.children || [])
     }));
 };
@@ -142,6 +152,7 @@ let options = ref<FormOption>({
   list: [
     { type: 'input', label: '名称', prop: 'name', required: true },
     { type: 'input', label: '权限编码', prop: 'code', required: true },
+    { type: 'input', label: '描述', prop: 'description' },
     { type: 'switch', label: '是否禁用', prop: 'disableFlag', activeValue: 1, inactiveValue: 0, activeText: '禁用', inactiveText: '启用' },
   ]
 });
@@ -203,6 +214,8 @@ let menuOptions = ref<FormOption>({
     { type: 'input', label: '菜单名称', prop: 'name', required: true },
     { type: 'input', label: '权限编码', prop: 'code', required: true },
     { type: 'input', label: '路径', prop: 'path', required: false },
+    { type: 'input', label: '描述', prop: 'description' },
+    { type: 'parent', label: '父级菜单', prop: 'parentId' },
     { type: 'switch', label: '是否禁用', prop: 'disableFlag', activeValue: 1, inactiveValue: 0, activeText: '禁用', inactiveText: '启用' },
   ]
 });
@@ -224,9 +237,14 @@ const saveMenu = async (form: Permission) => {
   const payload: Permission = {
     ...form,
     type: '1',
-    parentId: Array.isArray(menuRowData.value.parentId)
-      ? (menuRowData.value.parentId as any[])[(menuRowData.value.parentId as any[]).length - 1]
-      : (menuRowData.value.parentId || ''),
+    parentId: ((): string => {
+      if (Array.isArray(menuRowData.value.parentId)) {
+        const arr = menuRowData.value.parentId as any[];
+        return arr.length ? String(arr[arr.length - 1]) : '-1';
+      }
+      const v = (menuRowData.value.parentId as any) as string | undefined;
+      return v && String(v).trim() ? String(v) : '-1';
+    })(),
   } as Permission;
   if (menuIsEdit.value) {
     await updatePermission(payload as PermissionUpdateRequest);
