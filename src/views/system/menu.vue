@@ -1,191 +1,160 @@
 <template>
-    <div>
-        <TableSearch :query="query" :options="searchOpt" :search="handleSearch" />
-        <div class="container">
-            <TableCustom
-                :columns="columns"
-                :tableData="permissionData"
-                row-key="id"
-                :total="page.total"
-                :current-page="page.index"
-                :page-size="page.rows"
-                :delFunc="handleDelete"
-                :editFunc="handleEdit"
-                :change-page="changePage"
-            >
-                <template #toolbarBtn>
-                    <el-button type="warning" :icon="CirclePlusFilled" @click="openAdd">新增</el-button>
-                </template>
-                <template #operator="{ rows }">
-                    <el-button type="primary" size="small" :icon="Edit" @click="handleEdit(rows)">编辑</el-button>
-                    <el-button type="danger" size="small" :icon="Delete" @click="handleDelete(rows)">删除</el-button>
-                </template>
-            </TableCustom>
-        </div>
-        <el-dialog :title="isEdit ? '编辑' : '新增'" v-model="visible" width="700px" destroy-on-close
-            :close-on-click-modal="false" @close="closeDialog">
-            <TableEdit :form-data="rowData" :options="options" :edit="isEdit" :update="updateData">
-                <template #parentId>
-                    <el-cascader v-model="rowData.parentId" :options="cascaderOptions" :props="{ checkStrictly: true }"
-                        clearable />
-                </template>
-            </TableEdit>
-        </el-dialog>
+  <div class="menu-page">
+    <div class="left">
+      <div class="left-header">菜单</div>
+      <el-tree
+        class="menu-tree"
+        :data="menuTree"
+        node-key="id"
+        default-expand-all
+        highlight-current
+        @node-click="onSelectMenu"
+      />
     </div>
+    <div class="right">
+      <div class="right-header">
+        <div>操作权限</div>
+        <el-button type="primary" :icon="CirclePlusFilled" @click="openAdd" :disabled="!selectedMenuId">新增按钮</el-button>
+      </div>
+      <TableCustom
+        :columns="columns"
+        :tableData="permissionData"
+        row-key="id"
+        :delFunc="handleDelete"
+        :editFunc="handleEdit"
+      >
+        <template #operator="{ rows }">
+          <el-button type="primary" size="small" :icon="Edit" @click="handleEdit(rows)">编辑</el-button>
+          <el-button type="danger" size="small" :icon="Delete" @click="handleDelete(rows)">删除</el-button>
+        </template>
+      </TableCustom>
+    </div>
+    <el-dialog :title="isEdit ? '编辑权限' : '新增权限'" v-model="visible" width="700px" destroy-on-close :close-on-click-modal="false" @close="closeDialog">
+      <TableEdit :form-data="rowData" :options="options" :edit="isEdit" :update="updateData" />
+    </el-dialog>
+  </div>
 </template>
 
 <script setup lang="ts" name="system-menu">
-import { onMounted, ref, reactive } from 'vue';
+import { onMounted, ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import { CirclePlusFilled, Edit, Delete } from '@element-plus/icons-vue';
 import TableCustom from '@/components/table-custom.vue';
-import TableSearch from '@/components/table-search.vue';
-import { FormOption, FormOptionList } from '@/types/form-option';
-import { listPermissions, fetchPermissionPage, getPermission, createPermission, updatePermission, deletePermission } from '@/api/permission';
+import TableEdit from '@/components/table-edit.vue';
+import { FormOption } from '@/types/form-option';
+import { listPermissions, getPermissionChildren, getPermission, createPermission, updatePermission, deletePermission } from '@/api/permission';
 import type { Permission, PermissionCreateRequest, PermissionUpdateRequest } from '@/types/permission';
 
-// 表格相关
-let columns = ref([
-    { prop: 'name', label: '菜单名称', align: 'left' },
-    { prop: 'code', label: '权限编码' },
-    { prop: 'parentName', label: '父节点' },
-    { prop: 'type', label: '类型', formatter: (val: string) => (val === '1' ? '菜单' : '按钮') },
-    { prop: 'disableFlag', label: '是否禁用', formatter: (val: number) => (val ? '是' : '否') },
-    { prop: 'path', label: '路径' },
-    { prop: 'operator', label: '操作', width: 200 },
-])
+// 左侧树：仅展示 type=1 的菜单
+const menuTree = ref<any[]>([]);
+const selectedMenuId = ref<string>('');
 
+const buildMenuTree = (data: Permission[] | undefined | null): any[] => {
+  if (!Array.isArray(data)) return [];
+  return data
+    .filter(item => item.type === '1')
+    .map(item => ({
+      id: item.id,
+      label: item.name,
+      children: buildMenuTree(item.children || [])
+    }));
+};
+
+const loadMenuTree = async () => {
+  const res = await listPermissions({});
+  menuTree.value = buildMenuTree(res.data || []);
+};
+
+// 右侧按钮权限列表：parentId = 左侧选中，且 type=2
 const permissionData = ref<Permission[]>([]);
-const page = reactive({
-    index: 1,
-    rows: 10,
-    total: 0,
-});
+const loadButtons = async () => {
+  if (!selectedMenuId.value) { permissionData.value = []; return; }
+  const res = await getPermissionChildren({ parentId: selectedMenuId.value, type: '2' });
+  permissionData.value = res.data || [];
+};
 
-// 查询相关
-const query = reactive({
-    name: '',
-});
-const searchOpt = ref<FormOptionList[]>([
-    { type: 'input', label: '菜单名称：', prop: 'name' },
+const onSelectMenu = (node: any) => {
+  selectedMenuId.value = node.id;
+  loadButtons();
+};
+
+// 列
+const columns = ref([
+  { prop: 'name', label: '按钮名称', align: 'left' },
+  { prop: 'code', label: '权限编码' },
+  { prop: 'disableFlag', label: '是否禁用', formatter: (val: number) => (val ? '禁用' : '启用') },
+  { prop: 'operator', label: '操作', width: 200 },
 ]);
-const handleSearch = () => {
-    page.index = 1;
-    loadData();
-};
 
-const parentMap = new Map<string, string>();
-const getOptions = (data: Permission[] | undefined | null): any[] => {
-    if (!Array.isArray(data)) return [];
-    return data.map(item => {
-        parentMap.set(item.id, item.name);
-        const option: any = {
-            label: item.name,
-            value: item.id,
-        };
-        if (Array.isArray(item.children) && item.children.length) {
-            option.children = getOptions(item.children);
-        }
-        return option;
-    });
-};
-
-const cascaderOptions = ref<any[]>([]);
-
-const loadData = async () => {
-    parentMap.clear();
-    const treeRes = await listPermissions({});
-    const treeData: Permission[] = treeRes.data || [];
-    cascaderOptions.value = getOptions(treeData);
-
-    const pageRes = await fetchPermissionPage({ page: page.index, rows: page.rows, name: query.name });
-    const list: Permission[] = pageRes.data.records || [];
-    list.forEach(item => {
-        item.parentName = parentMap.get(item.parentId) || '';
-    });
-    permissionData.value = list;
-    page.total = pageRes.data.total || 0;
-};
-
-onMounted(loadData);
-
-const changePage = (val: number) => {
-    page.index = val;
-    loadData();
-};
-
-// 新增/编辑弹窗相关
-let options = ref<FormOption>({
-    labelWidth: '100px',
-    span: 12,
-    list: [
-        { type: 'input', label: '菜单名称', prop: 'name', required: true },
-        { type: 'input', label: '权限编码', prop: 'code', required: true },
-        { type: 'input', label: '路径', prop: 'path', required: true },
-        { type: 'parent', label: '父节点', prop: 'parentId' },
-        {
-            type: 'select',
-            label: '类型',
-            prop: 'type',
-            required: true,
-            opts: [
-                { label: '菜单', value: '1' },
-                { label: '按钮', value: '2' },
-            ],
-        },
-        {
-            type: 'switch',
-            label: '是否禁用',
-            prop: 'disableFlag',
-            activeValue: 1,
-            inactiveValue: 0,
-            activeText: '禁用',
-            inactiveText: '启用'
-        },
-    ]
-})
+// 弹窗与表单
 const visible = ref(false);
 const isEdit = ref(false);
-const rowData = ref<Permission>({ type: '1' } as Permission);
+const rowData = ref<Permission>({ type: '2' } as Permission);
+
+let options = ref<FormOption>({
+  labelWidth: '100px',
+  span: 12,
+  list: [
+    { type: 'input', label: '名称', prop: 'name', required: true },
+    { type: 'input', label: '权限编码', prop: 'code', required: true },
+    { type: 'input', label: '路径', prop: 'path' },
+    { type: 'select', label: '类型', prop: 'type', required: true, opts: [ { label: '按钮', value: '2' } ] },
+    { type: 'switch', label: '是否禁用', prop: 'disableFlag', activeValue: 1, inactiveValue: 0, activeText: '禁用', inactiveText: '启用' },
+  ]
+});
+
 const openAdd = () => {
-    rowData.value = { type: '1' } as Permission;
-    isEdit.value = false;
-    visible.value = true;
+  if (!selectedMenuId.value) return;
+  rowData.value = { type: '2', parentId: selectedMenuId.value } as Permission;
+  isEdit.value = false;
+  visible.value = true;
 };
+
 const handleEdit = async (row: Permission) => {
-    const res = await getPermission(row.id);
-    rowData.value = res.data;
-    isEdit.value = true;
-    visible.value = true;
+  const res = await getPermission(row.id);
+  rowData.value = res.data;
+  isEdit.value = true;
+  visible.value = true;
 };
+
 const updateData = async (form: Permission) => {
-    const payload: Permission = {
-        ...form,
-        parentId: Array.isArray(rowData.value.parentId)
-            ? (rowData.value.parentId as any[])[rowData.value.parentId.length - 1]
-            : rowData.value.parentId,
-    } as Permission;
-    if (isEdit.value) {
-        await updatePermission(payload as PermissionUpdateRequest);
-    } else {
-        await createPermission(payload as PermissionCreateRequest);
-    }
-    ElMessage.success('操作成功');
-    closeDialog();
-    loadData();
+  const payload: Permission = {
+    ...form,
+    type: '2',
+    parentId: selectedMenuId.value,
+  } as Permission;
+  if (isEdit.value) {
+    await updatePermission(payload as PermissionUpdateRequest);
+  } else {
+    await createPermission(payload as PermissionCreateRequest);
+  }
+  ElMessage.success('操作成功');
+  closeDialog();
+  loadButtons();
 };
 
 const closeDialog = () => {
-    visible.value = false;
-    isEdit.value = false;
+  visible.value = false;
+  isEdit.value = false;
 };
 
-// 删除相关
 const handleDelete = async (row: Permission) => {
-    await deletePermission(row.id);
-    ElMessage.success('删除成功');
-    loadData();
-}
+  await deletePermission(row.id);
+  ElMessage.success('删除成功');
+  loadButtons();
+};
+
+onMounted(async () => {
+  await loadMenuTree();
+});
 </script>
 
-<style scoped></style>
+<style scoped>
+.menu-page { display: flex; gap: 16px; }
+.left { width: 280px; border: 1px solid #eee; border-radius: 4px; padding: 12px; background: #fff; }
+.left-header { font-weight: 600; margin-bottom: 8px; }
+.menu-tree { max-height: calc(100vh - 260px); overflow: auto; }
+.right { flex: 1; border: 1px solid #eee; border-radius: 4px; padding: 12px; background: #fff; }
+.right-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: 600; }
+</style>
+
