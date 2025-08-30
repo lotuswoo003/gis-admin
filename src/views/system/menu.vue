@@ -12,7 +12,14 @@
         default-expand-all
         highlight-current
         @node-click="onSelectMenu"
-      />
+      >
+        <template #default="{ node, data }">
+          <span class="tree-node">
+            <span class="label">{{ node.label }}</span>
+            <el-link type="primary" :underline="false" @click.stop="openEditMenu(data)" class="edit-link">修改</el-link>
+          </span>
+        </template>
+      </el-tree>
     </div>
     <div class="right">
       <div class="right-header">
@@ -35,8 +42,18 @@
     <el-dialog :title="isEdit ? '编辑权限' : '新增权限'" v-model="visible" width="700px" destroy-on-close :close-on-click-modal="false" @close="closeDialog">
       <TableEdit :form-data="rowData" :options="options" :edit="isEdit" :update="updateData" />
     </el-dialog>
-    <el-dialog title="新增菜单" v-model="menuVisible" width="700px" destroy-on-close :close-on-click-modal="false">
-      <TableEdit :form-data="menuRowData" :options="menuOptions" :edit="false" :update="saveMenu" />
+    <el-dialog :title="menuIsEdit ? '编辑菜单' : '新增菜单'" v-model="menuVisible" width="700px" destroy-on-close :close-on-click-modal="false">
+      <TableEdit :form-data="menuRowData" :options="menuOptions" :edit="menuIsEdit" :update="saveMenu">
+        <template #parentId>
+          <el-cascader
+            v-model="menuRowData.parentId"
+            :options="cascaderOptions"
+            :props="{ checkStrictly: true }"
+            filterable
+            clearable
+          />
+        </template>
+      </TableEdit>
     </el-dialog>
   </div>
 </template>
@@ -56,6 +73,7 @@ const menuTree = ref<any[]>([]);
 const menuTreeRaw = ref<any[]>([]);
 const menuKeyword = ref('');
 const selectedMenuId = ref<string>('');
+const cascaderOptions = ref<any[]>([]);
 
 const buildMenuTree = (data: Permission[] | undefined | null): any[] => {
   if (!Array.isArray(data)) return [];
@@ -72,6 +90,7 @@ const loadMenuTree = async () => {
   const res = await listPermissions({});
   menuTreeRaw.value = buildMenuTree(res.data || []);
   applyMenuFilter();
+  cascaderOptions.value = buildCascaderOptions(menuTreeRaw.value);
 };
 
 const applyMenuFilter = () => {
@@ -81,6 +100,14 @@ const applyMenuFilter = () => {
     .map(n => ({ ...n, children: n.children ? filter(n.children) : [] }))
     .filter(n => n.label.includes(kw) || (n.children && n.children.length));
   menuTree.value = filter(menuTreeRaw.value);
+};
+
+const buildCascaderOptions = (nodes: any[]): any[] => {
+  return (nodes || []).map(n => ({
+    label: n.label,
+    value: n.id,
+    children: n.children ? buildCascaderOptions(n.children) : undefined,
+  }));
 };
 
 // 右侧按钮权限列表：parentId = 左侧选中，且 type=2
@@ -167,6 +194,7 @@ onMounted(async () => {
 
 // 菜单新增弹窗与保存
 const menuVisible = ref(false);
+const menuIsEdit = ref(false);
 const menuRowData = ref<Permission>({ type: '1' } as Permission);
 let menuOptions = ref<FormOption>({
   labelWidth: '100px',
@@ -181,6 +209,14 @@ let menuOptions = ref<FormOption>({
 
 const openAddMenu = () => {
   menuRowData.value = { type: '1', parentId: selectedMenuId.value || '' } as Permission;
+  menuIsEdit.value = false;
+  menuVisible.value = true;
+};
+
+const openEditMenu = async (data: any) => {
+  const res = await getPermission(data.id);
+  menuRowData.value = res.data as Permission;
+  menuIsEdit.value = true;
   menuVisible.value = true;
 };
 
@@ -188,10 +224,17 @@ const saveMenu = async (form: Permission) => {
   const payload: Permission = {
     ...form,
     type: '1',
-    parentId: selectedMenuId.value || '',
+    parentId: Array.isArray(menuRowData.value.parentId)
+      ? (menuRowData.value.parentId as any[])[(menuRowData.value.parentId as any[]).length - 1]
+      : (menuRowData.value.parentId || ''),
   } as Permission;
-  await createPermission(payload as PermissionCreateRequest);
-  ElMessage.success('新增菜单成功');
+  if (menuIsEdit.value) {
+    await updatePermission(payload as PermissionUpdateRequest);
+    ElMessage.success('编辑菜单成功');
+  } else {
+    await createPermission(payload as PermissionCreateRequest);
+    ElMessage.success('新增菜单成功');
+  }
   menuVisible.value = false;
   await loadMenuTree();
 };
@@ -204,4 +247,6 @@ const saveMenu = async (form: Permission) => {
 .menu-tree { max-height: calc(100vh - 260px); overflow: auto; }
 .right { flex: 1; border: 1px solid #eee; border-radius: 4px; padding: 12px; background: #fff; }
 .right-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: 600; }
+.tree-node { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+.tree-node .edit-link { margin-left: 8px; }
 </style>
