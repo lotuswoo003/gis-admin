@@ -6,8 +6,14 @@
     },
     "servers": [
         {
-            "url": "http://192.168.106.97:10201/sys",
+            "url": "http://localhost:10201/sys",
             "description": "Generated server url"
+        }
+    ],
+    "tags": [
+        {
+            "name": "Plan Template",
+            "description": "计划模板管理 - 增删改查接口"
         }
     ],
     "paths": {
@@ -16,7 +22,7 @@
                 "tags": [
                     "dict-controller"
                 ],
-                "operationId": "get_7",
+                "operationId": "get_8",
                 "parameters": [
                     {
                         "name": "id",
@@ -82,7 +88,7 @@
                 "tags": [
                     "dict-controller"
                 ],
-                "operationId": "delete_7",
+                "operationId": "delete_8",
                 "parameters": [
                     {
                         "name": "id",
@@ -112,7 +118,7 @@
                 "tags": [
                     "department-controller"
                 ],
-                "operationId": "get_8",
+                "operationId": "get_9",
                 "parameters": [
                     {
                         "name": "id",
@@ -178,7 +184,7 @@
                 "tags": [
                     "department-controller"
                 ],
-                "operationId": "delete_8",
+                "operationId": "delete_9",
                 "parameters": [
                     {
                         "name": "id",
@@ -208,7 +214,7 @@
                 "tags": [
                     "business-project-controller"
                 ],
-                "operationId": "get_9",
+                "operationId": "get_10",
                 "parameters": [
                     {
                         "name": "id",
@@ -274,7 +280,7 @@
                 "tags": [
                     "business-project-controller"
                 ],
-                "operationId": "delete_9",
+                "operationId": "delete_10",
                 "parameters": [
                     {
                         "name": "id",
@@ -1079,12 +1085,196 @@
                 }
             }
         },
+        "/planTemplate/update": {
+            "post": {
+                "tags": [
+                    "Plan Template"
+                ],
+                "summary": "更新计划模板",
+                "description": "根据ID更新计划模板字段（仅非空字段会被更新）",
+                "operationId": "update_7",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PlanTemplate"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseBoolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/planTemplate/page": {
+            "post": {
+                "tags": [
+                    "Plan Template"
+                ],
+                "summary": "分页查询计划模板",
+                "description": "与其它分页接口保持一致，支持 organizationId、provinceId、cityId、countyId 条件过滤",
+                "operationId": "page_2",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PlanTemplatePageRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponsePageResultPlanTemplate"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/planTemplate/list": {
+            "post": {
+                "tags": [
+                    "Plan Template"
+                ],
+                "summary": "列表查询计划模板",
+                "description": "查询所有未删除的计划模板列表",
+                "operationId": "list_4",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseListPlanTemplate"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/planTemplate/get/{id}": {
+            "post": {
+                "tags": [
+                    "Plan Template"
+                ],
+                "summary": "获取计划模板",
+                "description": "根据ID获取计划模板详情",
+                "operationId": "get_3",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponsePlanTemplate"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/planTemplate/delete/{id}": {
+            "post": {
+                "tags": [
+                    "Plan Template"
+                ],
+                "summary": "删除计划模板",
+                "description": "逻辑删除（更新deleted_at）",
+                "operationId": "delete_4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseBoolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/planTemplate/create": {
+            "post": {
+                "tags": [
+                    "Plan Template"
+                ],
+                "summary": "新建计划模板",
+                "description": "新增一条计划模板记录，ID不传则自动生成",
+                "operationId": "create_3",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PlanTemplate"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseLong"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/permissionPackage/update": {
             "post": {
                 "tags": [
                     "permission-package-controller"
                 ],
-                "operationId": "update_7",
+                "operationId": "update_8",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1114,7 +1304,7 @@
                 "tags": [
                     "permission-package-controller"
                 ],
-                "operationId": "list_4",
+                "operationId": "list_5",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1134,7 +1324,7 @@
                 "tags": [
                     "permission-package-controller"
                 ],
-                "operationId": "get_3",
+                "operationId": "get_4",
                 "parameters": [
                     {
                         "name": "id",
@@ -1164,7 +1354,7 @@
                 "tags": [
                     "permission-package-controller"
                 ],
-                "operationId": "delete_4",
+                "operationId": "delete_5",
                 "parameters": [
                     {
                         "name": "id",
@@ -1194,7 +1384,7 @@
                 "tags": [
                     "permission-package-controller"
                 ],
-                "operationId": "create_3",
+                "operationId": "create_4",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1224,7 +1414,7 @@
                 "tags": [
                     "permission-controller"
                 ],
-                "operationId": "update_8",
+                "operationId": "update_9",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1242,6 +1432,36 @@
                             "*/*": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ResponseBoolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/permission/tree": {
+            "post": {
+                "tags": [
+                    "permission-controller"
+                ],
+                "operationId": "tree",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PermissionTreeRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseListPermission"
                                 }
                             }
                         }
@@ -1284,7 +1504,7 @@
                 "tags": [
                     "permission-controller"
                 ],
-                "operationId": "page_2",
+                "operationId": "page_3",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1314,7 +1534,7 @@
                 "tags": [
                     "permission-controller"
                 ],
-                "operationId": "list_5",
+                "operationId": "list_6",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1334,7 +1554,7 @@
                 "tags": [
                     "permission-controller"
                 ],
-                "operationId": "get_4",
+                "operationId": "get_5",
                 "parameters": [
                     {
                         "name": "id",
@@ -1364,7 +1584,7 @@
                 "tags": [
                     "permission-controller"
                 ],
-                "operationId": "delete_5",
+                "operationId": "delete_6",
                 "parameters": [
                     {
                         "name": "id",
@@ -1394,7 +1614,7 @@
                 "tags": [
                     "permission-controller"
                 ],
-                "operationId": "create_4",
+                "operationId": "create_5",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1454,7 +1674,7 @@
                 "tags": [
                     "organization-controller"
                 ],
-                "operationId": "update_9",
+                "operationId": "update_10",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1514,7 +1734,7 @@
                 "tags": [
                     "organization-controller"
                 ],
-                "operationId": "page_3",
+                "operationId": "page_4",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1544,7 +1764,7 @@
                 "tags": [
                     "organization-controller"
                 ],
-                "operationId": "delete_6",
+                "operationId": "delete_7",
                 "parameters": [
                     {
                         "name": "id",
@@ -1657,7 +1877,7 @@
                 "tags": [
                     "dict-controller"
                 ],
-                "operationId": "list_6",
+                "operationId": "list_7",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1675,7 +1895,7 @@
                 "tags": [
                     "dict-controller"
                 ],
-                "operationId": "create_5",
+                "operationId": "create_6",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1705,7 +1925,7 @@
                 "tags": [
                     "department-controller"
                 ],
-                "operationId": "list_7",
+                "operationId": "list_8",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1723,7 +1943,7 @@
                 "tags": [
                     "department-controller"
                 ],
-                "operationId": "create_6",
+                "operationId": "create_7",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1753,7 +1973,7 @@
                 "tags": [
                     "business-project-controller"
                 ],
-                "operationId": "list_8",
+                "operationId": "list_9",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1771,7 +1991,7 @@
                 "tags": [
                     "business-project-controller"
                 ],
-                "operationId": "create_7",
+                "operationId": "create_8",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1801,7 +2021,7 @@
                 "tags": [
                     "user-organization-controller"
                 ],
-                "operationId": "get_5",
+                "operationId": "get_6",
                 "parameters": [
                     {
                         "name": "id",
@@ -1831,7 +2051,7 @@
                 "tags": [
                     "organization-controller"
                 ],
-                "operationId": "get_6",
+                "operationId": "get_7",
                 "parameters": [
                     {
                         "name": "id",
@@ -2236,6 +2456,13 @@
                         "type": "string",
                         "format": "date-time",
                         "readOnly": true
+                    },
+                    "children": {
+                        "type": "array",
+                        "readOnly": true,
+                        "items": {
+                            "$ref": "#/components/schemas/Permission"
+                        }
                     }
                 }
             },
@@ -2713,6 +2940,201 @@
                     }
                 }
             },
+            "PlanTemplate": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "organizationId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "organizationName": {
+                        "type": "string"
+                    },
+                    "month": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "suggestions": {
+                        "type": "string"
+                    },
+                    "intelligentSuggestions": {
+                        "type": "string"
+                    },
+                    "inputLabor": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "workload": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "finishStandards": {
+                        "type": "string"
+                    },
+                    "province": {
+                        "type": "string"
+                    },
+                    "city": {
+                        "type": "string"
+                    },
+                    "county": {
+                        "type": "string"
+                    },
+                    "provinceId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "cityId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "countyId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "createdBy": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "updatedBy": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "deletedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    }
+                }
+            },
+            "PlanTemplatePageRequest": {
+                "type": "object",
+                "properties": {
+                    "page": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "rows": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "organizationId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "provinceId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "cityId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "countyId": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                }
+            },
+            "PageResultPlanTemplate": {
+                "type": "object",
+                "properties": {
+                    "total": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "records": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/PlanTemplate"
+                        }
+                    }
+                }
+            },
+            "ResponsePageResultPlanTemplate": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/PageResultPlanTemplate"
+                    }
+                }
+            },
+            "ResponseListPlanTemplate": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/PlanTemplate"
+                        }
+                    }
+                }
+            },
+            "ResponsePlanTemplate": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/PlanTemplate"
+                    }
+                }
+            },
+            "ResponseLong": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                }
+            },
             "PermissionPackageUpdateRequest": {
                 "type": "object",
                 "properties": {
@@ -2843,6 +3265,14 @@
                     "disableFlag": {
                         "type": "integer",
                         "format": "int32"
+                    }
+                }
+            },
+            "PermissionTreeRequest": {
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "type": "string"
                     }
                 }
             },

@@ -7,7 +7,7 @@ import 'nprogress/nprogress.css';
 const routes: RouteRecordRaw[] = [
     {
         path: '/',
-        redirect: '/dashboard',
+        redirect: '/system-user',
     },
     {
         path: '/',
@@ -49,6 +49,24 @@ const routes: RouteRecordRaw[] = [
                     permiss: '13',
                 },
                 component: () => import(/* webpackChunkName: "system-menu" */ '../views/system/menu.vue'),
+            },
+            {
+                path: '/data-scheme',
+                name: 'data-scheme',
+                meta: {
+                    title: '计划方案',
+                    permiss: '25',
+                },
+                component: () => import(/* webpackChunkName: "data-scheme" */ '../views/data/scheme.vue'),
+            },
+            {
+                path: '/data-rjc',
+                name: 'data-rjc',
+                meta: {
+                    title: '人机材',
+                    permiss: '22',
+                },
+                component: () => import(/* webpackChunkName: "data-rjc" */ '../views/data/rjc.vue'),
             },
               {
                   path: '/system-org',

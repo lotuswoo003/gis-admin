@@ -13,6 +13,11 @@ export interface FormOptionList {
     placeholder?: string;
     disabled?: boolean;
     opts?: any[];
+    multiple?: boolean;
+    remote?: boolean;
+    remoteMethod?: (query: string) => void;
+    filterable?: boolean;
+    inputStyle?: any;
     format?: string;
     activeValue?: any;
     inactiveValue?: any;

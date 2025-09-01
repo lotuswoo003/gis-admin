@@ -46,7 +46,12 @@ export const usePermissStore = defineStore('permiss', {
                 '65',
                 '66',
             ],
-            user: ['0', '1', '11', '12', '13', '14', '15', '16'],
+            user: [
+                '0', '1',
+                '11', '12', '13', '14', '15', '16',
+                // 数据管理 + 子菜单
+                '2', '21', '22', '23', '24', '25',
+            ],
         };
         const username = localStorage.getItem('vuems_name');
         console.log(username);

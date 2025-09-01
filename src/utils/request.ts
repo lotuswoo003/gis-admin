@@ -12,14 +12,18 @@ service.interceptors.request.use(
         if (typeof config.url === 'string') {
             config.url = config.url.replace(/^\/+/, '');
         }
-        const token = localStorage.getItem('accessToken');
-        if (token) {
-            const headers = config.headers instanceof AxiosHeaders
-                ? config.headers
-                : new AxiosHeaders(config.headers as any);
-            headers.set('Authorization', `Bearer ${token}`);
-            config.headers = headers;
+        const headers = config.headers instanceof AxiosHeaders
+            ? config.headers
+            : new AxiosHeaders(config.headers as any);
+
+        const fixedBearer: string | undefined = (import.meta as any).env?.VITE_FIXED_BEARER_TOKEN;
+        if (fixedBearer && String(fixedBearer).trim()) {
+            headers.set('Authorization', fixedBearer);
+        } else {
+            const token = localStorage.getItem('accessToken');
+            if (token) headers.set('Authorization', `Bearer ${token}`);
         }
+        config.headers = headers;
         return config;
     },
     (error: AxiosError) => {

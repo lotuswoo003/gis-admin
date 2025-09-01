@@ -74,66 +74,66 @@ import { CirclePlusFilled, Edit, Delete } from '@element-plus/icons-vue';
 import TableCustom from '@/components/table-custom.vue';
 import TableEdit from '@/components/table-edit.vue';
 import { FormOption } from '@/types/form-option';
-import { listPermissions, getPermissionChildren, getPermission, createPermission, updatePermission, deletePermission } from '@/api/permission';
+import { getPermissionChildren, getPermission, createPermission, updatePermission, deletePermission, getPermissionTree } from '@/api/permission';
 import type { Permission, PermissionCreateRequest, PermissionUpdateRequest } from '@/types/permission';
 
-// 左侧树：仅展示 type=1 的菜单
+// 左侧菜单树数据（仅 type=1）
 const menuTree = ref<any[]>([]);
 const menuTreeRaw = ref<any[]>([]);
 const menuKeyword = ref('');
 const selectedMenuId = ref<string>('');
 const cascaderOptions = ref<any[]>([]);
 
-const buildMenuTree = (data: Permission[] | undefined | null): any[] => {
-  if (!Array.isArray(data)) return [];
-  return data
-    .filter(item => item.type === '1')
-    .map(item => ({
-      id: item.id,
-      label: item.name,
-      desc: item.description,
-      children: buildMenuTree(item.children || [])
-    }));
-};
+// 右侧按钮权限表格数据（type=2）
+const permissionData = ref<Permission[]>([]);
+
+// 适配后端树结构到 el-tree 需要的 label 字段
+const adornTree = (nodes: any[]): any[] => (nodes || []).map((n: any) => ({
+  ...n,
+  label: n.label || n.name,
+  raw: n.raw || n,
+  children: n.children ? adornTree(n.children) : [],
+}));
 
 const loadMenuTree = async () => {
-  const res = await listPermissions({});
-  menuTreeRaw.value = buildMenuTree(res.data || []);
+  const res = await getPermissionTree({ type: '1' });
+  const all = adornTree((res.data || []) as any[]);
+  // 左侧只展示菜单（type=1）
+  const stripButtons = (nodes: any[]): any[] => nodes.map((n: any) => ({
+    id: n.id,
+    label: n.label,
+    desc: n.description,
+    children: stripButtons((n.children || []).filter((c: any) => c.type === '1')),
+  }));
+  menuTreeRaw.value = stripButtons(all);
   applyMenuFilter();
   cascaderOptions.value = buildCascaderOptions(menuTreeRaw.value);
+  // 左侧用 tree，右侧按钮列表按需加载
 };
 
 const applyMenuFilter = () => {
   const kw = menuKeyword.value.trim();
   if (!kw) { menuTree.value = menuTreeRaw.value; return; }
   const filter = (nodes: any[]): any[] => nodes
-    .map(n => ({ ...n, children: n.children ? filter(n.children) : [] }))
-    .filter(n => n.label.includes(kw) || (n.children && n.children.length));
+    .map((n: any) => ({ ...n, children: n.children ? filter(n.children) : [] }))
+    .filter((n: any) => n.label.includes(kw) || (n.children && n.children.length));
   menuTree.value = filter(menuTreeRaw.value);
 };
 
 const buildCascaderOptions = (nodes: any[]): any[] => {
-  return (nodes || []).map(n => ({
+  return (nodes || []).map((n: any) => ({
     label: n.label,
     value: n.id,
     children: n.children ? buildCascaderOptions(n.children) : undefined,
   }));
 };
 
-// 右侧按钮权限列表：parentId = 左侧选中，且 type=2
-const permissionData = ref<Permission[]>([]);
-const loadButtons = async () => {
-  if (!selectedMenuId.value) { permissionData.value = []; return; }
-  const res = await getPermissionChildren({ parentId: selectedMenuId.value, type: '2' });
-  permissionData.value = res.data || [];
-};
-
-const onSelectMenu = (node: any) => {
+const onSelectMenu = async (node: any) => {
   selectedMenuId.value = node.id;
-  loadButtons();
+  await loadButtons();
 };
 
-// 列
+// 加载右侧按钮权限（type=2）
 const columns = ref([
   { prop: 'name', label: '按钮名称', align: 'left' },
   { prop: 'code', label: '权限编码' },
@@ -141,7 +141,13 @@ const columns = ref([
   { prop: 'operator', label: '操作', width: 200 },
 ]);
 
-// 弹窗与表单（按钮权限）
+const loadButtons = async () => {
+  if (!selectedMenuId.value) { permissionData.value = []; return; }
+  const res = await getPermissionChildren({ parentId: selectedMenuId.value, type: '2' });
+  permissionData.value = (res.data || []) as Permission[];
+};
+
+// 权限弹窗
 const visible = ref(false);
 const isEdit = ref(false);
 const rowData = ref<Permission>({ type: '2' } as Permission);
@@ -185,7 +191,7 @@ const updateData = async (form: Permission) => {
   }
   ElMessage.success('操作成功');
   closeDialog();
-  loadButtons();
+  await loadButtons();
 };
 
 const closeDialog = () => {
@@ -196,14 +202,14 @@ const closeDialog = () => {
 const handleDelete = async (row: Permission) => {
   await deletePermission(row.id);
   ElMessage.success('删除成功');
-  loadButtons();
+  await loadButtons();
 };
 
 onMounted(async () => {
   await loadMenuTree();
 });
 
-// 菜单新增弹窗与保存
+// 菜单新增/编辑
 const menuVisible = ref(false);
 const menuIsEdit = ref(false);
 const menuRowData = ref<Permission>({ type: '1' } as Permission);

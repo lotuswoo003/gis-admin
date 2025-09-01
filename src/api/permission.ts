@@ -67,3 +67,11 @@ export const queryPermissionByTreePath = (data: { treePath: string }) => {
         data,
     });
 };
+
+export const getPermissionTree = (data?: Record<string, any>) => {
+    return request<Permission[]>({
+        url: 'sys/permission/tree',
+        method: 'post',
+        data,
+    });
+};
