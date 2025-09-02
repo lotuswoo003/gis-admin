@@ -60,6 +60,15 @@ const routes: RouteRecordRaw[] = [
                 component: () => import(/* webpackChunkName: "data-scheme" */ '../views/data/scheme.vue'),
             },
             {
+                path: '/data-craft',
+                name: 'data-craft',
+                meta: {
+                    title: '智能工艺',
+                    permiss: '21',
+                },
+                component: () => import(/* webpackChunkName: "data-craft" */ '@/views/data/craft.vue'),
+            },
+            {
                 path: '/data-rjc',
                 name: 'data-rjc',
                 meta: {

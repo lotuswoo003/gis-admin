@@ -14,6 +14,14 @@
         {
             "name": "Plan Template",
             "description": "计划模板管理 - 增删改查接口"
+        },
+        {
+            "name": "Process Info",
+            "description": "智库工艺信息 - 增删改查与分页"
+        },
+        {
+            "name": "Process Unit Price",
+            "description": "智能工艺人机材单价 - 增删改查与分页"
         }
     ],
     "paths": {
@@ -22,7 +30,7 @@
                 "tags": [
                     "dict-controller"
                 ],
-                "operationId": "get_8",
+                "operationId": "get_10",
                 "parameters": [
                     {
                         "name": "id",
@@ -88,7 +96,7 @@
                 "tags": [
                     "dict-controller"
                 ],
-                "operationId": "delete_8",
+                "operationId": "delete_10",
                 "parameters": [
                     {
                         "name": "id",
@@ -118,7 +126,7 @@
                 "tags": [
                     "department-controller"
                 ],
-                "operationId": "get_9",
+                "operationId": "get_11",
                 "parameters": [
                     {
                         "name": "id",
@@ -184,7 +192,7 @@
                 "tags": [
                     "department-controller"
                 ],
-                "operationId": "delete_9",
+                "operationId": "delete_11",
                 "parameters": [
                     {
                         "name": "id",
@@ -214,7 +222,7 @@
                 "tags": [
                     "business-project-controller"
                 ],
-                "operationId": "get_10",
+                "operationId": "get_12",
                 "parameters": [
                     {
                         "name": "id",
@@ -280,7 +288,7 @@
                 "tags": [
                     "business-project-controller"
                 ],
-                "operationId": "delete_10",
+                "operationId": "delete_12",
                 "parameters": [
                     {
                         "name": "id",
@@ -1055,12 +1063,429 @@
                 }
             }
         },
+        "/processUnitPrice/update": {
+            "post": {
+                "tags": [
+                    "Process Unit Price"
+                ],
+                "summary": "更新单价",
+                "description": "根据ID更新单价字段（仅非空字段会被更新）",
+                "operationId": "update_7",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ProcessUnitPrice"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseBoolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/processUnitPrice/page": {
+            "post": {
+                "tags": [
+                    "Process Unit Price"
+                ],
+                "summary": "分页查询单价",
+                "description": "支持按省/市及其ID、类型、名称、组织过滤",
+                "operationId": "page_2",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ProcessUnitPricePageRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponsePageResultProcessUnitPrice"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/processUnitPrice/list": {
+            "post": {
+                "tags": [
+                    "Process Unit Price"
+                ],
+                "summary": "列表查询单价",
+                "description": "查询所有未删除的单价列表",
+                "operationId": "list_3",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseListProcessUnitPrice"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/processUnitPrice/get/{id}": {
+            "post": {
+                "tags": [
+                    "Process Unit Price"
+                ],
+                "summary": "获取单价",
+                "description": "根据ID获取单价详情",
+                "operationId": "get_3",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseProcessUnitPrice"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/processUnitPrice/delete/{id}": {
+            "post": {
+                "tags": [
+                    "Process Unit Price"
+                ],
+                "summary": "删除单价",
+                "description": "逻辑删除（更新deleted_at）",
+                "operationId": "delete_4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseBoolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/processUnitPrice/create": {
+            "post": {
+                "tags": [
+                    "Process Unit Price"
+                ],
+                "summary": "新建单价",
+                "description": "新增一条人机材单价记录",
+                "operationId": "create_3",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ProcessUnitPrice"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseString"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/processUnitPrice/columns": {
+            "post": {
+                "tags": [
+                    "Process Unit Price"
+                ],
+                "summary": "列表页表头",
+                "description": "人机材列表页表头：序号，类别，名称，单位，金额，甲方单位，操作",
+                "operationId": "columns",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseListTableColumn"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/processInfo/upload/import": {
+            "post": {
+                "tags": [
+                    "Process Info"
+                ],
+                "operationId": "importExcel",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "file"
+                                ],
+                                "type": "object",
+                                "properties": {
+                                    "file": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/processInfo/update": {
+            "post": {
+                "tags": [
+                    "Process Info"
+                ],
+                "summary": "更新工艺信息",
+                "description": "根据ID更新工艺信息字段（仅非空字段会被更新）",
+                "operationId": "update_8",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ProcessInfo"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseBoolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/processInfo/page": {
+            "post": {
+                "tags": [
+                    "Process Info"
+                ],
+                "summary": "分页查询工艺信息",
+                "description": "支持按类型/问题/组织过滤",
+                "operationId": "page_3",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ProcessInfoPageRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponsePageResultProcessInfo"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/processInfo/list": {
+            "post": {
+                "tags": [
+                    "Process Info"
+                ],
+                "summary": "列表查询工艺信息",
+                "description": "查询所有未删除的工艺信息列表",
+                "operationId": "list_4",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseListProcessInfo"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/processInfo/get/{id}": {
+            "post": {
+                "tags": [
+                    "Process Info"
+                ],
+                "summary": "获取工艺信息",
+                "description": "根据ID获取工艺信息详情",
+                "operationId": "get_4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseProcessInfo"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/processInfo/delete/{id}": {
+            "post": {
+                "tags": [
+                    "Process Info"
+                ],
+                "summary": "删除工艺信息",
+                "description": "逻辑删除（更新deleted_at）",
+                "operationId": "delete_5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseBoolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/processInfo/create": {
+            "post": {
+                "tags": [
+                    "Process Info"
+                ],
+                "summary": "新建工艺信息",
+                "description": "新增一条工艺信息记录",
+                "operationId": "create_4",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ProcessInfo"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseString"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/postal-code/list": {
             "post": {
                 "tags": [
                     "postal-code-controller"
                 ],
-                "operationId": "list_3",
+                "operationId": "list_5",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1092,7 +1517,7 @@
                 ],
                 "summary": "更新计划模板",
                 "description": "根据ID更新计划模板字段（仅非空字段会被更新）",
-                "operationId": "update_7",
+                "operationId": "update_9",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1124,7 +1549,7 @@
                 ],
                 "summary": "分页查询计划模板",
                 "description": "与其它分页接口保持一致，支持 organizationId、provinceId、cityId、countyId 条件过滤",
-                "operationId": "page_2",
+                "operationId": "page_4",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1156,7 +1581,7 @@
                 ],
                 "summary": "列表查询计划模板",
                 "description": "查询所有未删除的计划模板列表",
-                "operationId": "list_4",
+                "operationId": "list_6",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1178,15 +1603,14 @@
                 ],
                 "summary": "获取计划模板",
                 "description": "根据ID获取计划模板详情",
-                "operationId": "get_3",
+                "operationId": "get_5",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
                         "required": true,
                         "schema": {
-                            "type": "integer",
-                            "format": "int64"
+                            "type": "string"
                         }
                     }
                 ],
@@ -1211,15 +1635,14 @@
                 ],
                 "summary": "删除计划模板",
                 "description": "逻辑删除（更新deleted_at）",
-                "operationId": "delete_4",
+                "operationId": "delete_6",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
                         "required": true,
                         "schema": {
-                            "type": "integer",
-                            "format": "int64"
+                            "type": "string"
                         }
                     }
                 ],
@@ -1244,7 +1667,7 @@
                 ],
                 "summary": "新建计划模板",
                 "description": "新增一条计划模板记录，ID不传则自动生成",
-                "operationId": "create_3",
+                "operationId": "create_5",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1261,7 +1684,7 @@
                         "content": {
                             "*/*": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ResponseLong"
+                                    "$ref": "#/components/schemas/ResponseString"
                                 }
                             }
                         }
@@ -1274,7 +1697,7 @@
                 "tags": [
                     "permission-package-controller"
                 ],
-                "operationId": "update_8",
+                "operationId": "update_10",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1304,7 +1727,7 @@
                 "tags": [
                     "permission-package-controller"
                 ],
-                "operationId": "list_5",
+                "operationId": "list_7",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1324,7 +1747,7 @@
                 "tags": [
                     "permission-package-controller"
                 ],
-                "operationId": "get_4",
+                "operationId": "get_6",
                 "parameters": [
                     {
                         "name": "id",
@@ -1354,7 +1777,7 @@
                 "tags": [
                     "permission-package-controller"
                 ],
-                "operationId": "delete_5",
+                "operationId": "delete_7",
                 "parameters": [
                     {
                         "name": "id",
@@ -1384,7 +1807,7 @@
                 "tags": [
                     "permission-package-controller"
                 ],
-                "operationId": "create_4",
+                "operationId": "create_6",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1414,7 +1837,7 @@
                 "tags": [
                     "permission-controller"
                 ],
-                "operationId": "update_9",
+                "operationId": "update_11",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1504,7 +1927,7 @@
                 "tags": [
                     "permission-controller"
                 ],
-                "operationId": "page_3",
+                "operationId": "page_5",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1534,7 +1957,7 @@
                 "tags": [
                     "permission-controller"
                 ],
-                "operationId": "list_6",
+                "operationId": "list_8",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1554,7 +1977,7 @@
                 "tags": [
                     "permission-controller"
                 ],
-                "operationId": "get_5",
+                "operationId": "get_7",
                 "parameters": [
                     {
                         "name": "id",
@@ -1584,7 +2007,7 @@
                 "tags": [
                     "permission-controller"
                 ],
-                "operationId": "delete_6",
+                "operationId": "delete_8",
                 "parameters": [
                     {
                         "name": "id",
@@ -1614,7 +2037,7 @@
                 "tags": [
                     "permission-controller"
                 ],
-                "operationId": "create_5",
+                "operationId": "create_7",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1674,7 +2097,7 @@
                 "tags": [
                     "organization-controller"
                 ],
-                "operationId": "update_10",
+                "operationId": "update_12",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1734,7 +2157,7 @@
                 "tags": [
                     "organization-controller"
                 ],
-                "operationId": "page_4",
+                "operationId": "page_6",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1764,7 +2187,7 @@
                 "tags": [
                     "organization-controller"
                 ],
-                "operationId": "delete_7",
+                "operationId": "delete_9",
                 "parameters": [
                     {
                         "name": "id",
@@ -1877,7 +2300,7 @@
                 "tags": [
                     "dict-controller"
                 ],
-                "operationId": "list_7",
+                "operationId": "list_9",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1895,7 +2318,7 @@
                 "tags": [
                     "dict-controller"
                 ],
-                "operationId": "create_6",
+                "operationId": "create_8",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1925,7 +2348,7 @@
                 "tags": [
                     "department-controller"
                 ],
-                "operationId": "list_8",
+                "operationId": "list_10",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1943,7 +2366,7 @@
                 "tags": [
                     "department-controller"
                 ],
-                "operationId": "create_7",
+                "operationId": "create_9",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1973,7 +2396,7 @@
                 "tags": [
                     "business-project-controller"
                 ],
-                "operationId": "list_9",
+                "operationId": "list_11",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1991,7 +2414,7 @@
                 "tags": [
                     "business-project-controller"
                 ],
-                "operationId": "create_8",
+                "operationId": "create_10",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -2021,7 +2444,7 @@
                 "tags": [
                     "user-organization-controller"
                 ],
-                "operationId": "get_6",
+                "operationId": "get_8",
                 "parameters": [
                     {
                         "name": "id",
@@ -2046,12 +2469,25 @@
                 }
             }
         },
+        "/processInfo/downloadTemplate": {
+            "get": {
+                "tags": [
+                    "Process Info"
+                ],
+                "operationId": "downloadTemplate",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/organization/get/{id}": {
             "get": {
                 "tags": [
                     "organization-controller"
                 ],
-                "operationId": "get_7",
+                "operationId": "get_9",
                 "parameters": [
                     {
                         "name": "id",
@@ -2873,6 +3309,319 @@
                     }
                 }
             },
+            "ProcessUnitPrice": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "province": {
+                        "type": "string"
+                    },
+                    "city": {
+                        "type": "string"
+                    },
+                    "provinceId": {
+                        "type": "string"
+                    },
+                    "cityId": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "unit": {
+                        "type": "string"
+                    },
+                    "organizationId": {
+                        "type": "string"
+                    },
+                    "organizationName": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "price": {
+                        "type": "number"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "deletedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    }
+                }
+            },
+            "ProcessUnitPricePageRequest": {
+                "type": "object",
+                "properties": {
+                    "page": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "rows": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "province": {
+                        "type": "string"
+                    },
+                    "city": {
+                        "type": "string"
+                    },
+                    "provinceId": {
+                        "type": "string"
+                    },
+                    "cityId": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "organizationId": {
+                        "type": "string"
+                    }
+                }
+            },
+            "PageResultProcessUnitPrice": {
+                "type": "object",
+                "properties": {
+                    "total": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "records": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ProcessUnitPrice"
+                        }
+                    }
+                }
+            },
+            "ResponsePageResultProcessUnitPrice": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/PageResultProcessUnitPrice"
+                    }
+                }
+            },
+            "ResponseListProcessUnitPrice": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ProcessUnitPrice"
+                        }
+                    }
+                }
+            },
+            "ResponseProcessUnitPrice": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/ProcessUnitPrice"
+                    }
+                }
+            },
+            "ResponseListTableColumn": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/TableColumn"
+                        }
+                    }
+                }
+            },
+            "TableColumn": {
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string"
+                    },
+                    "dataIndex": {
+                        "type": "string"
+                    }
+                }
+            },
+            "ProcessInfo": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "question": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "processes": {
+                        "type": "string"
+                    },
+                    "human": {
+                        "type": "string"
+                    },
+                    "tool": {
+                        "type": "string"
+                    },
+                    "material": {
+                        "type": "string"
+                    },
+                    "organizationId": {
+                        "type": "string"
+                    },
+                    "sort": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "deletedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    }
+                }
+            },
+            "ProcessInfoPageRequest": {
+                "type": "object",
+                "properties": {
+                    "page": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "rows": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "question": {
+                        "type": "string"
+                    },
+                    "organizationId": {
+                        "type": "string"
+                    }
+                }
+            },
+            "PageResultProcessInfo": {
+                "type": "object",
+                "properties": {
+                    "total": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "records": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ProcessInfo"
+                        }
+                    }
+                }
+            },
+            "ResponsePageResultProcessInfo": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/PageResultProcessInfo"
+                    }
+                }
+            },
+            "ResponseListProcessInfo": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ProcessInfo"
+                        }
+                    }
+                }
+            },
+            "ResponseProcessInfo": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/ProcessInfo"
+                    }
+                }
+            },
             "PostalCodeRequest": {
                 "type": "object",
                 "properties": {
@@ -2944,12 +3693,10 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "integer",
-                        "format": "int64"
+                        "type": "string"
                     },
                     "organizationId": {
-                        "type": "integer",
-                        "format": "int64"
+                        "type": "string"
                     },
                     "organizationName": {
                         "type": "string"
@@ -2991,16 +3738,13 @@
                         "type": "string"
                     },
                     "provinceId": {
-                        "type": "integer",
-                        "format": "int64"
+                        "type": "string"
                     },
                     "cityId": {
-                        "type": "integer",
-                        "format": "int64"
+                        "type": "string"
                     },
                     "countyId": {
-                        "type": "integer",
-                        "format": "int64"
+                        "type": "string"
                     },
                     "createdBy": {
                         "type": "integer",
@@ -3039,20 +3783,16 @@
                         "format": "int32"
                     },
                     "organizationId": {
-                        "type": "integer",
-                        "format": "int64"
+                        "type": "string"
                     },
                     "provinceId": {
-                        "type": "integer",
-                        "format": "int64"
+                        "type": "string"
                     },
                     "cityId": {
-                        "type": "integer",
-                        "format": "int64"
+                        "type": "string"
                     },
                     "countyId": {
-                        "type": "integer",
-                        "format": "int64"
+                        "type": "string"
                     }
                 }
             },
@@ -3116,22 +3856,6 @@
                     },
                     "data": {
                         "$ref": "#/components/schemas/PlanTemplate"
-                    }
-                }
-            },
-            "ResponseLong": {
-                "type": "object",
-                "properties": {
-                    "code": {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "message": {
-                        "type": "string"
-                    },
-                    "data": {
-                        "type": "integer",
-                        "format": "int64"
                     }
                 }
             },
