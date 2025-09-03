@@ -6,10 +6,15 @@ import router from './router';
 import { usePermissStore } from './store/permiss';
 import 'element-plus/dist/index.css';
 import './assets/css/icon.css';
+import { useDictStore } from './store/dict';
 
 const app = createApp(App);
 app.use(createPinia());
 app.use(router);
+
+// Load dictionaries once on startup
+const dictStore = useDictStore();
+dictStore.loadAll();
 
 // 注册elementplus图标
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {

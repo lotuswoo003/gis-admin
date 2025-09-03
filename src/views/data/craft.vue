@@ -20,9 +20,7 @@
           <input ref="fileInputRef" type="file" accept=".xls,.xlsx" style="display:none" @change="onFileChange" />
         </template>
         <template #typeText="{ rows }">
-          <el-tag :type="rows.type === 'human' ? 'success' : rows.type === 'machine' ? 'warning' : rows.type === 'material' ? 'info' : ''">
-            {{ rows.type === 'human' ? '人工' : rows.type === 'machine' ? '设备' : rows.type === 'material' ? '材料' : (rows.typeText || rows.type || '-') }}
-          </el-tag>
+          <el-tag>{{ rows.typeText || '-' }}</el-tag>
         </template>
         <template #processes="{ rows }">
           <el-tooltip :content="(rows.processes || '').slice(0, 200)" placement="top" v-if="rows.processes">
@@ -51,9 +49,7 @@
     <el-drawer v-model="previewVisible" title="查看工艺" size="60%" :close-on-click-modal="true">
       <div class="preview">
         <div class="preview-header">
-          <el-tag class="mgr8" :type="previewRow?.type === 'human' ? 'success' : previewRow?.type === 'machine' ? 'warning' : previewRow?.type === 'material' ? 'info' : ''">
-            {{ previewRow?.type === 'human' ? '人工' : previewRow?.type === 'machine' ? '设备' : previewRow?.type === 'material' ? '材料' : (previewRow?.type || '-') }}
-          </el-tag>
+          <el-tag class="mgr8">{{ dictStore.getLabel('green_space_type', previewRow?.type) || '-' }}</el-tag>
           <span class="preview-title">{{ previewRow?.question || '未命名工艺' }}</span>
         </div>
         <el-descriptions :column="3" border class="mgb12">
@@ -83,12 +79,23 @@ import { fetchProcessInfoPage, getProcessInfo, createProcessInfo, updateProcessI
 import type { ProcessInfo } from '@/types/process-info';
 import '@wangeditor/editor/dist/css/style.css';
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue';
+import { computed, watchEffect } from 'vue';
+import { useDictStore } from '@/store/dict';
 
 // 查询
 const query = reactive({
   type: '',
   question: '',
   organizationId: null as string | null,
+});
+
+// 动态填充表单“类别”为字典项
+watchEffect(() => {
+  try {
+    const list: any[] = (formOptions.value as any).list || [];
+    const i = list.findIndex((it: any) => it.prop === 'type');
+    if (i >= 0) list[i] = { ...list[i], opts: greenTypeOpts.value };
+  } catch {}
 });
 
 const orgOpts = ref<any[]>([]);
@@ -113,20 +120,34 @@ const searchOpt = ref<FormOptionList[]>([
 
 const handleSearch = () => { page.index = 1; loadData(); };
 
+// 字典：智能工艺类型 green_space_type
+const dictStore = useDictStore();
+dictStore.loadAll();
+const greenTypeOpts = computed(() => dictStore.getOptions('green_space_type'));
+
+// 用字典覆盖“类别”搜索项的选项
+watchEffect(() => {
+  try {
+    const base = [{ label: '全部', value: '' }];
+    const idx = searchOpt.value.findIndex((it: any) => it.prop === 'type');
+    if (idx >= 0) searchOpt.value[idx] = { ...searchOpt.value[idx], inputStyle: { width: '230px' }, opts: [...base, ...greenTypeOpts.value] } as any;
+  } catch {}
+});
+
 // 列
 const columns = ref([
   { type: 'index', label: '序号', width: 60, align: 'center' },
   { prop: 'typeText', label: '类别', width: 90 },
-  { prop: 'question', label: '工艺问题', align: 'left' },
+  { prop: 'question', label: '工艺问题', width: 100, align: 'left' },
   { prop: 'processes', label: '工艺流程', align: 'left' },
   { prop: 'sort', label: '排序', width: 80 },
-  { prop: 'createdAt', label: '创建时间', width: 180 },
-  { prop: 'operator', label: '操作', width: 200 },
+  { prop: 'organizationName', label: '甲方单位', width: 140 },
+  { prop: 'operator', label: '操作', width: 260 },
 ]);
 
 // 分页列表
 const page = reactive({ index: 1, rows: 10, total: 0 });
-type CraftRow = ProcessInfo & { typeText?: string };
+type CraftRow = ProcessInfo & { typeText?: string; organizationName?: string };
 const tableData = ref<CraftRow[]>([]);
 
 const loadData = async () => {
@@ -138,6 +159,10 @@ const loadData = async () => {
     typeText: r.type === 'human' ? '人' : r.type === 'machine' ? '机' : r.type === 'material' ? '材' : (r.type || ''),
   }));
   page.total = total;
+  // 使用字典标签覆盖类别文本
+  try {
+    tableData.value = tableData.value.map(r => ({ ...r, typeText: (dictStore.getLabel('green_space_type', (r as any).type) || (r as any).typeText) }));
+  } catch {}
 };
 loadData();
 
@@ -146,7 +171,7 @@ const changePage = (val: number) => { page.index = val; loadData(); };
 // 弹窗表单
 const visible = ref(false);
 const isEdit = ref(false);
-const row = ref<any>({ type: 'human', question: '', processes: '', human: '', tool: '', material: '', sort: 0, organizationId: null });
+const row = ref<any>({ type: '', question: '', processes: '', human: '', tool: '', material: '', sort: 0, organizationId: null });
 
 const orgOptsModal = ref<any[]>([]);
 const handleOrgRemoteModal = async (kw: string) => {
@@ -173,7 +198,7 @@ const formOptions = ref<FormOption>({
 const openAdd = () => {
   isEdit.value = false;
   visible.value = true;
-  row.value = { type: 'human', question: '', processes: '', human: '', tool: '', material: '', sort: 0, organizationId: null };
+  row.value = { type: (greenTypeOpts.value[0]?.value || 'human'), question: '', processes: '', human: '', tool: '', material: '', sort: 0, organizationId: null };
 };
 
 const handleEdit = async (r: CraftRow) => {

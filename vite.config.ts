@@ -6,8 +6,12 @@ import Components from 'unplugin-vue-components/vite';
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers';
 export default defineConfig(({ mode }) => {
   const isLynn = mode === 'lynn';
+  const isUat = mode === 'uat';
+  // Route API via dev proxy per mode to avoid CORS during development
   const proxyTarget = isLynn
     ? 'http://localhost:10201'
+    : isUat
+    ? 'http://192.168.106.97:8880'
     : 'http://192.168.106.97:10200';
 
   return {
