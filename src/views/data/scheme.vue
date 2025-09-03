@@ -56,7 +56,7 @@ import TableCustom from '@/components/table-custom.vue';
 import TableSearch from '@/components/table-search.vue';
 import type { FormOption, FormOptionList } from '@/types/form-option';
 import type { PlanTemplate } from '@/types/plan-template';
-import { fetchPlanTemplatePage, createPlanTemplate, updatePlanTemplate } from '@/api/plan-template';
+import { fetchPlanTemplatePage, createPlanTemplate, updatePlanTemplate, deletePlanTemplate } from '@/api/plan-template';
 import { fetchOrganizationPage } from '@/api/organization';
 import '@wangeditor/editor/dist/css/style.css';
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue';
@@ -253,6 +253,14 @@ const saveScheme = async (form: any) => {
     ElMessage.success('已新增');
   }
   closeDialog();
+  await loadData();
+};
+
+// 删除
+const handleDelete = async (row: SchemeRow) => {
+  if (!row || !row.id) return;
+  await deletePlanTemplate(row.id as any);
+  ElMessage.success('已删除');
   await loadData();
 };
 

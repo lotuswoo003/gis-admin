@@ -210,7 +210,7 @@ const saveRow = async (form: any) => {
 
 const handleDelete = async (r: RJCRow) => {
   if (!r.id) return;
-  await deleteProcessInfo(r.id);
+  await deleteProcessUnitPrice(r.id);
   ElMessage.success('删除成功');
   loadData();
 };
