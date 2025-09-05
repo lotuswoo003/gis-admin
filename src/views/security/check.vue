@@ -243,7 +243,8 @@ const handleUpload = async (opt: UploadRequestOptions) => {
     ensureAttachArr();
     row.value.attachUrls!.push(res.url);
     fileList.value.push({ name: f.name, url: res.url } as UploadUserFile);
-    opt.onSuccess && opt.onSuccess({}, f as any);
+    // UploadRequestOptions.onSuccess expects a single response argument
+    opt.onSuccess && opt.onSuccess({});
   } catch (e: any) {
     opt.onError && opt.onError(e);
   }
@@ -263,4 +264,3 @@ const onPreview = (file: UploadUserFile) => { imgPreviewUrl.value = file.url || 
 <style scoped>
 .container { background: #fff; padding: 12px; border: 1px solid #ddd; border-radius: 5px; }
 </style>
-
