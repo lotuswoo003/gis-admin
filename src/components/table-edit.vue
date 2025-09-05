@@ -8,6 +8,8 @@
 						:placeholder="item.placeholder" clearable></el-input>
 					<el-input-number v-else-if="item.type === 'number'" v-model="form[item.prop]"
 						:disabled="item.disabled" controls-position="right"></el-input-number>
+					<el-input v-else-if="item.type === 'textarea'" type="textarea" v-model="form[item.prop]" :disabled="item.disabled"
+						:placeholder="item.placeholder" :rows="item.rows || 4"></el-input>
 					<el-select v-else-if="item.type === 'select'" v-model="form[item.prop]" :disabled="item.disabled"
 						:placeholder="item.placeholder" clearable :multiple="item.multiple === true"
 						:filterable="item.remote || item.filterable" :remote="item.remote === true" :remote-method="item.remoteMethod">

@@ -16,12 +16,28 @@
             "description": "计划模板管理 - 增删改查接口"
         },
         {
+            "name": "Business Project",
+            "description": "商务项目 - 增删改查"
+        },
+        {
+            "name": "Security Check",
+            "description": "安全检查项目 - 增删改查与分页"
+        },
+        {
             "name": "Process Info",
             "description": "智库工艺信息 - 增删改查与分页"
         },
         {
+            "name": "Attachment Web API",
+            "description": "附件上传接口"
+        },
+        {
             "name": "Process Unit Price",
             "description": "智能工艺人机材单价 - 增删改查与分页"
+        },
+        {
+            "name": "GIS Resource Pool",
+            "description": "资源池管理：增删改查、分页、导入、同步"
         }
     ],
     "paths": {
@@ -30,7 +46,7 @@
                 "tags": [
                     "dict-controller"
                 ],
-                "operationId": "get_10",
+                "operationId": "get_11",
                 "parameters": [
                     {
                         "name": "id",
@@ -96,7 +112,7 @@
                 "tags": [
                     "dict-controller"
                 ],
-                "operationId": "delete_10",
+                "operationId": "delete_11",
                 "parameters": [
                     {
                         "name": "id",
@@ -126,7 +142,7 @@
                 "tags": [
                     "department-controller"
                 ],
-                "operationId": "get_11",
+                "operationId": "get_12",
                 "parameters": [
                     {
                         "name": "id",
@@ -192,7 +208,7 @@
                 "tags": [
                     "department-controller"
                 ],
-                "operationId": "delete_11",
+                "operationId": "delete_12",
                 "parameters": [
                     {
                         "name": "id",
@@ -220,13 +236,16 @@
         "/business-projects/{id}": {
             "get": {
                 "tags": [
-                    "business-project-controller"
+                    "Business Project"
                 ],
-                "operationId": "get_12",
+                "summary": "获取商务项目",
+                "description": "根据ID获取商务项目详情",
+                "operationId": "get_13",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
+                        "description": "项目ID",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -248,13 +267,16 @@
             },
             "put": {
                 "tags": [
-                    "business-project-controller"
+                    "Business Project"
                 ],
+                "summary": "更新商务项目",
+                "description": "根据ID更新商务项目信息",
                 "operationId": "update_2",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
+                        "description": "项目ID",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -286,13 +308,16 @@
             },
             "delete": {
                 "tags": [
-                    "business-project-controller"
+                    "Business Project"
                 ],
-                "operationId": "delete_12",
+                "summary": "删除商务项目",
+                "description": "逻辑删除商务项目",
+                "operationId": "delete_13",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
+                        "description": "项目ID",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -613,12 +638,194 @@
                 }
             }
         },
+        "/securityCheck/update": {
+            "post": {
+                "tags": [
+                    "Security Check"
+                ],
+                "summary": "更新安全检查",
+                "description": "根据ID更新安全检查字段（仅非空字段会被更新）",
+                "operationId": "update_5",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SecurityCheck"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseBoolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/securityCheck/page": {
+            "post": {
+                "tags": [
+                    "Security Check"
+                ],
+                "summary": "分页查询安全检查",
+                "description": "支持按编码/名称/类型/父ID过滤",
+                "operationId": "page",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SecurityCheckPageRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponsePageResultSecurityCheck"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/securityCheck/list": {
+            "post": {
+                "tags": [
+                    "Security Check"
+                ],
+                "summary": "列表查询安全检查",
+                "description": "查询所有未删除的安全检查列表",
+                "operationId": "list_1",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseListSecurityCheck"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/securityCheck/get/{id}": {
+            "post": {
+                "tags": [
+                    "Security Check"
+                ],
+                "summary": "获取安全检查",
+                "description": "根据ID获取安全检查详情",
+                "operationId": "get_1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseSecurityCheck"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/securityCheck/delete/{id}": {
+            "post": {
+                "tags": [
+                    "Security Check"
+                ],
+                "summary": "删除安全检查",
+                "description": "逻辑删除（更新deleted_at）",
+                "operationId": "delete_2",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseBoolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/securityCheck/create": {
+            "post": {
+                "tags": [
+                    "Security Check"
+                ],
+                "summary": "新建安全检查",
+                "description": "新增一条安全检查记录",
+                "operationId": "create_1",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SecurityCheck"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseString"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/roles/update": {
             "post": {
                 "tags": [
                     "role-controller"
                 ],
-                "operationId": "update_5",
+                "operationId": "update_6",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -718,7 +925,7 @@
                 "tags": [
                     "role-controller"
                 ],
-                "operationId": "page",
+                "operationId": "page_1",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -748,7 +955,7 @@
                 "tags": [
                     "role-controller"
                 ],
-                "operationId": "list_1",
+                "operationId": "list_2",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -768,7 +975,7 @@
                 "tags": [
                     "role-controller"
                 ],
-                "operationId": "get_1",
+                "operationId": "get_2",
                 "parameters": [
                     {
                         "name": "id",
@@ -798,7 +1005,7 @@
                 "tags": [
                     "role-controller"
                 ],
-                "operationId": "delete_2",
+                "operationId": "delete_3",
                 "parameters": [
                     {
                         "name": "id",
@@ -828,7 +1035,7 @@
                 "tags": [
                     "role-controller"
                 ],
-                "operationId": "create_1",
+                "operationId": "create_2",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -896,9 +1103,11 @@
         "/resourcePool/update": {
             "post": {
                 "tags": [
-                    "gis-resource-pool-controller"
+                    "GIS Resource Pool"
                 ],
-                "operationId": "update_6",
+                "summary": "更新资源池",
+                "description": "根据ID更新资源池信息（仅非空字段会被更新）",
+                "operationId": "update_7",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -923,12 +1132,39 @@
                 }
             }
         },
+        "/resourcePool/sync": {
+            "post": {
+                "tags": [
+                    "GIS Resource Pool"
+                ],
+                "summary": "同步资源池地块",
+                "description": "将部分地块同步给甲方",
+                "operationId": "sync",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GisResouecePoolSyncRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/resourcePool/page": {
             "post": {
                 "tags": [
-                    "gis-resource-pool-controller"
+                    "GIS Resource Pool"
                 ],
-                "operationId": "page_1",
+                "summary": "分页查询资源池",
+                "description": "支持按名称与组织ID过滤",
+                "operationId": "page_2",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -956,9 +1192,11 @@
         "/resourcePool/list": {
             "post": {
                 "tags": [
-                    "gis-resource-pool-controller"
+                    "GIS Resource Pool"
                 ],
-                "operationId": "list_2",
+                "summary": "资源池列表",
+                "description": "查询所有未删除的资源池",
+                "operationId": "list_3",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -973,12 +1211,57 @@
                 }
             }
         },
+        "/resourcePool/importShp/{organizationId}": {
+            "post": {
+                "tags": [
+                    "GIS Resource Pool"
+                ],
+                "summary": "导入SHP文件",
+                "description": "上传SHP压缩包，解析后写入资源池（按组织ID清空旧数据）",
+                "operationId": "importShp",
+                "parameters": [
+                    {
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "file"
+                                ],
+                                "type": "object",
+                                "properties": {
+                                    "file": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/resourcePool/get/{id}": {
             "post": {
                 "tags": [
-                    "gis-resource-pool-controller"
+                    "GIS Resource Pool"
                 ],
-                "operationId": "get_2",
+                "summary": "获取资源池详情",
+                "description": "根据ID获取资源池详情",
+                "operationId": "get_3",
                 "parameters": [
                     {
                         "name": "id",
@@ -1006,9 +1289,11 @@
         "/resourcePool/delete/{id}": {
             "post": {
                 "tags": [
-                    "gis-resource-pool-controller"
+                    "GIS Resource Pool"
                 ],
-                "operationId": "delete_3",
+                "summary": "删除资源池",
+                "description": "逻辑删除（更新 deleted_at）",
+                "operationId": "delete_4",
                 "parameters": [
                     {
                         "name": "id",
@@ -1036,9 +1321,11 @@
         "/resourcePool/create": {
             "post": {
                 "tags": [
-                    "gis-resource-pool-controller"
+                    "GIS Resource Pool"
                 ],
-                "operationId": "create_2",
+                "summary": "新建资源池",
+                "description": "创建一条资源池记录",
+                "operationId": "create_3",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1070,7 +1357,7 @@
                 ],
                 "summary": "更新单价",
                 "description": "根据ID更新单价字段（仅非空字段会被更新）",
-                "operationId": "update_7",
+                "operationId": "update_8",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1102,7 +1389,7 @@
                 ],
                 "summary": "分页查询单价",
                 "description": "支持按省/市及其ID、类型、名称、组织过滤",
-                "operationId": "page_2",
+                "operationId": "page_3",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1134,7 +1421,7 @@
                 ],
                 "summary": "列表查询单价",
                 "description": "查询所有未删除的单价列表",
-                "operationId": "list_3",
+                "operationId": "list_4",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1156,7 +1443,7 @@
                 ],
                 "summary": "获取单价",
                 "description": "根据ID获取单价详情",
-                "operationId": "get_3",
+                "operationId": "get_4",
                 "parameters": [
                     {
                         "name": "id",
@@ -1188,7 +1475,7 @@
                 ],
                 "summary": "删除单价",
                 "description": "逻辑删除（更新deleted_at）",
-                "operationId": "delete_4",
+                "operationId": "delete_5",
                 "parameters": [
                     {
                         "name": "id",
@@ -1220,7 +1507,7 @@
                 ],
                 "summary": "新建单价",
                 "description": "新增一条人机材单价记录",
-                "operationId": "create_3",
+                "operationId": "create_4",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1305,7 +1592,7 @@
                 ],
                 "summary": "更新工艺信息",
                 "description": "根据ID更新工艺信息字段（仅非空字段会被更新）",
-                "operationId": "update_8",
+                "operationId": "update_9",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1337,7 +1624,7 @@
                 ],
                 "summary": "分页查询工艺信息",
                 "description": "支持按类型/问题/组织过滤",
-                "operationId": "page_3",
+                "operationId": "page_4",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1369,7 +1656,7 @@
                 ],
                 "summary": "列表查询工艺信息",
                 "description": "查询所有未删除的工艺信息列表",
-                "operationId": "list_4",
+                "operationId": "list_5",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1391,7 +1678,7 @@
                 ],
                 "summary": "获取工艺信息",
                 "description": "根据ID获取工艺信息详情",
-                "operationId": "get_4",
+                "operationId": "get_5",
                 "parameters": [
                     {
                         "name": "id",
@@ -1423,7 +1710,7 @@
                 ],
                 "summary": "删除工艺信息",
                 "description": "逻辑删除（更新deleted_at）",
-                "operationId": "delete_5",
+                "operationId": "delete_6",
                 "parameters": [
                     {
                         "name": "id",
@@ -1455,7 +1742,7 @@
                 ],
                 "summary": "新建工艺信息",
                 "description": "新增一条工艺信息记录",
-                "operationId": "create_4",
+                "operationId": "create_5",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1485,7 +1772,7 @@
                 "tags": [
                     "postal-code-controller"
                 ],
-                "operationId": "list_5",
+                "operationId": "list_6",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1517,7 +1804,7 @@
                 ],
                 "summary": "更新计划模板",
                 "description": "根据ID更新计划模板字段（仅非空字段会被更新）",
-                "operationId": "update_9",
+                "operationId": "update_10",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1549,7 +1836,7 @@
                 ],
                 "summary": "分页查询计划模板",
                 "description": "与其它分页接口保持一致，支持 organizationId、provinceId、cityId、countyId 条件过滤",
-                "operationId": "page_4",
+                "operationId": "page_5",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1581,7 +1868,7 @@
                 ],
                 "summary": "列表查询计划模板",
                 "description": "查询所有未删除的计划模板列表",
-                "operationId": "list_6",
+                "operationId": "list_7",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1603,7 +1890,7 @@
                 ],
                 "summary": "获取计划模板",
                 "description": "根据ID获取计划模板详情",
-                "operationId": "get_5",
+                "operationId": "get_6",
                 "parameters": [
                     {
                         "name": "id",
@@ -1635,7 +1922,7 @@
                 ],
                 "summary": "删除计划模板",
                 "description": "逻辑删除（更新deleted_at）",
-                "operationId": "delete_6",
+                "operationId": "delete_7",
                 "parameters": [
                     {
                         "name": "id",
@@ -1667,7 +1954,7 @@
                 ],
                 "summary": "新建计划模板",
                 "description": "新增一条计划模板记录，ID不传则自动生成",
-                "operationId": "create_5",
+                "operationId": "create_6",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1697,7 +1984,7 @@
                 "tags": [
                     "permission-package-controller"
                 ],
-                "operationId": "update_10",
+                "operationId": "update_11",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1727,7 +2014,7 @@
                 "tags": [
                     "permission-package-controller"
                 ],
-                "operationId": "list_7",
+                "operationId": "list_8",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1747,7 +2034,7 @@
                 "tags": [
                     "permission-package-controller"
                 ],
-                "operationId": "get_6",
+                "operationId": "get_7",
                 "parameters": [
                     {
                         "name": "id",
@@ -1777,7 +2064,7 @@
                 "tags": [
                     "permission-package-controller"
                 ],
-                "operationId": "delete_7",
+                "operationId": "delete_8",
                 "parameters": [
                     {
                         "name": "id",
@@ -1807,7 +2094,7 @@
                 "tags": [
                     "permission-package-controller"
                 ],
-                "operationId": "create_6",
+                "operationId": "create_7",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1837,7 +2124,7 @@
                 "tags": [
                     "permission-controller"
                 ],
-                "operationId": "update_11",
+                "operationId": "update_12",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1927,7 +2214,7 @@
                 "tags": [
                     "permission-controller"
                 ],
-                "operationId": "page_5",
+                "operationId": "page_6",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1957,7 +2244,7 @@
                 "tags": [
                     "permission-controller"
                 ],
-                "operationId": "list_8",
+                "operationId": "list_9",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1977,7 +2264,7 @@
                 "tags": [
                     "permission-controller"
                 ],
-                "operationId": "get_7",
+                "operationId": "get_8",
                 "parameters": [
                     {
                         "name": "id",
@@ -2007,7 +2294,7 @@
                 "tags": [
                     "permission-controller"
                 ],
-                "operationId": "delete_8",
+                "operationId": "delete_9",
                 "parameters": [
                     {
                         "name": "id",
@@ -2037,7 +2324,7 @@
                 "tags": [
                     "permission-controller"
                 ],
-                "operationId": "create_7",
+                "operationId": "create_8",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -2097,7 +2384,7 @@
                 "tags": [
                     "organization-controller"
                 ],
-                "operationId": "update_12",
+                "operationId": "update_13",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -2157,7 +2444,7 @@
                 "tags": [
                     "organization-controller"
                 ],
-                "operationId": "page_6",
+                "operationId": "page_7",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -2187,7 +2474,7 @@
                 "tags": [
                     "organization-controller"
                 ],
-                "operationId": "delete_9",
+                "operationId": "delete_10",
                 "parameters": [
                     {
                         "name": "id",
@@ -2300,7 +2587,7 @@
                 "tags": [
                     "dict-controller"
                 ],
-                "operationId": "list_9",
+                "operationId": "list_10",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -2318,7 +2605,7 @@
                 "tags": [
                     "dict-controller"
                 ],
-                "operationId": "create_8",
+                "operationId": "create_9",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -2348,7 +2635,7 @@
                 "tags": [
                     "department-controller"
                 ],
-                "operationId": "list_10",
+                "operationId": "list_11",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -2366,7 +2653,7 @@
                 "tags": [
                     "department-controller"
                 ],
-                "operationId": "create_9",
+                "operationId": "create_10",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -2394,9 +2681,11 @@
         "/business-projects": {
             "get": {
                 "tags": [
-                    "business-project-controller"
+                    "Business Project"
                 ],
-                "operationId": "list_11",
+                "summary": "列表查询商务项目",
+                "description": "查询所有未删除的商务项目列表",
+                "operationId": "list_12",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -2412,9 +2701,11 @@
             },
             "post": {
                 "tags": [
-                    "business-project-controller"
+                    "Business Project"
                 ],
-                "operationId": "create_10",
+                "summary": "新建商务项目",
+                "description": "新增一条商务项目记录",
+                "operationId": "create_11",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -2439,12 +2730,83 @@
                 }
             }
         },
+        "/attach/upload": {
+            "post": {
+                "tags": [
+                    "Attachment Web API"
+                ],
+                "summary": "上传文件",
+                "description": "上传文件并返回附件ID",
+                "operationId": "upload",
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "file"
+                                ],
+                                "type": "object",
+                                "properties": {
+                                    "file": {
+                                        "type": "string",
+                                        "description": "要上传的文件",
+                                        "format": "binary"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseString"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/attach/upload-select": {
+            "post": {
+                "tags": [
+                    "Attachment Web API"
+                ],
+                "operationId": "select",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AttachUploadRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UploadInfo"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/userOrganization/get/{id}": {
             "get": {
                 "tags": [
                     "user-organization-controller"
                 ],
-                "operationId": "get_8",
+                "operationId": "get_9",
                 "parameters": [
                     {
                         "name": "id",
@@ -2487,7 +2849,7 @@
                 "tags": [
                     "organization-controller"
                 ],
-                "operationId": "get_9",
+                "operationId": "get_10",
                 "parameters": [
                     {
                         "name": "id",
@@ -2964,6 +3326,139 @@
                     }
                 }
             },
+            "SecurityCheck": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "code": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "mode": {
+                        "type": "string"
+                    },
+                    "imageList": {
+                        "type": "string"
+                    },
+                    "parentId": {
+                        "type": "string"
+                    },
+                    "createdBy": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "deletedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    }
+                }
+            },
+            "SecurityCheckPageRequest": {
+                "type": "object",
+                "properties": {
+                    "page": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "rows": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "code": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "mode": {
+                        "type": "string"
+                    },
+                    "parentId": {
+                        "type": "string"
+                    }
+                }
+            },
+            "PageResultSecurityCheck": {
+                "type": "object",
+                "properties": {
+                    "total": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "records": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/SecurityCheck"
+                        }
+                    }
+                }
+            },
+            "ResponsePageResultSecurityCheck": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/PageResultSecurityCheck"
+                    }
+                }
+            },
+            "ResponseListSecurityCheck": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/SecurityCheck"
+                        }
+                    }
+                }
+            },
+            "ResponseSecurityCheck": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/SecurityCheck"
+                    }
+                }
+            },
             "RoleUpdateRequest": {
                 "type": "object",
                 "properties": {
@@ -3172,6 +3667,20 @@
                     },
                     "level": {
                         "type": "string"
+                    }
+                }
+            },
+            "GisResouecePoolSyncRequest": {
+                "type": "object",
+                "properties": {
+                    "lotId": {
+                        "type": "string"
+                    },
+                    "idList": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
                     }
                 }
             },
@@ -3515,6 +4024,10 @@
                     },
                     "organizationId": {
                         "type": "string"
+                    },
+                    "organizationName": {
+                        "type": "string",
+                        "readOnly": true
                     },
                     "sort": {
                         "type": "integer",
@@ -4298,6 +4811,38 @@
                     },
                     "endpoint": {
                         "type": "string"
+                    }
+                }
+            },
+            "AttachUploadRequest": {
+                "type": "object",
+                "properties": {
+                    "dir": {
+                        "type": "string"
+                    },
+                    "storageMode": {
+                        "type": "string"
+                    }
+                }
+            },
+            "UploadInfo": {
+                "type": "object",
+                "properties": {
+                    "storage": {
+                        "type": "string",
+                        "enum": [
+                            "Localhost",
+                            "AliOSS",
+                            "TencentCOS",
+                            "BaiduBOS",
+                            "HuaweiOBS",
+                            "QiNiuKodo",
+                            "AmazonS3",
+                            "MinIO"
+                        ]
+                    },
+                    "config": {
+                        "type": "object"
                     }
                 }
             },

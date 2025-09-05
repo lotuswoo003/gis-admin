@@ -26,9 +26,10 @@
 					@change="handleRegionChange"
 				/>
 			</el-form-item>
-			<el-form-item style="margin-left: 100px">
-				<el-button type="primary" :icon="Search" @click="search">搜索</el-button>
-				<el-button :icon="Refresh" @click="resetForm(searchRef)">重置</el-button>
+			<el-form-item class="search-actions">
+				<el-button size="default" type="primary" :icon="Search" @click="search">搜索</el-button>
+				<el-button size="default" :icon="Refresh" @click="resetForm(searchRef)">重置</el-button>
+				<slot name="extra"></slot>
 			</el-form-item>
 		</el-form>
 	</div>
@@ -89,4 +90,6 @@ const handleRegionChange = (val: {
 	border: 1px solid #ddd;
 	border-radius: 5px
 }
+.search-actions :deep(.el-button) { margin-left: 8px; }
+.search-actions :deep(.el-button:first-child) { margin-left: 0; }
 </style>

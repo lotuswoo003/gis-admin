@@ -51,6 +51,15 @@ const routes: RouteRecordRaw[] = [
                 component: () => import(/* webpackChunkName: "system-menu" */ '../views/system/menu.vue'),
             },
             {
+                path: '/resource-pool',
+                name: 'resource-pool',
+                meta: {
+                    title: '资源池管理',
+                    permiss: '14',
+                },
+                component: () => import(/* webpackChunkName: "resource-pool" */ '../views/resource/pool.vue'),
+            },
+            {
                 path: '/data-scheme',
                 name: 'data-scheme',
                 meta: {
@@ -67,6 +76,15 @@ const routes: RouteRecordRaw[] = [
                     permiss: '21',
                 },
                 component: () => import(/* webpackChunkName: "data-craft" */ '@/views/data/craft.vue'),
+            },
+            {
+                path: '/security-check',
+                name: 'security-check',
+                meta: {
+                    title: '安全管理',
+                    permiss: '291',
+                },
+                component: () => import(/* webpackChunkName: "security-check" */ '../views/security/check.vue'),
             },
             {
                 path: '/data-rjc',
