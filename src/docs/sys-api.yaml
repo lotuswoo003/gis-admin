@@ -24,8 +24,20 @@
             "description": "安全检查项目 - 增删改查与分页"
         },
         {
+            "name": "用户管理",
+            "description": "用户表 CRUD 接口"
+        },
+        {
             "name": "Process Info",
             "description": "智库工艺信息 - 增删改查与分页"
+        },
+        {
+            "name": "Password",
+            "description": "密码相关接口"
+        },
+        {
+            "name": "Permission Package",
+            "description": "CRUD and binding APIs for permission packages"
         },
         {
             "name": "Attachment Web API",
@@ -338,7 +350,27 @@
                 }
             }
         },
-        "/userOrganization/update": {
+        "/user_organization/v1/select-list": {
+            "post": {
+                "tags": [
+                    "user-organization-controller"
+                ],
+                "operationId": "selectUserOrganizationList",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseListUserOrganizationDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/user_organization/update": {
             "post": {
                 "tags": [
                     "user-organization-controller"
@@ -368,7 +400,7 @@
                 }
             }
         },
-        "/userOrganization/save": {
+        "/user_organization/save": {
             "post": {
                 "tags": [
                     "user-organization-controller"
@@ -398,7 +430,7 @@
                 }
             }
         },
-        "/userOrganization/delete": {
+        "/user_organization/delete": {
             "post": {
                 "tags": [
                     "user-organization-controller"
@@ -428,11 +460,32 @@
                 }
             }
         },
+        "/user/v1/select-base": {
+            "post": {
+                "tags": [
+                    "用户管理"
+                ],
+                "operationId": "selectUserBase",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseUserBaseDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/user/update": {
             "post": {
                 "tags": [
-                    "user-controller"
+                    "用户管理"
                 ],
+                "summary": "更新用户",
                 "operationId": "update_4",
                 "requestBody": {
                     "content": {
@@ -458,22 +511,13 @@
                 }
             }
         },
-        "/user/permissions/{id}": {
+        "/user/permissions": {
             "post": {
                 "tags": [
-                    "user-controller"
+                    "用户管理"
                 ],
-                "operationId": "permissions",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
+                "summary": "获取当前用户权限",
+                "operationId": "currentUserPermissions",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -491,8 +535,9 @@
         "/user/list": {
             "post": {
                 "tags": [
-                    "user-controller"
+                    "用户管理"
                 ],
+                "summary": "用户列表",
                 "operationId": "list",
                 "responses": {
                     "200": {
@@ -511,13 +556,15 @@
         "/user/get/{id}": {
             "post": {
                 "tags": [
-                    "user-controller"
+                    "用户管理"
                 ],
+                "summary": "获取用户详情",
                 "operationId": "get",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
+                        "description": "用户ID",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -541,13 +588,15 @@
         "/user/delete/{id}": {
             "post": {
                 "tags": [
-                    "user-controller"
+                    "用户管理"
                 ],
+                "summary": "删除用户",
                 "operationId": "delete_1",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
+                        "description": "用户ID",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -571,8 +620,9 @@
         "/user/create": {
             "post": {
                 "tags": [
-                    "user-controller"
+                    "用户管理"
                 ],
+                "summary": "创建用户",
                 "operationId": "create",
                 "requestBody": {
                     "content": {
@@ -601,13 +651,15 @@
         "/user/changePassword/{id}": {
             "post": {
                 "tags": [
-                    "user-controller"
+                    "用户管理"
                 ],
+                "summary": "修改用户密码",
                 "operationId": "changePassword",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
+                        "description": "用户ID",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -1982,8 +2034,9 @@
         "/permissionPackage/update": {
             "post": {
                 "tags": [
-                    "permission-package-controller"
+                    "Permission Package"
                 ],
+                "summary": "Update permission package",
                 "operationId": "update_11",
                 "requestBody": {
                     "content": {
@@ -2012,9 +2065,74 @@
         "/permissionPackage/list": {
             "post": {
                 "tags": [
-                    "permission-package-controller"
+                    "Permission Package"
                 ],
+                "summary": "List permission packages",
                 "operationId": "list_8",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseListPermissionPackage"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/permissionPackage/list/byOrgType/{organizationType}": {
+            "post": {
+                "tags": [
+                    "Permission Package"
+                ],
+                "summary": "List permission packages by organization type",
+                "operationId": "listByOrganizationType",
+                "parameters": [
+                    {
+                        "name": "organizationType",
+                        "in": "path",
+                        "description": "Organization type",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseListPermissionPackage"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/permissionPackage/list/byOrg/{organizationId}": {
+            "post": {
+                "tags": [
+                    "Permission Package"
+                ],
+                "summary": "List permission packages by organization id",
+                "operationId": "listByOrganizationId",
+                "parameters": [
+                    {
+                        "name": "organizationId",
+                        "in": "path",
+                        "description": "Organization ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -2032,13 +2150,15 @@
         "/permissionPackage/get/{id}": {
             "post": {
                 "tags": [
-                    "permission-package-controller"
+                    "Permission Package"
                 ],
+                "summary": "Get permission package by id",
                 "operationId": "get_7",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
+                        "description": "Package ID",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -2062,13 +2182,15 @@
         "/permissionPackage/delete/{id}": {
             "post": {
                 "tags": [
-                    "permission-package-controller"
+                    "Permission Package"
                 ],
+                "summary": "Delete permission package",
                 "operationId": "delete_8",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
+                        "description": "Package ID",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -2092,8 +2214,9 @@
         "/permissionPackage/create": {
             "post": {
                 "tags": [
-                    "permission-package-controller"
+                    "Permission Package"
                 ],
+                "summary": "Create permission package",
                 "operationId": "create_7",
                 "requestBody": {
                     "content": {
@@ -2112,6 +2235,99 @@
                             "*/*": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ResponseString"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/permissionPackage/bind/permissions": {
+            "post": {
+                "tags": [
+                    "Permission Package"
+                ],
+                "summary": "Bind permissions to package",
+                "operationId": "bindPermissionsToPackage",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PermissionPackageBindPermissionsRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseBoolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/permissionPackage/bind/org": {
+            "post": {
+                "tags": [
+                    "Permission Package"
+                ],
+                "summary": "Bind packages to organization",
+                "operationId": "bindPackagesToOrganization",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OrganizationPackageBindRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseBoolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/permissionPackage/bind/orgType": {
+            "post": {
+                "tags": [
+                    "Permission Package"
+                ],
+                "summary": "Bind packages to organization type",
+                "operationId": "bindPackagesToOrganizationType",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OrganizationTypePackageBindRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseBoolean"
                                 }
                             }
                         }
@@ -2372,6 +2588,58 @@
                             "*/*": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ResponseListPermission"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/password/v1/update": {
+            "post": {
+                "tags": [
+                    "Password"
+                ],
+                "summary": "更新当前用户密码，并将need_change_password置为1",
+                "operationId": "updatePassword",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ChangePasswordRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseBoolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/password/v1/select": {
+            "post": {
+                "tags": [
+                    "Password"
+                ],
+                "summary": "查询是否需要修改密码",
+                "operationId": "selectNeedChangePassword",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseNeedChangePasswordResponse"
                                 }
                             }
                         }
@@ -2801,7 +3069,7 @@
                 }
             }
         },
-        "/userOrganization/get/{id}": {
+        "/user_organization/get/{id}": {
             "get": {
                 "tags": [
                     "user-organization-controller"
@@ -3086,6 +3354,54 @@
                     }
                 }
             },
+            "ResponseListUserOrganizationDTO": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/UserOrganizationDTO"
+                        }
+                    }
+                }
+            },
+            "UserOrganizationDTO": {
+                "type": "object",
+                "properties": {
+                    "organizationId": {
+                        "type": "string"
+                    },
+                    "displayOrder": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "activated": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "rootRole": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "organizationType": {
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                }
+            },
             "UserOrganization": {
                 "type": "object",
                 "properties": {
@@ -3133,6 +3449,51 @@
                     }
                 }
             },
+            "ResponseUserBaseDTO": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/UserBaseDTO"
+                    }
+                }
+            },
+            "UserBaseDTO": {
+                "type": "object",
+                "properties": {
+                    "userId": {
+                        "type": "string"
+                    },
+                    "currentOrganizationId": {
+                        "type": "string"
+                    },
+                    "avatar": {
+                        "type": "string"
+                    },
+                    "nickname": {
+                        "type": "string"
+                    },
+                    "gender": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "mobile": {
+                        "type": "string"
+                    },
+                    "idCard": {
+                        "type": "string"
+                    },
+                    "idCardName": {
+                        "type": "string"
+                    }
+                }
+            },
             "User": {
                 "type": "object",
                 "properties": {
@@ -3143,6 +3504,12 @@
                         "type": "string"
                     },
                     "password": {
+                        "type": "string"
+                    },
+                    "avatar": {
+                        "type": "string"
+                    },
+                    "idCard": {
                         "type": "string"
                     },
                     "email": {
@@ -3179,6 +3546,9 @@
                         "type": "string",
                         "format": "date-time",
                         "readOnly": true
+                    },
+                    "need_change_password": {
+                        "type": "boolean"
                     }
                 }
             },
@@ -4383,9 +4753,6 @@
                     },
                     "code": {
                         "type": "string"
-                    },
-                    "permissionCode": {
-                        "type": "string"
                     }
                 }
             },
@@ -4399,9 +4766,6 @@
                         "type": "string"
                     },
                     "code": {
-                        "type": "string"
-                    },
-                    "permissionCode": {
                         "type": "string"
                     },
                     "createdAt": {
@@ -4418,6 +4782,13 @@
                         "type": "string",
                         "format": "date-time",
                         "readOnly": true
+                    },
+                    "permissions": {
+                        "type": "array",
+                        "readOnly": true,
+                        "items": {
+                            "$ref": "#/components/schemas/Permission"
+                        }
                     }
                 }
             },
@@ -4462,9 +4833,48 @@
                     },
                     "code": {
                         "type": "string"
-                    },
-                    "permissionCode": {
+                    }
+                }
+            },
+            "PermissionPackageBindPermissionsRequest": {
+                "type": "object",
+                "properties": {
+                    "packageId": {
                         "type": "string"
+                    },
+                    "permissionIds": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "OrganizationPackageBindRequest": {
+                "type": "object",
+                "properties": {
+                    "organizationId": {
+                        "type": "string"
+                    },
+                    "packageIds": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "OrganizationTypePackageBindRequest": {
+                "type": "object",
+                "properties": {
+                    "organizationType": {
+                        "type": "string"
+                    },
+                    "packageIds": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
                     }
                 }
             },
@@ -4627,6 +5037,29 @@
                     }
                 }
             },
+            "NeedChangePasswordResponse": {
+                "type": "object",
+                "properties": {
+                    "needChangePassword": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "ResponseNeedChangePasswordResponse": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/NeedChangePasswordResponse"
+                    }
+                }
+            },
             "Organization": {
                 "type": "object",
                 "properties": {
@@ -4659,6 +5092,10 @@
                     },
                     "countyId": {
                         "type": "string"
+                    },
+                    "status": {
+                        "type": "integer",
+                        "format": "int32"
                     },
                     "createdAt": {
                         "type": "string",

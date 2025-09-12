@@ -28,7 +28,9 @@ export default defineConfig(({ mode }) => {
           target: proxyTarget,
           changeOrigin: true,
           secure: false,
-          rewrite: (path) => path.replace(/^\/codex-api/, ''),
+          // 在 uat 模式下不重写，确保命中 Nginx 的 /codex-api/ 位置；
+          // 在其他模式下将前缀改写为后端网关的 /api 前缀。
+          rewrite: (path) => (isUat ? path : path.replace(/^\/codex-api/, '/api')),
         },
       },
     },

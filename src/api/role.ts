@@ -55,11 +55,18 @@ export const assignRole = (userId: string, data: { roleId: string }) => {
     });
 };
 
-export const getRolePermissionIds = (roleId: string) => {
-    return request<string[]>({
-        url: `sys/roles/permission/get/${roleId}`,
-        method: 'post',
-    });
+export const getRolePermissionIds = async (roleId: string) => {
+    try {
+        return await request<string[]>({
+            url: `sys/roles/permission/get/${roleId}`,
+            method: 'post',
+        });
+    } catch (e) {
+        return await request<string[]>({
+            url: `sys/roles/permission/get/${roleId}`,
+            method: 'get',
+        });
+    }
 };
 
 export const updateRolePermissions = (roleId: string, data: { permissionIds: string[] }) => {

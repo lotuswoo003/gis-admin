@@ -13,12 +13,21 @@ export const getPermission = (id: string) => {
     });
 };
 
-export const listPermissions = (data: Record<string, any>) => {
-    return request<Permission[]>({
-        url: 'sys/permission/list',
-        method: 'post',
-        data,
-    });
+export const listPermissions = async (data: Record<string, any>) => {
+    try {
+        return await request<Permission[]>({
+            url: 'sys/permission/list',
+            method: 'post',
+            data,
+        });
+    } catch (e) {
+        // 兼容部分环境仅支持 GET 的情况
+        return await request<Permission[]>({
+            url: 'sys/permission/list',
+            method: 'get',
+            params: data,
+        });
+    }
 };
 
 export const fetchPermissionPage = (data: PermissionPageQuery) => {
@@ -52,12 +61,20 @@ export const deletePermission = (id: string) => {
     });
 };
 
-export const getPermissionChildren = (data: { parentId: string; type: string }) => {
-    return request<Permission[]>({
-        url: 'sys/permission/children',
-        method: 'post',
-        data,
-    });
+export const getPermissionChildren = async (data: { parentId: string; type: string }) => {
+    try {
+        return await request<Permission[]>({
+            url: 'sys/permission/children',
+            method: 'post',
+            data,
+        });
+    } catch (e) {
+        return await request<Permission[]>({
+            url: 'sys/permission/children',
+            method: 'get',
+            params: data,
+        });
+    }
 };
 
 export const queryPermissionByTreePath = (data: { treePath: string }) => {
@@ -68,10 +85,18 @@ export const queryPermissionByTreePath = (data: { treePath: string }) => {
     });
 };
 
-export const getPermissionTree = (data?: Record<string, any>) => {
-    return request<Permission[]>({
-        url: 'sys/permission/tree',
-        method: 'post',
-        data,
-    });
+export const getPermissionTree = async (data: Record<string, any> = {}) => {
+    try {
+        return await request<Permission[]>({
+            url: 'sys/permission/tree',
+            method: 'post',
+            data: data ?? {},
+        });
+    } catch (e) {
+        return await request<Permission[]>({
+            url: 'sys/permission/tree',
+            method: 'get',
+            params: data ?? {},
+        });
+    }
 };

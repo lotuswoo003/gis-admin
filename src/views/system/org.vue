@@ -6,18 +6,19 @@
         :columns="columns"
         :tableData="tableData"
         :total="page.total"
-        :viewFunc="handleView"
-        :delFunc="handleDelete"
-        :page-change="changePage"
+        :currentPage="page.index"
+        :pageSize="page.rows"
+        :changePage="changePage"
         :editFunc="handleEdit"
+        :delFunc="handleDelete"
       >
         <template #toolbarBtn>
-          <el-button type="warning" :icon="CirclePlusFilled" @click="visible = true">新增</el-button>
+          <el-button type="warning" :icon="CirclePlusFilled" @click="openAdd">新增</el-button>
         </template>
         <template #operator="{ rows }">
-          <el-button type="warning" size="small" @click="handleView(rows)">查看</el-button>
           <el-button type="primary" size="small" @click="handleEdit(rows)">编辑</el-button>
           <el-button type="success" size="small" @click="$router.push({ path: '/resource-pool', query: { organizationId: rows.id } })">资源池管理</el-button>
+          <el-button type="primary" size="small" @click="openEditPackages(rows)">编辑权限包</el-button>
           <el-button type="danger" size="small" @click="handleDelete(rows)">删除</el-button>
         </template>
       </TableCustom>
@@ -28,20 +29,35 @@
     <el-dialog title="查看详情" v-model="visible1" width="700px" destroy-on-close>
       <TableDetail :data="viewData" />
     </el-dialog>
+    <el-dialog title="编辑权限包" v-model="pkgDialogVisible" width="560px" destroy-on-close>
+      <div style="margin-bottom:10px">为组织：{{ currentOrgName }} 选择权限包</div>
+      <el-checkbox-group v-model="checkedPackageIds">
+        <el-checkbox v-for="pkg in allPackages" :key="pkg.id" :label="pkg.id">
+          <span style="font-weight:600">{{ pkg.code }}</span>
+          <span style="margin-left:8px;color:#666">{{ pkg.name }}</span>
+        </el-checkbox>
+      </el-checkbox-group>
+      <template #footer>
+        <el-button @click="pkgDialogVisible = false">取 消</el-button>
+        <el-button type="primary" :loading="savingPkg" @click="saveOrgPackages">保 存</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts" name="system-org">
-import { ref, reactive } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import { CirclePlusFilled } from '@element-plus/icons-vue';
-import { Organization } from '@/types/org';
+import type { Organization } from '@/types/org';
 import { fetchOrganizationPage, getOrganization, saveOrganization, updateOrganization } from '@/api/organization';
 import TableCustom from '@/components/table-custom.vue';
 import TableDetail from '@/components/table-detail.vue';
 import TableSearch from '@/components/table-search.vue';
 import TableEdit from '@/components/table-edit.vue';
 import type { FormOption, FormOptionList } from '@/types/form-option';
+import type { PermissionPackage } from '@/types/permission-package';
+import { listPermissionPackages, listPermissionPackagesByOrg, bindPackagesToOrganization } from '@/api/permission-package';
 
 const typeOptions = [
   { label: '政府', value: '1' },
@@ -51,7 +67,7 @@ const typeOptions = [
 // 查询
 const query = reactive({ name: '' });
 const searchOpt = ref<FormOptionList[]>([
-  { type: 'input', label: '组织名称：', prop: 'name' },
+  { type: 'input', label: '组织名称', prop: 'name' },
 ]);
 const handleSearch = () => { changePage(1); };
 
@@ -62,10 +78,11 @@ let columns = ref([
   { prop: 'type', label: '组织类型', formatter: (val: string) => typeOptions.find(o => o.value === val)?.label || '' },
   { prop: 'province', label: '省' },
   { prop: 'city', label: '市' },
-  { prop: 'county', label: '区/县' },
+  { prop: 'county', label: '区县' },
   { prop: 'address', label: '地址' },
-  { prop: 'operator', label: '操作', width: 380 },
+  { prop: 'operator', label: '操作', width: 420 },
 ]);
+
 const page = reactive({ index: 1, rows: 10, total: 0 });
 const tableData = ref<Organization[]>([]);
 const getData = async () => {
@@ -73,7 +90,7 @@ const getData = async () => {
   tableData.value = (res.data.records || []) as Organization[];
   page.total = res.data.total || 0;
 };
-getData();
+onMounted(getData);
 
 const changePage = (val: number) => { page.index = val; getData(); };
 
@@ -88,16 +105,24 @@ let options = ref<FormOption>({
     { type: 'input', label: '地址', prop: 'address', required: true, span: 24 },
   ]
 });
+
 const visible = ref(false);
 const isEdit = ref(false);
-const rowData = ref({});
+const rowData = ref<any>({});
+
+const openAdd = () => {
+  rowData.value = {};
+  isEdit.value = false;
+  visible.value = true;
+};
+
 const handleEdit = async (row: Organization) => {
-  const res = await getOrganization(row.id);
-  const { createdAt, ...data } = res.data;
-  rowData.value = data;
+  const res = await getOrganization(Number(row.id));
+  rowData.value = res.data as any;
   isEdit.value = true;
   visible.value = true;
 };
+
 const updateData = async (form: any) => {
   const { createdAt, updatedAt, ...payload } = form;
   if (isEdit.value) {
@@ -116,18 +141,18 @@ const closeDialog = () => { visible.value = false; isEdit.value = false; };
 const visible1 = ref(false);
 const viewData = ref({ row: {}, list: [] as any[] });
 const handleView = async (row: Organization) => {
-  const res = await getOrganization(row.id);
+  const res = await getOrganization(Number(row.id));
   viewData.value.row = {
     ...res.data,
     type: typeOptions.find(o => o.value === res.data.type)?.label || res.data.type,
     createdAt: res.data.createdAt ? res.data.createdAt.split('T')[0] : '',
-  };
+  } as any;
   viewData.value.list = [
     { prop: 'name', label: '组织名称' },
     { prop: 'type', label: '组织类型' },
     { prop: 'province', label: '省' },
     { prop: 'city', label: '市' },
-    { prop: 'county', label: '区/县' },
+    { prop: 'county', label: '区县' },
     { prop: 'address', label: '地址' },
     { prop: 'createdAt', label: '创建时间' },
   ];
@@ -138,9 +163,39 @@ const handleView = async (row: Organization) => {
 const handleDelete = (row: Organization) => {
   ElMessage.success('删除成功');
 };
+
+// 编辑权限包
+const pkgDialogVisible = ref(false);
+const currentOrgId = ref('');
+const currentOrgName = ref('');
+const allPackages = ref<PermissionPackage[]>([]);
+const checkedPackageIds = ref<string[]>([]);
+const savingPkg = ref(false);
+
+const openEditPackages = async (row: Organization) => {
+  currentOrgId.value = String(row.id);
+  currentOrgName.value = row.name as any;
+  const [allRes, orgRes] = await Promise.all([
+    listPermissionPackages(),
+    listPermissionPackagesByOrg(String(row.id)),
+  ]);
+  allPackages.value = allRes.data || [];
+  checkedPackageIds.value = (orgRes.data || []).map((p: any) => p.id);
+  pkgDialogVisible.value = true;
+};
+
+const saveOrgPackages = async () => {
+  savingPkg.value = true;
+  try {
+    await bindPackagesToOrganization({ organizationId: currentOrgId.value, packageIds: checkedPackageIds.value });
+    ElMessage.success('保存成功');
+    pkgDialogVisible.value = false;
+  } finally {
+    savingPkg.value = false;
+  }
+};
 </script>
 
 <style scoped>
 .container { background: #fff; padding: 12px; border: 1px solid #ddd; border-radius: 5px; }
 </style>
-

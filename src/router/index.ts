@@ -51,6 +51,24 @@ const routes: RouteRecordRaw[] = [
                 component: () => import(/* webpackChunkName: "system-menu" */ '../views/system/menu.vue'),
             },
             {
+                path: '/system-permission-package',
+                name: 'system-permission-package',
+                meta: {
+                    title: '权限包管理',
+                    permiss: '17',
+                },
+                component: () => import(/* webpackChunkName: "system-permission-package" */ '../views/system/permission-package.vue'),
+            },
+            {
+                path: '/system-enterprise-identity',
+                name: 'system-enterprise-identity',
+                meta: {
+                    title: '企业身份管理',
+                    permiss: '18',
+                },
+                component: () => import(/* webpackChunkName: "system-enterprise-identity" */ '../views/system/enterprise-identity.vue'),
+            },
+            {
                 path: '/resource-pool',
                 name: 'resource-pool',
                 meta: {
@@ -90,7 +108,7 @@ const routes: RouteRecordRaw[] = [
                 path: '/data-rjc',
                 name: 'data-rjc',
                 meta: {
-                    title: '人机材',
+                    title: '人机协同',
                     permiss: '22',
                 },
                 component: () => import(/* webpackChunkName: "data-rjc" */ '../views/data/rjc.vue'),
@@ -122,11 +140,11 @@ const routes: RouteRecordRaw[] = [
                   },
                   component: () => import(/* webpackChunkName: "system-dict" */ '../views/system/dict.vue'),
               },
-              {
-                  path: '/table',
-                  name: 'basetable',
-                  meta: {
-                      title: '基础表格',
+            {
+                path: '/table',
+                name: 'basetable',
+                meta: {
+                    title: '基础表格',
                     permiss: '31',
                 },
                 component: () => import(/* webpackChunkName: "table" */ '../views/table/basetable.vue'),
