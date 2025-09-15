@@ -9,7 +9,7 @@ export const fetchOrganizationPage = (data: OrganizationPageQuery) => {
     });
 };
 
-export const getOrganization = (id: number) => {
+export const getOrganization = (id: string | number) => {
     return request<Organization>({
         url: `sys/organization/get/${id}`,
         method: 'get',

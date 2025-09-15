@@ -117,7 +117,7 @@ const openAdd = () => {
 };
 
 const handleEdit = async (row: Organization) => {
-  const res = await getOrganization(Number(row.id));
+  const res = await getOrganization(row.id);
   rowData.value = res.data as any;
   isEdit.value = true;
   visible.value = true;
@@ -141,7 +141,7 @@ const closeDialog = () => { visible.value = false; isEdit.value = false; };
 const visible1 = ref(false);
 const viewData = ref({ row: {}, list: [] as any[] });
 const handleView = async (row: Organization) => {
-  const res = await getOrganization(Number(row.id));
+  const res = await getOrganization(row.id);
   viewData.value.row = {
     ...res.data,
     type: typeOptions.find(o => o.value === res.data.type)?.label || res.data.type,
