@@ -17,8 +17,9 @@
         </template>
         <template #operator="{ rows }">
           <el-button type="primary" size="small" @click="handleEdit(rows)">编辑</el-button>
-          <el-button type="success" size="small" @click="$router.push({ path: '/resource-pool', query: { organizationId: rows.id } })">资源池管理</el-button>
-          <el-button type="primary" size="small" @click="openEditPackages(rows)">编辑权限包</el-button>
+          <el-button type="success" size="small" @click="$router.push({ path: '/resource-pool', query: { organizationId: rows.id } })">资源池</el-button>
+          <el-button type="primary" size="small" @click="openEditPackages(rows)">权限包</el-button>
+          <el-button type="info" size="small" @click="openDownstream(rows)">下游</el-button>
           <el-button type="danger" size="small" @click="handleDelete(rows)">删除</el-button>
         </template>
       </TableCustom>
@@ -29,7 +30,7 @@
     <el-dialog title="查看详情" v-model="visible1" width="700px" destroy-on-close>
       <TableDetail :data="viewData" />
     </el-dialog>
-    <el-dialog title="编辑权限包" v-model="pkgDialogVisible" width="560px" destroy-on-close>
+    <el-dialog title="权限包" v-model="pkgDialogVisible" width="560px" destroy-on-close>
       <div style="margin-bottom:10px">为组织：{{ currentOrgName }} 选择权限包</div>
       <el-checkbox-group v-model="checkedPackageIds">
         <el-checkbox v-for="pkg in allPackages" :key="pkg.id" :label="pkg.id">
@@ -40,6 +41,18 @@
       <template #footer>
         <el-button @click="pkgDialogVisible = false">取 消</el-button>
         <el-button type="primary" :loading="savingPkg" @click="saveOrgPackages">保 存</el-button>
+      </template>
+    </el-dialog>
+    <el-dialog title="下游" v-model="downDialogVisible" width="560px" destroy-on-close>
+      <el-input v-model="downKeyword" placeholder="搜索企业" clearable @input="loadEnterpriseList" style="margin-bottom:10px" />
+      <el-checkbox-group v-model="downSelectedIds">
+        <el-checkbox v-for="ent in enterpriseList" :key="ent.id" :label="String(ent.id)">
+          <span style="font-weight:600">{{ ent.name }}</span>
+        </el-checkbox>
+      </el-checkbox-group>
+      <template #footer>
+        <el-button @click="downDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="savingDown" @click="saveDownstream">保存</el-button>
       </template>
     </el-dialog>
   </div>
@@ -192,6 +205,39 @@ const saveOrgPackages = async () => {
     pkgDialogVisible.value = false;
   } finally {
     savingPkg.value = false;
+  }
+};
+
+// 下游管理
+const downDialogVisible = ref(false);
+const downKeyword = ref('');
+const enterpriseList = ref<Organization[]>([]);
+const downSelectedIds = ref<string[]>([]);
+const savingDown = ref(false);
+const currentDownOrgId = ref('');
+
+const openDownstream = async (row: Organization) => {
+  currentDownOrgId.value = String(row.id);
+  downKeyword.value = '';
+  await loadEnterpriseList();
+  // TODO: 加载已关联的下游企业，待接口对接
+  downSelectedIds.value = [];
+  downDialogVisible.value = true;
+};
+
+const loadEnterpriseList = async () => {
+  const res = await fetchOrganizationPage({ page: 1, rows: 200, name: downKeyword.value });
+  enterpriseList.value = (res.data.records || []).filter((o: any) => o.type === '2');
+};
+
+const saveDownstream = async () => {
+  savingDown.value = true;
+  try {
+    // TODO: 保存下游企业关联，接口后续对接
+    ElMessage.success('已保存（待对接接口）');
+    downDialogVisible.value = false;
+  } finally {
+    savingDown.value = false;
   }
 };
 </script>
