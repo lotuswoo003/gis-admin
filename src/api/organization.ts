@@ -31,3 +31,21 @@ export const updateOrganization = (data: OrganizationUpdate) => {
         data,
     });
 };
+
+// 查询已绑定的下游企业列表
+export const targetOrgs = (sourceOrgId: string) => {
+    return request<Organization[]>({
+        url: 'sys/organization/targetOrgs',
+        method: 'get',
+        params: { sourceOrgId },
+    });
+};
+
+// 绑定下游企业
+export const bindTargets = (data: { sourceOrgId: string; targetOrgIds: string[] }) => {
+    return request<boolean>({
+        url: 'sys/organization/bindTargets',
+        method: 'post',
+        data,
+    });
+};

@@ -63,7 +63,7 @@ import { ref, reactive, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import { CirclePlusFilled } from '@element-plus/icons-vue';
 import type { Organization } from '@/types/org';
-import { fetchOrganizationPage, getOrganization, saveOrganization, updateOrganization } from '@/api/organization';
+import { fetchOrganizationPage, getOrganization, saveOrganization, updateOrganization, targetOrgs, bindTargets } from '@/api/organization';
 import TableCustom from '@/components/table-custom.vue';
 import TableDetail from '@/components/table-detail.vue';
 import TableSearch from '@/components/table-search.vue';
@@ -220,8 +220,9 @@ const openDownstream = async (row: Organization) => {
   currentDownOrgId.value = String(row.id);
   downKeyword.value = '';
   await loadEnterpriseList();
-  // TODO: 加载已关联的下游企业，待接口对接
-  downSelectedIds.value = [];
+  // 加载已关联的下游企业
+  const res = await targetOrgs(currentDownOrgId.value);
+  downSelectedIds.value = (res.data || []).map((o: any) => String(o.id));
   downDialogVisible.value = true;
 };
 
@@ -233,8 +234,8 @@ const loadEnterpriseList = async () => {
 const saveDownstream = async () => {
   savingDown.value = true;
   try {
-    // TODO: 保存下游企业关联，接口后续对接
-    ElMessage.success('已保存（待对接接口）');
+    await bindTargets({ sourceOrgId: currentDownOrgId.value, targetOrgIds: downSelectedIds.value });
+    ElMessage.success('保存成功');
     downDialogVisible.value = false;
   } finally {
     savingDown.value = false;
