@@ -44,12 +44,24 @@
       </template>
     </el-dialog>
     <el-dialog title="下游" v-model="downDialogVisible" width="560px" destroy-on-close>
-      <el-input v-model="downKeyword" placeholder="搜索企业" clearable @input="loadEnterpriseList" style="margin-bottom:10px" />
-      <el-checkbox-group v-model="downSelectedIds">
-        <el-checkbox v-for="ent in enterpriseList" :key="ent.id" :label="String(ent.id)">
-          <span style="font-weight:600">{{ ent.name }}</span>
-        </el-checkbox>
-      </el-checkbox-group>
+      <el-input v-model="downKeyword" placeholder="搜索企业" clearable style="margin-bottom:10px" />
+      <div v-loading="downLoading">
+        <el-scrollbar style="max-height:300px">
+          <template v-if="enterpriseList.length">
+            <el-checkbox-group v-model="downSelectedIds">
+              <el-checkbox
+                v-for="ent in enterpriseList"
+                :key="ent.id"
+                :label="String(ent.id)"
+                :disabled="String(ent.id) === currentDownOrgId"
+              >
+                <span style="font-weight:600">{{ ent.name }}</span>
+              </el-checkbox>
+            </el-checkbox-group>
+          </template>
+          <el-empty v-else description="无匹配企业" />
+        </el-scrollbar>
+      </div>
       <template #footer>
         <el-button @click="downDialogVisible = false">取消</el-button>
         <el-button type="primary" :loading="savingDown" @click="saveDownstream">保存</el-button>
@@ -59,7 +71,7 @@
 </template>
 
 <script setup lang="ts" name="system-org">
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, watch } from 'vue';
 import { ElMessage } from 'element-plus';
 import { CirclePlusFilled } from '@element-plus/icons-vue';
 import type { Organization } from '@/types/org';
@@ -114,34 +126,47 @@ let options = ref<FormOption>({
   list: [
     { type: 'input', label: '组织名称', prop: 'name', required: true },
     { type: 'select', label: '组织类型', prop: 'type', required: true, opts: typeOptions },
+    { type: 'input', label: '管理员账号', prop: 'adminLoginCode', required: true, span: 24 },
     { type: 'region', label: '省市区', prop: 'provinceId', required: true, span: 24 },
     { type: 'input', label: '地址', prop: 'address', required: true, span: 24 },
   ]
 });
+
+const ADMIN_ACCOUNT_PROP = 'adminLoginCode';
+const setAdminFieldState = (disabled: boolean) => {
+  const target = options.value.list.find(item => item.prop === ADMIN_ACCOUNT_PROP);
+  if (target) {
+    target.disabled = disabled;
+    target.required = !disabled;
+  }
+};
 
 const visible = ref(false);
 const isEdit = ref(false);
 const rowData = ref<any>({});
 
 const openAdd = () => {
-  rowData.value = {};
+  setAdminFieldState(false);
+  rowData.value = { adminLoginCode: '' };
   isEdit.value = false;
   visible.value = true;
 };
 
 const handleEdit = async (row: Organization) => {
   const res = await getOrganization(row.id);
-  rowData.value = res.data as any;
+  setAdminFieldState(true);
+  rowData.value = { ...(res.data as any), adminLoginCode: res.data?.adminLoginCode || '' };
   isEdit.value = true;
   visible.value = true;
 };
 
 const updateData = async (form: any) => {
-  const { createdAt, updatedAt, ...payload } = form;
+  const { createdAt, updatedAt, ...rest } = form;
   if (isEdit.value) {
-    await updateOrganization(payload);
+    const { adminLoginCode, ...updatePayload } = rest;
+    await updateOrganization(updatePayload);
   } else {
-    await saveOrganization(payload);
+    await saveOrganization(rest);
   }
   ElMessage.success('操作成功');
   closeDialog();
@@ -215,20 +240,96 @@ const enterpriseList = ref<Organization[]>([]);
 const downSelectedIds = ref<string[]>([]);
 const savingDown = ref(false);
 const currentDownOrgId = ref('');
+const downLoading = ref(false);
+let enterpriseRequestToken = 0;
+
+const isEnterpriseOrg = (org: Organization | Record<string, any>) => String(org.type ?? '').trim() === '2';
+
+// Pull all organization pages so the downstream dialog always has a full list.
+const fetchAllEnterpriseRecords = async (keyword: string) => {
+  const pageSize = 200;
+  const maxPages = 50;
+  // Hard cap prevents runaway loops if the backend returns unexpected data.
+  const collected = new Map<string, Organization>();
+  const name = keyword.trim();
+  let pageIndex = 1;
+  let total = 0;
+  let hasTotal = false;
+
+  while (pageIndex <= maxPages) {
+    const res = await fetchOrganizationPage({ page: pageIndex, rows: pageSize, name });
+    const records = res.data.records || [];
+    if (!records.length) {
+      break;
+    }
+
+    records.forEach((record: Organization) => {
+      collected.set(String(record.id), record);
+    });
+
+    if (!hasTotal && res.data.total != null) {
+      const parsedTotal = Number(res.data.total);
+      if (!Number.isNaN(parsedTotal) && parsedTotal > 0) {
+        total = parsedTotal;
+        hasTotal = true;
+      }
+    }
+
+    const expectedTotal = hasTotal ? total : collected.size;
+    const reachedExpectedTotal = hasTotal && collected.size >= expectedTotal;
+    const totalPages = hasTotal ? Math.max(1, Math.ceil(expectedTotal / pageSize)) : Infinity;
+    const reachedExpectedPage = hasTotal && pageIndex >= totalPages;
+    const isTailPage = records.length < pageSize;
+
+    if (reachedExpectedTotal || reachedExpectedPage || isTailPage) {
+      break;
+    }
+
+    pageIndex += 1;
+  }
+
+  return Array.from(collected.values());
+};
 
 const openDownstream = async (row: Organization) => {
   currentDownOrgId.value = String(row.id);
   downKeyword.value = '';
-  await loadEnterpriseList();
-  // 加载已关联的下游企业
-  const res = await targetOrgs(currentDownOrgId.value);
-  downSelectedIds.value = (res.data || []).map((o: any) => String(o.id));
   downDialogVisible.value = true;
+  const requestToken = ++enterpriseRequestToken;
+  downLoading.value = true;
+  try {
+    const [records, targetRes] = await Promise.all([
+      fetchAllEnterpriseRecords(''),
+      targetOrgs(currentDownOrgId.value),
+    ]);
+    downSelectedIds.value = (targetRes.data || []).map((o: any) => String(o.id));
+    if (requestToken !== enterpriseRequestToken) return;
+    enterpriseList.value = records
+      .filter(isEnterpriseOrg)
+      .filter((o: any) => String(o.id) !== currentDownOrgId.value);
+  } finally {
+    if (requestToken === enterpriseRequestToken) {
+      downLoading.value = false;
+    }
+  }
 };
 
 const loadEnterpriseList = async () => {
-  const res = await fetchOrganizationPage({ page: 1, rows: 200, name: downKeyword.value });
-  enterpriseList.value = (res.data.records || []).filter((o: any) => o.type === '2');
+  if (!downDialogVisible.value) return;
+  const keyword = downKeyword.value.trim();
+  const requestToken = ++enterpriseRequestToken;
+  downLoading.value = true;
+  try {
+    const records = await fetchAllEnterpriseRecords(keyword);
+    if (requestToken !== enterpriseRequestToken) return;
+    enterpriseList.value = records
+      .filter(isEnterpriseOrg)
+      .filter((o: any) => String(o.id) !== currentDownOrgId.value);
+  } finally {
+    if (requestToken === enterpriseRequestToken) {
+      downLoading.value = false;
+    }
+  }
 };
 
 const saveDownstream = async () => {
@@ -241,6 +342,11 @@ const saveDownstream = async () => {
     savingDown.value = false;
   }
 };
+
+// 根据关键字实时加载（弹窗打开时）
+watch(downKeyword, () => {
+  if (downDialogVisible.value) loadEnterpriseList();
+});
 </script>
 
 <style scoped>

@@ -10,6 +10,7 @@ export interface Organization {
     countyId?: string;
     address: string;
     createdAt: string;
+    adminLoginCode?: string;
 }
 
 export interface OrganizationPageQuery {
@@ -28,6 +29,7 @@ export interface OrganizationSave {
     cityId: string;
     countyId: string;
     address: string;
+    adminLoginCode?: string;
 }
 
 export interface OrganizationUpdate extends OrganizationSave {

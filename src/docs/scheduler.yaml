@@ -1,0 +1,432 @@
+{
+    "openapi": "3.0.1",
+    "info": {
+        "title": "OpenAPI definition",
+        "version": "v0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:10202/scheduler",
+            "description": "Generated server url"
+        }
+    ],
+    "tags": [
+        {
+            "name": "Scheduler Jobs",
+            "description": "Manage Quartz-based HTTP callback jobs"
+        }
+    ],
+    "paths": {
+        "/scheduler/jobs/{id}": {
+            "get": {
+                "tags": [
+                    "Scheduler Jobs"
+                ],
+                "summary": "Get job",
+                "description": "Fetch detail for a single job",
+                "operationId": "getJob",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseJobResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Scheduler Jobs"
+                ],
+                "summary": "Update job",
+                "description": "Update job configuration and reschedule it",
+                "operationId": "updateJob",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/JobUpsertRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseJobResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Scheduler Jobs"
+                ],
+                "summary": "Delete job",
+                "description": "Delete job and remove it from Quartz",
+                "operationId": "deleteJob",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseBoolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/scheduler/jobs": {
+            "get": {
+                "tags": [
+                    "Scheduler Jobs"
+                ],
+                "summary": "List jobs",
+                "description": "List all configured scheduler jobs",
+                "operationId": "listJobs",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseListJobResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Scheduler Jobs"
+                ],
+                "summary": "Create job",
+                "description": "Create and schedule a new job",
+                "operationId": "createJob",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/JobUpsertRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseJobResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/scheduler/jobs/{id}/trigger": {
+            "post": {
+                "tags": [
+                    "Scheduler Jobs"
+                ],
+                "summary": "Trigger job",
+                "description": "Execute job immediately once",
+                "operationId": "triggerJob",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseBoolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/scheduler/jobs/{id}/resume": {
+            "post": {
+                "tags": [
+                    "Scheduler Jobs"
+                ],
+                "summary": "Resume job",
+                "description": "Resume job execution",
+                "operationId": "resumeJob",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseJobResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/scheduler/jobs/{id}/pause": {
+            "post": {
+                "tags": [
+                    "Scheduler Jobs"
+                ],
+                "summary": "Pause job",
+                "description": "Pause job execution",
+                "operationId": "pauseJob",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseJobResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "HttpMethod": {
+                "type": "object"
+            },
+            "JobUpsertRequest": {
+                "required": [
+                    "cronExpression",
+                    "httpMethod",
+                    "name",
+                    "requestUrl"
+                ],
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "cronExpression": {
+                        "type": "string"
+                    },
+                    "requestUrl": {
+                        "type": "string"
+                    },
+                    "httpMethod": {
+                        "$ref": "#/components/schemas/HttpMethod"
+                    },
+                    "headers": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    },
+                    "queryParams": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "object"
+                        }
+                    },
+                    "body": {
+                        "type": "object"
+                    },
+                    "active": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "JobResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "cronExpression": {
+                        "type": "string"
+                    },
+                    "requestUrl": {
+                        "type": "string"
+                    },
+                    "httpMethod": {
+                        "type": "string"
+                    },
+                    "headers": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    },
+                    "queryParams": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "object"
+                        }
+                    },
+                    "body": {
+                        "type": "object"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "ACTIVE",
+                            "PAUSED",
+                            "DELETED"
+                        ]
+                    },
+                    "lastTriggeredAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "nextFireTime": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "ResponseJobResponse": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/JobResponse"
+                    }
+                }
+            },
+            "ResponseBoolean": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "ResponseListJobResponse": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/JobResponse"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

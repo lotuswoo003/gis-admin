@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router';
+﻿import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router';
 import { usePermissStore } from '../store/permiss';
 import Home from '../views/home.vue';
 import NProgress from 'nprogress';
@@ -67,6 +67,14 @@ const routes: RouteRecordRaw[] = [
                     permiss: '18',
                 },
                 component: () => import(/* webpackChunkName: "system-enterprise-identity" */ '../views/system/enterprise-identity.vue'),
+            },            {
+                path: '/system-scheduler',
+                name: 'system-scheduler',
+                meta: {
+                    title: '定时任务',
+                    permiss: '19',
+                },
+                component: () => import(/* webpackChunkName: "system-scheduler" */ '../views/system/scheduler.vue'),
             },
             {
                 path: '/resource-pool',
@@ -81,7 +89,7 @@ const routes: RouteRecordRaw[] = [
                 path: '/data-scheme',
                 name: 'data-scheme',
                 meta: {
-                    title: '计划方案',
+                    title: '规划方案',
                     permiss: '25',
                 },
                 component: () => import(/* webpackChunkName: "data-scheme" */ '../views/data/scheme.vue'),
@@ -261,7 +269,7 @@ const routes: RouteRecordRaw[] = [
                 path: '/carousel',
                 name: 'carousel',
                 meta: {
-                    title: '走马灯',
+                    title: '轮播图',
                     permiss: '23',
                 },
                 component: () => import(/* webpackChunkName: "carousel" */ '../views/element/carousel.vue'),
@@ -381,3 +389,4 @@ router.afterEach(() => {
 });
 
 export default router;
+
