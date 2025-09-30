@@ -6,49 +6,19 @@
     },
     "servers": [
         {
-            "url": "http://localhost:10202/scheduler",
+            "url": "http://192.168.106.97:10202/scheduler",
             "description": "Generated server url"
         }
     ],
     "tags": [
         {
             "name": "Scheduler Jobs",
-            "description": "Manage Quartz-based HTTP callback jobs"
+            "description": "Quartz-based job orchestration APIs"
         }
     ],
     "paths": {
-        "/scheduler/jobs/{id}": {
-            "get": {
-                "tags": [
-                    "Scheduler Jobs"
-                ],
-                "summary": "Get job",
-                "description": "Fetch detail for a single job",
-                "operationId": "getJob",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "content": {
-                            "*/*": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ResponseJobResponse"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "put": {
+        "/jobs/update/{id}": {
+            "post": {
                 "tags": [
                     "Scheduler Jobs"
                 ],
@@ -59,6 +29,7 @@
                     {
                         "name": "id",
                         "in": "path",
+                        "description": "Job ID",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -66,6 +37,7 @@
                     }
                 ],
                 "requestBody": {
+                    "description": "Updated job definition",
                     "content": {
                         "application/json": {
                             "schema": {
@@ -87,18 +59,21 @@
                         }
                     }
                 }
-            },
-            "delete": {
+            }
+        },
+        "/jobs/trigger/{id}": {
+            "post": {
                 "tags": [
                     "Scheduler Jobs"
                 ],
-                "summary": "Delete job",
-                "description": "Delete job and remove it from Quartz",
-                "operationId": "deleteJob",
+                "summary": "Trigger job",
+                "description": "Execute job immediately once",
+                "operationId": "triggerJob",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
+                        "description": "Job ID",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -119,8 +94,106 @@
                 }
             }
         },
-        "/scheduler/jobs": {
-            "get": {
+        "/jobs/resume/{id}": {
+            "post": {
+                "tags": [
+                    "Scheduler Jobs"
+                ],
+                "summary": "Resume job",
+                "description": "Resume job execution",
+                "operationId": "resumeJob",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Job ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseJobResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/pause/{id}": {
+            "post": {
+                "tags": [
+                    "Scheduler Jobs"
+                ],
+                "summary": "Pause job",
+                "description": "Pause job execution",
+                "operationId": "pauseJob",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Job ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseJobResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/logs/page": {
+            "post": {
+                "tags": [
+                    "Scheduler Jobs"
+                ],
+                "summary": "List job call logs",
+                "description": "Paginated scheduler job call logs filtered by job ID",
+                "operationId": "pageJobLogs",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/JobLogPageRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseJobLogPageResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/list": {
+            "post": {
                 "tags": [
                     "Scheduler Jobs"
                 ],
@@ -139,24 +212,27 @@
                         }
                     }
                 }
-            },
+            }
+        },
+        "/jobs/get/{id}": {
             "post": {
                 "tags": [
                     "Scheduler Jobs"
                 ],
-                "summary": "Create job",
-                "description": "Create and schedule a new job",
-                "operationId": "createJob",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/JobUpsertRequest"
-                            }
+                "summary": "Get job",
+                "description": "Fetch detail for a single job",
+                "operationId": "getJob",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Job ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
                         }
-                    },
-                    "required": true
-                },
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -171,18 +247,19 @@
                 }
             }
         },
-        "/scheduler/jobs/{id}/trigger": {
+        "/jobs/delete/{id}": {
             "post": {
                 "tags": [
                     "Scheduler Jobs"
                 ],
-                "summary": "Trigger job",
-                "description": "Execute job immediately once",
-                "operationId": "triggerJob",
+                "summary": "Delete job",
+                "description": "Delete job and remove it from Quartz",
+                "operationId": "deleteJob",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
+                        "description": "Job ID",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -203,56 +280,25 @@
                 }
             }
         },
-        "/scheduler/jobs/{id}/resume": {
+        "/jobs/create": {
             "post": {
                 "tags": [
                     "Scheduler Jobs"
                 ],
-                "summary": "Resume job",
-                "description": "Resume job execution",
-                "operationId": "resumeJob",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "content": {
-                            "*/*": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ResponseJobResponse"
-                                }
+                "summary": "Create job",
+                "description": "Create and schedule a new job",
+                "operationId": "createJob",
+                "requestBody": {
+                    "description": "Job definition payload",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/JobUpsertRequest"
                             }
                         }
-                    }
-                }
-            }
-        },
-        "/scheduler/jobs/{id}/pause": {
-            "post": {
-                "tags": [
-                    "Scheduler Jobs"
-                ],
-                "summary": "Pause job",
-                "description": "Pause job execution",
-                "operationId": "pauseJob",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
+                    },
+                    "required": true
+                },
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -406,6 +452,109 @@
                     },
                     "data": {
                         "type": "boolean"
+                    }
+                }
+            },
+            "JobLogPageRequest": {
+                "required": [
+                    "jobId"
+                ],
+                "type": "object",
+                "properties": {
+                    "jobId": {
+                        "type": "string"
+                    },
+                    "page": {
+                        "minimum": 1,
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "pageSize": {
+                        "minimum": 1,
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                }
+            },
+            "JobLogPageResponse": {
+                "type": "object",
+                "properties": {
+                    "total": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "page": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "pageSize": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "records": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/JobLogResponse"
+                        }
+                    }
+                }
+            },
+            "JobLogResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "jobId": {
+                        "type": "string"
+                    },
+                    "executedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "durationMs": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "requestUrl": {
+                        "type": "string"
+                    },
+                    "httpMethod": {
+                        "type": "string"
+                    },
+                    "requestHeadersJson": {
+                        "type": "string"
+                    },
+                    "requestParamsJson": {
+                        "type": "string"
+                    },
+                    "requestBody": {
+                        "type": "string"
+                    },
+                    "responseStatus": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "responseBody": {
+                        "type": "string"
+                    },
+                    "errorMessage": {
+                        "type": "string"
+                    }
+                }
+            },
+            "ResponseJobLogPageResponse": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/JobLogPageResponse"
                     }
                 }
             },

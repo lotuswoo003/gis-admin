@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <TableSearch :query="query" :options="searchOpt" :search="handleSearch" />
     <div class="container">
@@ -79,7 +79,7 @@ const handleOrgRemote = async (kw: string) => {
 
 const searchOpt = ref<FormOptionList[]>([
   { type: 'input', label: '名称：', prop: 'name', placeholder: '输入名称' },
-  { type: 'select', label: '甲方单位：', prop: 'organizationId', placeholder: '搜索甲方单位', opts: orgOpts.value, remote: true, remoteMethod: handleOrgRemote, inputStyle: { width: '320px' } },
+  { type: 'select', label: '乙方单位：', prop: 'organizationId', placeholder: '搜索乙方单位', opts: orgOpts.value, remote: true, remoteMethod: handleOrgRemote, inputStyle: { width: '320px' } },
 ]);
 
 const handleSearch = () => { page.index = 1; loadData(); };
@@ -91,7 +91,7 @@ const columns = ref([
   { prop: 'name', label: '名称', align: 'left' },
   { prop: 'unit', label: '单位', width: 80 },
   { prop: 'price', label: '单价', width: 120 },
-  { prop: 'organizationName', label: '甲方单位' },
+  { prop: 'organizationName', label: '乙方单位' },
   { prop: 'operator', label: '操作', width: 200 },
 ]);
 
@@ -148,7 +148,7 @@ const formOptions = ref<FormOption>({
     { type: 'input', label: '名称', prop: 'name', required: true, placeholder: '请输入名称' },
     { type: 'input', label: '单位', prop: 'unit', placeholder: '如：人/台/件' },
     { type: 'number', label: '单价', prop: 'price' },
-    { type: 'select', label: '甲方单位', prop: 'organizationId', required: true, placeholder: '搜索甲方单位', opts: orgOptsModal.value, remote: true, remoteMethod: handleOrgRemoteModal, span: 24 },
+    { type: 'select', label: '乙方单位', prop: 'organizationId', required: true, placeholder: '搜索乙方单位', opts: orgOptsModal.value, remote: true, remoteMethod: handleOrgRemoteModal, span: 24 },
   ],
 });
 
@@ -182,10 +182,10 @@ const handleEdit = async (r: RJCRow) => {
 };
 
 const saveRow = async (form: any) => {
-  // 甲方单位必须为远程项
+  // 乙方单位必须为远程项
   const idStr = form.organizationId ? String(form.organizationId) : '';
   const orgHit = idStr ? orgOptsModal.value.find((o: any) => o.value === idStr) : null;
-  if (!orgHit) { ElMessage.error('请选择有效的甲方单位'); return; }
+  if (!orgHit) { ElMessage.error('请选择有效的乙方单位'); return; }
 
   // 组装 ProcessInfo 载荷
   const payloadPU: ProcessUnitPrice = {
@@ -221,3 +221,4 @@ const closeDialog = () => { visible.value = false; isEdit.value = false; };
 <style scoped>
 .container { background: #fff; padding: 12px; border: 1px solid #ddd; border-radius: 5px; }
 </style>
+

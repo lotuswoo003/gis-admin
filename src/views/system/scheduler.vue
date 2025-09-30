@@ -29,7 +29,9 @@
           {{ formatDateTime(rows.nextFireTime) }}
         </template>
         <template #operator="{ rows }">
-          <el-button size="small" :icon="View" @click="handleView(rows)">查看</el-button>
+          <el-button size="small" :icon="Document" @click="handleLogs(rows)">
+            查看日志
+          </el-button>
           <el-button type="primary" size="small" plain :icon="Edit" @click="handleEdit(rows)" :disabled="rows.status === 'DELETED'">
             编辑
           </el-button>
@@ -134,36 +136,61 @@
       </template>
     </el-dialog>
 
-    <el-dialog title="任务详情" v-model="detailVisible" width="720px" destroy-on-close>
-      <el-descriptions :column="1" border v-if="detailJob">
-        <el-descriptions-item label="任务名称">{{ detailJob.name }}</el-descriptions-item>
-        <el-descriptions-item label="状态">
-          <el-tag :type="statusMeta[detailJob.status || 'ACTIVE']?.type || 'info'">
-            {{ statusMeta[detailJob.status || 'ACTIVE']?.text || detailJob.status || '-' }}
-          </el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="Cron表达式">{{ detailJob.cronExpression }}</el-descriptions-item>
-        <el-descriptions-item label="HTTP方法">{{ detailJob.httpMethod }}</el-descriptions-item>
-        <el-descriptions-item label="请求地址">
-          <span class="mono">{{ detailJob.requestUrl }}</span>
-        </el-descriptions-item>
-        <el-descriptions-item label="是否启用">{{ detailJob.active === false ? '禁用' : '启用' }}</el-descriptions-item>
-        <el-descriptions-item label="任务描述">{{ detailJob.description || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="上次触发时间">{{ formatDateTime(detailJob.lastTriggeredAt) }}</el-descriptions-item>
-        <el-descriptions-item label="下次计划时间">{{ formatDateTime(detailJob.nextFireTime) }}</el-descriptions-item>
-        <el-descriptions-item label="创建时间">{{ formatDateTime(detailJob.createdAt) }}</el-descriptions-item>
-        <el-descriptions-item label="更新时间">{{ formatDateTime(detailJob.updatedAt) }}</el-descriptions-item>
-        <el-descriptions-item label="请求头">
-          <pre class="json-block">{{ formatJson(detailJob.headers) }}</pre>
-        </el-descriptions-item>
-        <el-descriptions-item label="查询参数">
-          <pre class="json-block">{{ formatJson(detailJob.queryParams) }}</pre>
-        </el-descriptions-item>
-        <el-descriptions-item label="请求体">
-          <pre class="json-block">{{ formatJson(detailJob.body) }}</pre>
-        </el-descriptions-item>
-      </el-descriptions>
-      <div v-else class="empty-holder">暂无数据</div>
+    <el-dialog
+      title="调用日志"
+      v-model="logVisible"
+      width="860px"
+      destroy-on-close
+      :close-on-click-modal="false"
+      @closed="resetLogState"
+    >
+      <div class="log-header" v-if="logJob">
+        <span class="log-name">任务：{{ logJob.name }}</span>
+        <span class="log-cron">Cron：{{ logJob.cronExpression }}</span>
+      </div>
+      <el-table
+        :data="logRecords"
+        style="width: 100%"
+        size="small"
+        border
+        v-loading="logLoading"
+        :empty-text="logLoading ? '加载中…' : '暂无日志'"
+      >
+        <el-table-column type="index" width="60" label="#" :index="logTableIndex" />
+        <el-table-column label="执行时间" min-width="160">
+          <template #default="{ row }">{{ formatDateTime(row.executedAt) }}</template>
+        </el-table-column>
+        <el-table-column prop="durationMs" label="耗时(ms)" width="110" />
+        <el-table-column prop="responseStatus" label="响应状态" width="110" />
+        <el-table-column label="请求地址" min-width="220">
+          <template #default="{ row }">
+            <el-tooltip v-if="row.requestUrl" :content="row.requestUrl" placement="top">
+              <span class="mono">{{ row.requestUrl }}</span>
+            </el-tooltip>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="错误信息" min-width="220">
+          <template #default="{ row }">
+            <el-tooltip v-if="row.errorMessage" :content="row.errorMessage" placement="top">
+              <span class="text-ellipsis">{{ row.errorMessage }}</span>
+            </el-tooltip>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
+      </el-table>
+      <div class="pagination-wrapper" v-if="logTotal > 0">
+        <el-pagination
+          background
+          layout="total, sizes, prev, pager, next"
+          :current-page="logPage"
+          :page-size="logPageSize"
+          :total="logTotal"
+          :page-sizes="logPageSizes"
+          @current-change="handleLogPageChange"
+          @size-change="handleLogSizeChange"
+        />
+      </div>
     </el-dialog>
   </div>
 </template>
@@ -171,7 +198,7 @@
 <script setup lang="ts" name="system-scheduler">
 import { ref, reactive } from 'vue';
 import { ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus';
-import { Plus, Edit, Delete, View, VideoPlay, VideoPause, Refresh } from '@element-plus/icons-vue';
+import { Plus, Edit, Delete, Document, VideoPlay, VideoPause, Refresh } from '@element-plus/icons-vue';
 import TableCustom from '@/components/table-custom.vue';
 import {
   listSchedulerJobs,
@@ -182,8 +209,9 @@ import {
   triggerSchedulerJob,
   pauseSchedulerJob,
   resumeSchedulerJob,
+  pageSchedulerJobLogs,
 } from '@/api/scheduler';
-import type { SchedulerJob, SchedulerJobPayload, SchedulerJobStatus } from '@/types/scheduler';
+import type { SchedulerJob, SchedulerJobPayload, SchedulerJobStatus, SchedulerJobLog } from '@/types/scheduler';
 
 type SchedulerJobRow = SchedulerJob;
 
@@ -221,8 +249,18 @@ const columns = ref([
 
 const jobs = ref<SchedulerJobRow[]>([]);
 const loading = ref(false);
-const detailVisible = ref(false);
-const detailJob = ref<SchedulerJobRow | null>(null);
+
+const LOG_DEFAULT_PAGE_SIZE = 10;
+const logVisible = ref(false);
+const logLoading = ref(false);
+const logJob = ref<SchedulerJobRow | null>(null);
+const logRecords = ref<SchedulerJobLog[]>([]);
+const logPage = ref(1);
+const logPageSize = ref(LOG_DEFAULT_PAGE_SIZE);
+const logTotal = ref(0);
+const logPageSizes = [10, 20, 50];
+
+const logTableIndex = (index: number) => (logPage.value - 1) * logPageSize.value + index + 1;
 
 const formVisible = ref(false);
 const formRef = ref<FormInstance>();
@@ -277,15 +315,6 @@ const formatDateTime = (value?: string | null) => {
   if (Number.isNaN(date.getTime())) return value;
   const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`);
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
-};
-
-const formatJson = (val: any) => {
-  if (val === null || val === undefined) return '-';
-  try {
-    return JSON.stringify(val, null, 2);
-  } catch (e) {
-    return String(val);
-  }
 };
 
 const resetForm = () => {
@@ -367,6 +396,57 @@ const buildPayload = (): SchedulerJobPayload => {
     }
     payload.body = bodyVal as Record<string, any>;
   }
+  return payload;
+};
+
+const resetLogState = () => {
+  logJob.value = null;
+  logRecords.value = [];
+  logPage.value = 1;
+  logPageSize.value = LOG_DEFAULT_PAGE_SIZE;
+  logTotal.value = 0;
+  logLoading.value = false;
+};
+
+const loadJobLogs = async () => {
+  if (!logJob.value?.id) return;
+  logLoading.value = true;
+  try {
+    const res = await pageSchedulerJobLogs({
+      jobId: logJob.value.id,
+      page: logPage.value,
+      pageSize: logPageSize.value,
+    });
+    const data = res.data || {};
+    logRecords.value = Array.isArray(data.records) ? data.records : [];
+    logTotal.value = typeof data.total === 'number' ? data.total : 0;
+  } catch (err: any) {
+    ElMessage.error(err?.message || '加载日志失败');
+  } finally {
+    logLoading.value = false;
+  }
+};
+
+const handleLogs = async (row: SchedulerJobRow) => {
+  if (!row.id) return;
+  logJob.value = row;
+  logPage.value = 1;
+  logPageSize.value = LOG_DEFAULT_PAGE_SIZE;
+  logRecords.value = [];
+  logTotal.value = 0;
+  logVisible.value = true;
+  await loadJobLogs();
+};
+
+const handleLogPageChange = async (page: number) => {
+  logPage.value = page;
+  await loadJobLogs();
+};
+
+const handleLogSizeChange = async (size: number) => {
+  logPageSize.value = size;
+  logPage.value = 1;
+  await loadJobLogs();
 };
 
 const loadJobs = async () => {
@@ -405,20 +485,6 @@ const handleEdit = async (row: SchedulerJobRow) => {
     formVisible.value = true;
   } catch (err: any) {
     ElMessage.error(err?.message || '加载任务详情失败');
-  } finally {
-    loading.value = false;
-  }
-};
-
-const handleView = async (row: SchedulerJobRow) => {
-  if (!row.id) return;
-  try {
-    loading.value = true;
-    const res = await getSchedulerJob(row.id);
-    detailJob.value = res.data || null;
-    detailVisible.value = true;
-  } catch (err: any) {
-    ElMessage.error(err?.message || '获取任务详情失败');
   } finally {
     loading.value = false;
   }
@@ -551,22 +617,39 @@ loadJobs();
   font-family: 'Fira Code', Consolas, 'Courier New', monospace;
 }
 
-.json-block {
-  margin: 0;
-  white-space: pre-wrap;
-  word-break: break-all;
-}
-
 .dialog-footer {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
 }
 
-.empty-holder {
-  text-align: center;
-  color: #888;
-  padding: 24px 0;
+.log-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: #555;
+}
+
+.log-name {
+  font-weight: 600;
+  color: #333;
+}
+
+.pagination-wrapper {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.text-ellipsis {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
 }
 </style>
 
