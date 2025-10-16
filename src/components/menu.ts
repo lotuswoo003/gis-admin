@@ -30,4 +30,14 @@ export const menuData: Menus[] = [
       { id: '25', pid: '2', index: '/data-scheme', title: '计划方案' },
     ],
   },
+  {
+    id: '3',
+    title: '项目/标段设置',
+    index: '3',
+    icon: 'Setting',
+    children: [
+      { id: '316', pid: '3', index: '/system-project', title: '项目管理' },
+      { id: '314', pid: '3', index: '/resource-pool', title: '资源池管理' },
+    ],
+  },
 ];

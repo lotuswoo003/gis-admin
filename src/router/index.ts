@@ -81,7 +81,7 @@ const routes: RouteRecordRaw[] = [
                 name: 'resource-pool',
                 meta: {
                     title: '资源池管理',
-                    permiss: '14',
+                    permiss: '314',
                 },
                 component: () => import(/* webpackChunkName: "resource-pool" */ '../views/resource/pool.vue'),
             },
@@ -389,4 +389,3 @@ router.afterEach(() => {
 });
 
 export default router;
-
