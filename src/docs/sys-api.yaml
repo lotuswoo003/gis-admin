@@ -50,6 +50,22 @@
         {
             "name": "Business Project",
             "description": "商务项目 - 非REST风格API"
+        },
+        {
+            "name": "Business Project Task",
+            "description": "项目任务管理 - 增删改查接口"
+        },
+        {
+            "name": "Business Project Workorder",
+            "description": "项目工单管理 - 创建更新查询"
+        },
+        {
+            "name": "Business Project Staff",
+            "description": "项目人员管理 - 成员维护接口"
+        },
+        {
+            "name": "Business Project Plane",
+            "description": "项目地块管理 - 多边形维护接口"
         }
     ],
     "paths": {
@@ -2923,32 +2939,31 @@
                 }
             }
         },
-        "/business-projects/listProject": {
+        "/business-projects/pageAll": {
             "post": {
                 "tags": [
                     "Business Project"
                 ],
-                "summary": "列表查询商务项目",
-                "description": "按当前组织筛选的商务项目列表，可选按创建时间排序",
-                "operationId": "listProject",
-                "parameters": [
-                    {
-                        "name": "order",
-                        "in": "query",
-                        "description": "排序：asc/desc",
-                        "required": false,
-                        "schema": {
-                            "type": "string"
+                "summary": "分页查询商务项目",
+                "description": "按组织及查询条件分页返回商务项目列表",
+                "operationId": "pageAllBusinessProject",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BusinessProjectPageRequest"
+                            }
                         }
-                    }
-                ],
+                    },
+                    "required": true
+                },
                 "responses": {
                     "200": {
                         "description": "OK",
                         "content": {
                             "*/*": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ResponseListBusinessProject"
+                                    "$ref": "#/components/schemas/ResponsePageResultBusinessProject"
                                 }
                             }
                         }
@@ -3047,6 +3062,557 @@
                             "*/*": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ResponseString"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/business-projects/delegate": {
+            "post": {
+                "tags": [
+                    "Business Project"
+                ],
+                "summary": "委派商务项目",
+                "description": "委派项目给指定组织",
+                "operationId": "delegateProject",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BusinessProjectDelegateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseBoolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/business-project-tasks/create": {
+            "post": {
+                "tags": [
+                    "Business Project Task"
+                ],
+                "summary": "创建项目任务",
+                "description": "创建一条新的项目任务",
+                "operationId": "createBusinessProjectTask",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BusinessProjectTaskCreateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseString"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/business-project-tasks/update": {
+            "post": {
+                "tags": [
+                    "Business Project Task"
+                ],
+                "summary": "更新项目任务",
+                "description": "根据ID更新项目任务字段（仅非空字段会被更新）",
+                "operationId": "updateBusinessProjectTask",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BusinessProjectTaskUpdateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseBoolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/business-project-tasks/listByProjectId": {
+            "post": {
+                "tags": [
+                    "Business Project Task"
+                ],
+                "summary": "按项目查询任务列表",
+                "description": "根据项目ID查询所属任务列表",
+                "operationId": "listTasksByProjectId",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BusinessProjectTaskQueryRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseListBusinessProjectTask"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/business-project-tasks/detail/{id}": {
+            "post": {
+                "tags": [
+                    "Business Project Task"
+                ],
+                "summary": "获取任务详情",
+                "description": "根据ID获取项目任务详情",
+                "operationId": "getBusinessProjectTask",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "任务ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseBusinessProjectTask"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/business-project-tasks/v1/importPlan": {
+            "post": {
+                "tags": [
+                    "Business Project Task"
+                ],
+                "summary": "导入计划任务",
+                "description": "从计划模板导入项目任务",
+                "operationId": "importBusinessProjectPlan",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PlanImportDTO"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseBoolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/business-project-workorders/create": {
+            "post": {
+                "tags": [
+                    "Business Project Workorder"
+                ],
+                "summary": "创建项目工单",
+                "description": "创建一条项目工单记录",
+                "operationId": "createBusinessProjectWorkorder",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BusinessProjectWorkorderCreateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseString"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/business-project-workorders/update": {
+            "post": {
+                "tags": [
+                    "Business Project Workorder"
+                ],
+                "summary": "更新项目工单",
+                "description": "根据ID更新项目工单信息",
+                "operationId": "updateBusinessProjectWorkorder",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BusinessProjectWorkorderUpdateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseBoolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/business-project-workorders/delete": {
+            "post": {
+                "tags": [
+                    "Business Project Workorder"
+                ],
+                "summary": "删除项目工单",
+                "description": "逻辑删除项目工单",
+                "operationId": "deleteBusinessProjectWorkorder",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "query",
+                        "description": "工单ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseBoolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/business-project-workorders/detail": {
+            "post": {
+                "tags": [
+                    "Business Project Workorder"
+                ],
+                "summary": "获取工单详情",
+                "description": "根据ID获取项目工单详情",
+                "operationId": "getBusinessProjectWorkorder",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "query",
+                        "description": "工单ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseBusinessProjectWorkorder"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/business-project-workorders/page": {
+            "post": {
+                "tags": [
+                    "Business Project Workorder"
+                ],
+                "summary": "分页查询项目工单",
+                "description": "支持按项目、任务、状态过滤的工单分页查询",
+                "operationId": "pageBusinessProjectWorkorder",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BusinessProjectWorkorderPageRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponsePageResultBusinessProjectWorkorder"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/business-project-staff/create": {
+            "post": {
+                "tags": [
+                    "Business Project Staff"
+                ],
+                "summary": "创建项目人员",
+                "description": "批量添加项目人员",
+                "operationId": "createBusinessProjectStaff",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BusinessProjectStaffCreateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseBoolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/business-project-staff/list": {
+            "post": {
+                "tags": [
+                    "Business Project Staff"
+                ],
+                "summary": "查询项目人员列表",
+                "description": "查询项目成员列表",
+                "operationId": "listBusinessProjectStaff",
+                "parameters": [
+                    {
+                        "name": "projectId",
+                        "in": "query",
+                        "description": "项目ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseListBusinessProjectStaff"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/business-project-staff/delete/{id}": {
+            "post": {
+                "tags": [
+                    "Business Project Staff"
+                ],
+                "summary": "删除项目人员",
+                "description": "根据ID移除项目人员",
+                "operationId": "deleteBusinessProjectStaff",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "项目人员ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseBoolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/business-project-plane/create": {
+            "post": {
+                "tags": [
+                    "Business Project Plane"
+                ],
+                "summary": "创建项目地块",
+                "description": "为项目新增地块边界",
+                "operationId": "createBusinessProjectPlane",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BusinessProjectPlaneCreateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseString"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/business-project-plane/list": {
+            "post": {
+                "tags": [
+                    "Business Project Plane"
+                ],
+                "summary": "查询项目地块列表",
+                "description": "按项目查询地块列表",
+                "operationId": "listBusinessProjectPlane",
+                "parameters": [
+                    {
+                        "name": "projectId",
+                        "in": "query",
+                        "description": "项目ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseListPlane"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/business-project-plane/delete/{id}": {
+            "post": {
+                "tags": [
+                    "Business Project Plane"
+                ],
+                "summary": "删除项目地块",
+                "description": "根据ID删除项目地块（逻辑删除）",
+                "operationId": "deleteBusinessProjectPlane",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "地块ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseBoolean"
                                 }
                             }
                         }
@@ -5469,6 +6035,72 @@
                     }
                 }
             },
+            "BusinessProjectPageRequest": {
+                "required": [
+                    "page",
+                    "rows"
+                ],
+                "type": "object",
+                "properties": {
+                    "page": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "页码，从1开始"
+                    },
+                    "rows": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "每页数量"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "项目名称模糊匹配"
+                    },
+                    "status": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "项目状态过滤"
+                    },
+                    "organizationId": {
+                        "type": "string",
+                        "description": "指定组织ID"
+                    },
+                    "order": {
+                        "type": "string",
+                        "description": "排序方式：asc/desc"
+                    }
+                }
+            },
+            "PageResultBusinessProject": {
+                "type": "object",
+                "properties": {
+                    "total": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "records": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/BusinessProject"
+                        }
+                    }
+                }
+            },
+            "ResponsePageResultBusinessProject": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/PageResultBusinessProject"
+                    }
+                }
+            },
             "ResponseBusinessProjectDTO": {
                 "type": "object",
                 "properties": {
@@ -5481,6 +6113,648 @@
                     },
                     "data": {
                         "$ref": "#/components/schemas/BusinessProjectDTO"
+                    }
+                }
+            },
+            "BusinessProjectDelegateRequest": {
+                "required": [
+                    "projectId",
+                    "organizationId"
+                ],
+                "type": "object",
+                "properties": {
+                    "projectId": {
+                        "type": "string",
+                        "description": "项目ID"
+                    },
+                    "organizationId": {
+                        "type": "string",
+                        "description": "目标组织ID"
+                    },
+                    "notes": {
+                        "type": "string",
+                        "description": "委派备注"
+                    }
+                }
+            },
+            "BusinessProjectTaskCreateRequest": {
+                "required": [
+                    "projectId",
+                    "name"
+                ],
+                "type": "object",
+                "properties": {
+                    "projectId": {
+                        "type": "string",
+                        "description": "所属项目ID"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "任务名称"
+                    },
+                    "leaderId": {
+                        "type": "string",
+                        "description": "负责人用户ID"
+                    },
+                    "planStart": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "计划开始时间"
+                    },
+                    "planEnd": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "计划结束时间"
+                    },
+                    "priority": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "优先级，数值越大优先级越高"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "任务描述"
+                    },
+                    "attachments": {
+                        "type": "array",
+                        "description": "附件ID列表",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "tags": {
+                        "type": "array",
+                        "description": "任务标签",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "BusinessProjectTaskUpdateRequest": {
+                "required": [
+                    "id"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "任务ID"
+                    },
+                    "projectId": {
+                        "type": "string",
+                        "description": "所属项目ID"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "任务名称"
+                    },
+                    "leaderId": {
+                        "type": "string",
+                        "description": "负责人用户ID"
+                    },
+                    "planStart": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "计划开始时间"
+                    },
+                    "planEnd": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "计划结束时间"
+                    },
+                    "actualStart": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "实际开始时间"
+                    },
+                    "actualEnd": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "实际结束时间"
+                    },
+                    "priority": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "优先级"
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "任务状态"
+                    },
+                    "progress": {
+                        "type": "number",
+                        "format": "float",
+                        "description": "进度百分比"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "任务描述"
+                    },
+                    "attachments": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "附件ID列表"
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "任务标签"
+                    }
+                }
+            },
+            "BusinessProjectTaskQueryRequest": {
+                "required": [
+                    "projectId"
+                ],
+                "type": "object",
+                "properties": {
+                    "projectId": {
+                        "type": "string",
+                        "description": "所属项目ID"
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "可选任务状态过滤"
+                    }
+                }
+            },
+            "BusinessProjectTask": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "projectId": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "leaderId": {
+                        "type": "string"
+                    },
+                    "leaderName": {
+                        "type": "string"
+                    },
+                    "planStart": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "planEnd": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "actualStart": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "actualEnd": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "priority": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "progress": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "attachments": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "deletedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    }
+                }
+            },
+            "ResponseListBusinessProjectTask": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/BusinessProjectTask"
+                        }
+                    }
+                }
+            },
+            "ResponseBusinessProjectTask": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/BusinessProjectTask"
+                    }
+                }
+            },
+            "PlanImportDTO": {
+                "required": [
+                    "projectId"
+                ],
+                "type": "object",
+                "properties": {
+                    "projectId": {
+                        "type": "string",
+                        "description": "目标项目ID"
+                    },
+                    "planTemplateId": {
+                        "type": "string",
+                        "description": "计划模板ID"
+                    },
+                    "fileId": {
+                        "type": "string",
+                        "description": "导入文件附件ID"
+                    },
+                    "resetExisting": {
+                        "type": "boolean",
+                        "description": "导入前是否清空现有任务"
+                    }
+                }
+            },
+            "BusinessProjectWorkorderCreateRequest": {
+                "required": [
+                    "projectId",
+                    "taskId",
+                    "title"
+                ],
+                "type": "object",
+                "properties": {
+                    "projectId": {
+                        "type": "string",
+                        "description": "项目ID"
+                    },
+                    "taskId": {
+                        "type": "string",
+                        "description": "关联任务ID"
+                    },
+                    "title": {
+                        "type": "string",
+                        "description": "工单标题"
+                    },
+                    "content": {
+                        "type": "string",
+                        "description": "工单内容"
+                    },
+                    "assigneeId": {
+                        "type": "string",
+                        "description": "处理人ID"
+                    },
+                    "deadline": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "要求完成时间"
+                    },
+                    "priority": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "优先级"
+                    },
+                    "attachments": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "附件ID集合"
+                    }
+                }
+            },
+            "BusinessProjectWorkorderUpdateRequest": {
+                "required": [
+                    "id"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "工单ID"
+                    },
+                    "projectId": {
+                        "type": "string"
+                    },
+                    "taskId": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "content": {
+                        "type": "string"
+                    },
+                    "assigneeId": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "deadline": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "priority": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "attachments": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "BusinessProjectWorkorderPageRequest": {
+                "required": [
+                    "page",
+                    "rows"
+                ],
+                "type": "object",
+                "properties": {
+                    "page": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "页码，从1开始"
+                    },
+                    "rows": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "每页数量"
+                    },
+                    "projectId": {
+                        "type": "string",
+                        "description": "项目ID"
+                    },
+                    "taskId": {
+                        "type": "string",
+                        "description": "任务ID"
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "工单状态"
+                    },
+                    "keyword": {
+                        "type": "string",
+                        "description": "标题或内容关键字"
+                    }
+                }
+            },
+            "BusinessProjectWorkorder": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "projectId": {
+                        "type": "string"
+                    },
+                    "taskId": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "content": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "priority": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "assigneeId": {
+                        "type": "string"
+                    },
+                    "assigneeName": {
+                        "type": "string"
+                    },
+                    "deadline": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "attachments": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "deletedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    }
+                }
+            },
+            "ResponseBusinessProjectWorkorder": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/BusinessProjectWorkorder"
+                    }
+                }
+            },
+            "PageResultBusinessProjectWorkorder": {
+                "type": "object",
+                "properties": {
+                    "total": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "records": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/BusinessProjectWorkorder"
+                        }
+                    }
+                }
+            },
+            "ResponsePageResultBusinessProjectWorkorder": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/PageResultBusinessProjectWorkorder"
+                    }
+                }
+            },
+            "BusinessProjectStaffCreateRequest": {
+                "required": [
+                    "projectId",
+                    "userIds"
+                ],
+                "type": "object",
+                "properties": {
+                    "projectId": {
+                        "type": "string",
+                        "description": "项目ID"
+                    },
+                    "userIds": {
+                        "type": "array",
+                        "description": "要添加的用户ID集合",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "role": {
+                        "type": "string",
+                        "description": "项目内角色，如负责人/成员"
+                    }
+                }
+            },
+            "BusinessProjectStaff": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "projectId": {
+                        "type": "string"
+                    },
+                    "userId": {
+                        "type": "string"
+                    },
+                    "userName": {
+                        "type": "string"
+                    },
+                    "role": {
+                        "type": "string"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    }
+                }
+            },
+            "ResponseListBusinessProjectStaff": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/BusinessProjectStaff"
+                        }
+                    }
+                }
+            },
+            "BusinessProjectPlaneCreateRequest": {
+                "required": [
+                    "projectId",
+                    "name",
+                    "plane"
+                ],
+                "type": "object",
+                "properties": {
+                    "projectId": {
+                        "type": "string",
+                        "description": "项目ID"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "地块名称"
+                    },
+                    "plane": {
+                        "type": "string",
+                        "description": "地块范围GeoJSON"
+                    }
+                }
+            },
+            "ResponseListPlane": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Plane"
+                        }
                     }
                 }
             },
