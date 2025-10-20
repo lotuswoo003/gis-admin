@@ -50,11 +50,20 @@
         <el-dialog
             title="关联内外业项目"
             v-model="bindDialog.visible"
-            width="800px"
+            width="1000px"
             destroy-on-close
             @close="closeBindDialog"
         >
             <div class="bind-dialog">
+                <div class="bind-dialog__search">
+                    <el-input
+                        v-model="bindQuery.name"
+                        placeholder="请输入内外业项目名称"
+                        clearable
+                        @keyup.enter="handleBindSearch"
+                    />
+                    <el-button type="primary" @click="handleBindSearch" :loading="bindDialog.loading">搜索</el-button>
+                </div>
                 <el-table
                     :data="bindDialog.list"
                     v-loading="bindDialog.loading"
@@ -70,14 +79,16 @@
                             <el-tag v-else type="info">-</el-tag>
                         </template>
                     </el-table-column>
-                    <el-table-column prop="updateTime" label="更新时间" width="200">
+                    <el-table-column prop="updateTime" label="更新时间" width="100">
                         <template #default="{ row }">
                             {{ formatDate(row.updateTime) || '-' }}
                         </template>
                     </el-table-column>
-                    <el-table-column label="操作" width="120">
+                    <el-table-column label="操作" width="320">
                         <template #default="{ row }">
                             <el-button type="primary" size="small" @click="handleSelectBind(row)">选择</el-button>
+                            <el-button type="danger" size="small" plain :icon="Delete" @click="handleDeleteOrtho(row)">删除正射</el-button>
+                            <el-button type="danger" size="small" :icon="Delete" @click="handleDeleteVector(row)">删除图斑</el-button>
                         </template>
                     </el-table-column>
                 </el-table>
@@ -93,9 +104,9 @@
 import { ref, reactive } from 'vue';
 import dayjs from 'dayjs';
 import { ElMessage } from 'element-plus';
-import { CirclePlusFilled, Edit, Search, Refresh, Link, VideoCameraFilled, MapLocation } from '@element-plus/icons-vue';
-import type { Project, RawProject, ExternalProject } from '@/types/project';
-import { fetchProjectPage, getProject, saveProject, updateProject, syncExternalProjects, fetchInternalProjectList } from '@/api/project';
+import { CirclePlusFilled, Edit, Search, Refresh, Link, VideoCameraFilled, MapLocation, Delete } from '@element-plus/icons-vue';
+import type { Project, RawProject, ExternalProject, ExternalProjectQuery, InternalProjectBind } from '@/types/project';
+import { fetchProjectPage, getProject, saveProject, updateProject, syncExternalProjects, fetchInternalProjectList, fetchInternalProjectBinds, deleteProjectFeatures, deleteProjectOrthographic, insertBatchInternalBinding, syncInternalOrthographic, syncInternalFeatures } from '@/api/project';
 import TableCustom from '@/components/table-custom.vue';
 import TableDetail from '@/components/table-detail.vue';
 import TableSearch from '@/components/table-search.vue';
@@ -115,14 +126,14 @@ const handleSearch = () => {
 
 // 表格相关
 let columns = ref([
-    { type: 'index', label: '序号', width: 55, align: 'center' },
-    { prop: 'id', label: '项目ID', width: 160 },
+    { prop: 'id', label: '项目ID', width: 140 },
     { prop: 'name', label: '项目名称' },
-    { prop: 'partyAName', label: '甲方名称' },
-    { prop: 'partyBName', label: '乙方名称' },
-    { prop: 'startTime', label: '开始时间' },
-    { prop: 'endTime', label: '结束时间' },
-    { prop: 'operator', label: '操作', width: 340 },
+    { prop: 'externalProjectName', label: '内外业项目', width: 240 },
+    { prop: 'partyAName', label: '甲方名称', width: 140 },
+    { prop: 'partyBName', label: '乙方名称', width: 140 },
+    { prop: 'startTime', label: '开始时间', width: 120 },
+    { prop: 'endTime', label: '结束时间', width: 120 },
+    { prop: 'operator', label: '操作', width: 620 },
 ]);
 const page = reactive({
     index: 1,
@@ -130,6 +141,21 @@ const page = reactive({
     total: 0,
 });
 const formatDate = (value?: string | null) => (value ? dayjs(value).format('YYYY-MM-DD') : '');
+
+const toBindKey = (value: unknown): string => {
+    if (value == null) return '';
+    if (typeof value === 'number' || typeof value === 'bigint') {
+        return value.toString();
+    }
+    if (typeof value === 'string') {
+        const numeric = Number(value);
+        if (!Number.isNaN(numeric) && Number.isFinite(numeric)) {
+            return numeric.toString();
+        }
+        return value.trim();
+    }
+    return String(value);
+};
 
 const normalizeProject = (item: Partial<RawProject> & Partial<Project>): Project => {
     const startSource = (item as RawProject).startDate ?? (item.startTime as string) ?? null;
@@ -152,6 +178,27 @@ const getData = async () => {
     const records = (res.data?.records ?? []) as RawProject[];
     tableData.value = records.map((item) => normalizeProject(item));
     page.total = res.data?.total ?? 0;
+    try {
+        const ids = tableData.value.map(r => r.id).filter(Boolean);
+        if (ids.length) {
+            const binds = await fetchInternalProjectBinds(ids);
+            const list: InternalProjectBind[] = Array.isArray(binds?.data) ? binds.data : [];
+            const nameMap = new Map<string, string>();
+            list.forEach(item => {
+                const key = toBindKey(item.projectId ?? item.bizProjectId);
+                const nextName = item.name?.trim();
+                if (!key || !nextName) return;
+                const previous = nameMap.get(key);
+                nameMap.set(key, previous ? `${previous}、${nextName}` : nextName);
+            });
+            tableData.value = tableData.value.map(r => {
+                const key = toBindKey(r.id);
+                return { ...r, externalProjectName: key ? nameMap.get(key) ?? '' : '' };
+            });
+        }
+    } catch (e) {
+        // ignore mapping errors
+    }
 };
 getData();
 
@@ -182,45 +229,125 @@ const bindDialog = reactive({
     list: [] as ExternalProject[],
     total: 0,
 });
+const bindQuery = reactive({
+    page: 1,
+    rows: 20,
+    name: '',
+});
 const currentBindProject = ref<Project | null>(null);
 
-const handleBind = async (row: Project) => {
-    currentBindProject.value = row;
-    bindDialog.visible = true;
+const loadInternalProjects = async (resetPage = false) => {
+    if (resetPage) bindQuery.page = 1;
     bindDialog.loading = true;
     try {
-        const res = await fetchInternalProjectList();
+        const payload: ExternalProjectQuery = {
+            page: bindQuery.page,
+            rows: bindQuery.rows,
+        };
+        if (bindQuery.name.trim()) {
+            payload.name = bindQuery.name.trim();
+        }
+        const res = await fetchInternalProjectList(payload);
         bindDialog.list = res.data?.list ?? [];
         bindDialog.total = res.data?.total ?? bindDialog.list.length;
+        return true;
     } catch (error) {
         const message = error instanceof Error ? error.message : (typeof error === 'string' ? error : '');
         ElMessage.error(message || '获取内外业项目列表失败');
-        bindDialog.visible = false;
+        return false;
     } finally {
         bindDialog.loading = false;
     }
 };
 
-const handleSelectBind = (item: ExternalProject) => {
-    bindDialog.visible = false;
+const handleBind = async (row: Project) => {
+    currentBindProject.value = row;
+    bindDialog.visible = true;
+    bindQuery.page = 1;
+    bindQuery.name = '';
+    const success = await loadInternalProjects(true);
+    if (!success) {
+        bindDialog.visible = false;
+    }
+};
+
+const handleBindSearch = async () => {
+    await loadInternalProjects(true);
+};
+
+const handleSelectBind = async (item: ExternalProject) => {
     if (!currentBindProject.value) return;
-    ElMessage.success(`已关联项目 “${currentBindProject.value.name}” 与 “${item.name}”`);
+    try {
+        await insertBatchInternalBinding(String(currentBindProject.value.id), [String(item.id)]);
+        ElMessage.success(`已关联项目 “${currentBindProject.value.name}” 与 “${item.name}”`);
+        bindDialog.visible = false;
+        // 可按需刷新外业项目绑定列
+        await getData();
+    } catch (error) {
+        const message = error instanceof Error ? error.message : (typeof error === 'string' ? error : '');
+        ElMessage.error(message || '关联失败');
+    }
 };
 
 const closeBindDialog = () => {
     bindDialog.visible = false;
     bindDialog.list = [];
     bindDialog.total = 0;
+    bindQuery.name = '';
 };
 
-const handleSyncOrtho = (row: Project) => {
-    void row;
-    ElMessage.info('同步正射功能开发中');
+const handleSyncOrtho = async (row: Project) => {
+    const projectId = (row.id ?? '').toString().trim();
+    if (!projectId) {
+        ElMessage.warning('缺少项目ID，无法同步正射');
+        return;
+    }
+    try {
+        await syncInternalOrthographic([projectId]);
+        ElMessage.success('同步正射成功');
+    } catch (error) {
+        const message = error instanceof Error ? error.message : (typeof error === 'string' ? error : '');
+        ElMessage.error(message || '同步正射失败');
+    }
 };
 
-const handleSyncVector = (row: Project) => {
-    void row;
-    ElMessage.info('同步图斑功能开发中');
+const handleSyncVector = async (row: Project) => {
+    const projectId = (row.id ?? '').toString().trim();
+    if (!projectId) {
+        ElMessage.warning('缺少项目ID，无法同步图斑');
+        return;
+    }
+    try {
+        await syncInternalFeatures([projectId]);
+        ElMessage.success('同步图斑成功');
+    } catch (error) {
+        const message = error instanceof Error ? error.message : (typeof error === 'string' ? error : '');
+        ElMessage.error(message || '同步图斑失败');
+    }
+};
+
+const handleDeleteOrtho = async (row: ExternalProject) => {
+    const id = row.bizProjectId != null ? String(row.bizProjectId) : '';
+    if (!id) return ElMessage.warning('缺少项目ID，无法删除正射');
+    try {
+        await deleteProjectOrthographic([id]);
+        ElMessage.success('删除正射成功');
+    } catch (error) {
+        const message = error instanceof Error ? error.message : (typeof error === 'string' ? error : '');
+        ElMessage.error(message || '删除正射失败');
+    }
+};
+
+const handleDeleteVector = async (row: ExternalProject) => {
+    const id = row.bizProjectId != null ? String(row.bizProjectId) : '';
+    if (!id) return ElMessage.warning('缺少项目ID，无法删除图斑');
+    try {
+        await deleteProjectFeatures({ id, ids: [id] });
+        ElMessage.success('删除图斑成功');
+    } catch (error) {
+        const message = error instanceof Error ? error.message : (typeof error === 'string' ? error : '');
+        ElMessage.error(message || '删除图斑失败');
+    }
 };
 
 // 新增/编辑弹窗相关
@@ -305,6 +432,16 @@ const handleDelete = (row: Project) => {
 .bind-dialog {
     display: flex;
     flex-direction: column;
+}
+
+.bind-dialog__search {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.bind-dialog__search .el-input {
+    max-width: 280px;
 }
 
 .bind-dialog__footer {

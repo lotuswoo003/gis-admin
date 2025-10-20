@@ -7,6 +7,7 @@ export interface Project {
     endTime: string;
     center?: string | null;
     collect?: unknown;
+    externalProjectName?: string;
 }
 
 export interface RawProject {
@@ -34,6 +35,7 @@ export interface RawProject {
     updatedAt?: string | null;
     deletedAt?: string | null;
     collect?: unknown;
+    externalProjectName?: string;
 }
 
 export interface ExternalProject {
@@ -49,9 +51,27 @@ export interface ExternalProject {
     [key: string]: unknown;
 }
 
+
+export interface InternalProjectBind {
+    projectId: string;
+    name?: string;
+    bizProjectId?: string;
+}
+
+export interface FeatureDeleteRequest {
+    id?: string | number | null;
+    ids: Array<string | number>;
+}
+
 export interface ExternalProjectList {
     total: number;
     list: ExternalProject[];
+}
+
+export interface ExternalProjectQuery {
+    page: number;
+    rows: number;
+    name?: string;
 }
 
 export interface ProjectPageQuery {

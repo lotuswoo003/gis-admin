@@ -89,7 +89,7 @@ const routes: RouteRecordRaw[] = [
                 path: '/data-scheme',
                 name: 'data-scheme',
                 meta: {
-                    title: '规划方案',
+                    title: '计划方案',
                     permiss: '25',
                 },
                 component: () => import(/* webpackChunkName: "data-scheme" */ '../views/data/scheme.vue'),
