@@ -11,7 +11,6 @@ export const menuData: Menus[] = [
       { id: '12', pid: '1', index: '/system-role', title: '角色管理' },
       { id: '13', pid: '1', index: '/system-menu', title: '菜单管理' },
       { id: '14', pid: '1', index: '/system-org', title: '组织管理' },
-      { id: '16', pid: '1', index: '/system-project', title: '项目管理' },
       { id: '15', pid: '1', index: '/system-dict', title: '字典管理' },
       { id: '17', pid: '1', index: '/system-permission-package', title: '权限包管理' },
       { id: '18', pid: '1', index: '/system-enterprise-identity', title: '企业身份管理' },

@@ -101,7 +101,7 @@ watchEffect(() => {
 const orgOpts = ref<any[]>([]);
 const handleOrgRemote = async (kw: string) => {
   const res = await fetchOrganizationPage({ page: 1, rows: 10, name: kw || '' });
-  const records = (res.data?.records || []) as any[];
+  const records = (res.data?.list || []) as any[];
   orgOpts.value = records.map(r => ({ label: r.name, value: String(r.id) }));
   const opt = searchOpt.value.find(o => o.prop === 'organizationId');
   if (opt) opt.opts = orgOpts.value;
@@ -153,7 +153,7 @@ const tableData = ref<CraftRow[]>([]);
 const loadData = async () => {
   const res = await fetchProcessInfoPage({ page: page.index, rows: page.rows, type: (query.type || undefined), question: (query.question || undefined), organizationId: (query.organizationId || undefined) });
   const total = res.data?.total || 0;
-  const records = (res.data?.records || []) as ProcessInfo[];
+  const records = (res.data?.list || []) as ProcessInfo[];
   tableData.value = records.map(r => ({
     ...r,
     typeText: r.type === 'human' ? '人' : r.type === 'machine' ? '机' : r.type === 'material' ? '材' : (r.type || ''),
@@ -176,7 +176,7 @@ const row = ref<any>({ type: '', question: '', processes: '', human: '', tool: '
 const orgOptsModal = ref<any[]>([]);
 const handleOrgRemoteModal = async (kw: string) => {
   const res = await fetchOrganizationPage({ page: 1, rows: 10, name: kw || '' });
-  const records = (res.data?.records || []) as any[];
+  const records = (res.data?.list || []) as any[];
   orgOptsModal.value.splice(0, orgOptsModal.value.length, ...records.map(r => ({ label: r.name, value: String(r.id) })));
 };
 

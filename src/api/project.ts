@@ -3,7 +3,7 @@ import axios from "axios";
 import type { ProjectPageQuery, ProjectSave, ProjectUpdate, Project, RawProject, ExternalProjectList, ExternalProjectQuery, FeatureDeleteRequest } from '@/types/project';
 
 export const fetchProjectPage = (data: ProjectPageQuery) => {
-    return request<{ total: number; records: RawProject[] }>({
+    return request<{ total: number; list: RawProject[] }>({
         url: 'sys/business-projects/pageAll',
         method: 'post',
         data,

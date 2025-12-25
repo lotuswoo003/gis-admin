@@ -71,7 +71,7 @@ const query = reactive({
 const orgOpts = ref<any[]>([]);
 const handleOrgRemote = async (kw: string) => {
   const res = await fetchOrganizationPage({ page: 1, rows: 10, name: kw || '' });
-  const records = (res.data?.records || []) as any[];
+  const records = (res.data?.list || []) as any[];
   orgOpts.value = records.map(r => ({ label: r.name, value: String(r.id) }));
   const opt = searchOpt.value.find(o => o.prop === 'organizationId');
   if (opt) opt.opts = orgOpts.value;
@@ -106,7 +106,7 @@ const loadData = async () => {
     organizationId: query.organizationId || undefined,
   });
   const total = res.data?.total || 0;
-  const records = (res.data?.records || []) as ProcessUnitPrice[];
+  const records = (res.data?.list || []) as ProcessUnitPrice[];
   page.total = total;
   tableData.value = records.map((pi): any => ({
     id: pi.id || '',
@@ -134,7 +134,7 @@ const row = ref<any>({ kind: 'human' });
 const orgOptsModal = ref<any[]>([]);
 const handleOrgRemoteModal = async (kw: string) => {
   const res = await fetchOrganizationPage({ page: 1, rows: 10, name: kw || '' });
-  const records = (res.data?.records || []) as any[];
+  const records = (res.data?.list || []) as any[];
   orgOptsModal.value.splice(0, orgOptsModal.value.length, ...records.map(r => ({ label: r.name, value: String(r.id) })));
 };
 

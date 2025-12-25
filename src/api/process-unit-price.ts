@@ -2,7 +2,7 @@ import request from '@/utils/request';
 import type { ProcessUnitPrice, ProcessUnitPricePageRequest } from '@/types/process-unit-price';
 
 export const fetchProcessUnitPricePage = (data: ProcessUnitPricePageRequest) => {
-  return request<{ total: number; records: ProcessUnitPrice[] }>({
+  return request<{ total: number; list: ProcessUnitPrice[] }>({
     url: 'sys/processUnitPrice/page',
     method: 'post',
     data,

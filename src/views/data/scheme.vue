@@ -72,7 +72,7 @@ const query = reactive({
 const orgOpts = ref<any[]>([]);
 const handleOrgRemote = async (kw: string) => {
   const res = await fetchOrganizationPage({ page: 1, rows: 10, name: kw || '' });
-  const records = (res.data?.records || []) as any[];
+  const records = (res.data?.list || []) as any[];
   orgOpts.value = records.map(r => ({ label: r.name, value: String(r.id) }));
   const opt = searchOpt.value.find(o => o.prop === 'organizationId');
   if (opt) opt.opts = orgOpts.value;
@@ -121,7 +121,7 @@ const loadData = async () => {
     countyId: query.countyId || undefined,
   });
   const total = res.data?.total || 0;
-  const records = (res.data?.records || []) as PlanTemplate[];
+  const records = (res.data?.list || []) as PlanTemplate[];
   tableData.value = records.map(item => ({
     ...item,
     region: [item.province, item.city, item.county].filter(Boolean).join('-') || '—',
@@ -152,7 +152,7 @@ const schemeRow = ref<any>({
 const orgOptsModal = ref<any[]>([]);
 const handleOrgRemoteModal = async (kw: string) => {
   const res = await fetchOrganizationPage({ page: 1, rows: 10, name: kw || '' });
-  const records = (res.data?.records || []) as any[];
+  const records = (res.data?.list || []) as any[];
   const mapped = records.map(r => ({ label: r.name, value: String(r.id) }));
   // Preserve array reference so formOptions.list[...].opts stays reactive
   orgOptsModal.value.splice(0, orgOptsModal.value.length, ...mapped);

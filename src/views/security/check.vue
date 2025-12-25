@@ -137,7 +137,7 @@ watchEffect(() => {
 const loadData = async () => {
   const res = await fetchSecurityCheckPage({ page: page.index, rows: page.rows, name: (query.keyword || ''), mode: (query.type || '') });
   const total = res.data?.total || 0;
-  const records = (res.data?.records || []) as SecurityCheck[];
+  const records = (res.data?.list || []) as SecurityCheck[];
   tableData.value = records.map((r) => ({
     ...r,
     typeText: dictStore.getLabel('security_mode', r.mode),

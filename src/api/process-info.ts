@@ -2,7 +2,7 @@ import request from '@/utils/request';
 import type { ProcessInfo, ProcessInfoPageRequest } from '@/types/process-info';
 
 export const fetchProcessInfoPage = (data: ProcessInfoPageRequest) => {
-  return request<{ total: number; records: ProcessInfo[] }>({
+  return request<{ total: number; list: ProcessInfo[] }>({
     url: 'sys/processInfo/page',
     method: 'post',
     data,

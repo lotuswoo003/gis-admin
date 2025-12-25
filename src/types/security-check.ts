@@ -21,5 +21,5 @@ export interface SecurityCheckPageRequest {
 
 export interface PageResultSecurityCheck {
   total: number;
-  records: SecurityCheck[];
+  list: SecurityCheck[];
 }

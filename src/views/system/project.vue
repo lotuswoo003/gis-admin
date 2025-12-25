@@ -175,7 +175,7 @@ const normalizeProject = (item: Partial<RawProject> & Partial<Project>): Project
 const tableData = ref<Project[]>([]);
 const getData = async () => {
     const res = await fetchProjectPage({ page: page.index, rows: page.rows, name: query.name });
-    const records = (res.data?.records ?? []) as RawProject[];
+    const records = (res.data?.list ?? []) as RawProject[];
     tableData.value = records.map((item) => normalizeProject(item));
     page.total = res.data?.total ?? 0;
     try {

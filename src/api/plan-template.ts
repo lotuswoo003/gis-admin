@@ -39,7 +39,7 @@ export const deletePlanTemplate = (id: number | string) => {
 };
 
 export const fetchPlanTemplatePage = (data: { page: number; rows: number; [k: string]: any }) => {
-  return request<{ total: number; records: PlanTemplate[] }>({
+  return request<{ total: number; list: PlanTemplate[] }>({
     url: 'sys/planTemplate/page',
     method: 'post',
     data,
