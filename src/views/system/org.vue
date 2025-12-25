@@ -112,7 +112,7 @@ const page = reactive({ index: 1, rows: 10, total: 0 });
 const tableData = ref<Organization[]>([]);
 const getData = async () => {
   const res = await fetchOrganizationPage({ page: page.index, rows: page.rows, name: query.name });
-  tableData.value = (res.data.records || []) as Organization[];
+  tableData.value = (res.data.list || []) as Organization[];
   page.total = res.data.total || 0;
 };
 onMounted(getData);
@@ -258,7 +258,7 @@ const fetchAllEnterpriseRecords = async (keyword: string) => {
 
   while (pageIndex <= maxPages) {
     const res = await fetchOrganizationPage({ page: pageIndex, rows: pageSize, name });
-    const records = res.data.records || [];
+    const records = res.data.list || [];
     if (!records.length) {
       break;
     }

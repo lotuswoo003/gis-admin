@@ -2,7 +2,7 @@ import request from '@/utils/request';
 import type { OrganizationPageQuery, OrganizationSave, OrganizationUpdate, Organization } from '@/types/org';
 
 export const fetchOrganizationPage = (data: OrganizationPageQuery) => {
-    return request<{ total: number; records: Organization[] }>({
+    return request<{ total: number; list: Organization[] }>({
         url: 'sys/organization/page',
         method: 'post',
         data,
