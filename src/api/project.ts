@@ -111,7 +111,7 @@ export const syncParcel = (projectId: string) => {
         url: 'internal/internal-project/v1/tongbudikuai',
         method: 'post',
         data: {
-            projectId: Number(projectId),
+            projectId,
         },
     });
 };
