@@ -105,3 +105,13 @@ export const syncInternalFeatures = (projectIds: string[]) => {
         data: projectIds,
     });
 };
+
+export const syncParcel = (projectId: string) => {
+    return request<null>({
+        url: 'internal/internal-project/v1/tongbudikuai',
+        method: 'post',
+        data: {
+            projectId: Number(projectId),
+        },
+    });
+};

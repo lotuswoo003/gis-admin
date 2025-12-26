@@ -20,7 +20,7 @@
                         关联
                     </el-button>
                     <el-button type="success" size="small" :icon="Search" @click="handleParcel(rows)">
-                        查询地块
+                        同步地块
                     </el-button>
                     <el-button type="warning" size="small" :icon="VideoCameraFilled" @click="handleSyncOrtho(rows)">
                         同步正射
@@ -106,7 +106,7 @@ import dayjs from 'dayjs';
 import { ElMessage } from 'element-plus';
 import { CirclePlusFilled, Edit, Search, Refresh, Link, VideoCameraFilled, MapLocation, Delete } from '@element-plus/icons-vue';
 import type { Project, RawProject, ExternalProject, ExternalProjectQuery, InternalProjectBind } from '@/types/project';
-import { fetchProjectPage, getProject, saveProject, updateProject, syncExternalProjects, fetchInternalProjectList, fetchInternalProjectBinds, deleteProjectFeatures, deleteProjectOrthographic, insertBatchInternalBinding, syncInternalOrthographic, syncInternalFeatures } from '@/api/project';
+import { fetchProjectPage, getProject, saveProject, updateProject, syncExternalProjects, fetchInternalProjectList, fetchInternalProjectBinds, deleteProjectFeatures, deleteProjectOrthographic, insertBatchInternalBinding, syncInternalOrthographic, syncInternalFeatures, syncParcel } from '@/api/project';
 import TableCustom from '@/components/table-custom.vue';
 import TableDetail from '@/components/table-detail.vue';
 import TableSearch from '@/components/table-search.vue';
@@ -417,9 +417,21 @@ const handleView = async (row: Project) => {
     visible1.value = true;
 };
 
-// 查询地块
-const handleParcel = (row: Project) => {
-    ElMessage.info(`查询地块：${row.id}`);
+// 同步地块
+const handleParcel = async (row: Project) => {
+    // 校验是否绑定了内外业项目
+    if (!row.externalProjectName) {
+        ElMessage.warning('请先绑定内外业项目');
+        return;
+    }
+
+    try {
+        await syncParcel(row.id);
+        ElMessage.success('同步地块成功');
+    } catch (error) {
+        const message = error instanceof Error ? error.message : (typeof error === 'string' ? error : '');
+        ElMessage.error(message || '同步地块失败');
+    }
 };
 
 // 删除相关
