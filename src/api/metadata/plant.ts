@@ -11,7 +11,10 @@ import type {
   PlantInsertRequest,
   PlantUpdateRequest,
   PlantDeleteRequest,
-  PlantBatchDeleteRequest
+  PlantBatchDeleteRequest,
+  PlantApproveRequest,
+  PlantBatchApproveRequest,
+  PlantTag
 } from '@/types/metadata/plant'
 
 /**
@@ -106,6 +109,56 @@ export const selectCommon = (params: PlantPageRequest) => {
 }
 
 /**
+ * 单个审批植物
+ * @param data 审批请求参数
+ * @returns 影响的行数
+ */
+export const approve = (data: PlantApproveRequest) => {
+  return request<number>({
+    url: '/sys/plant-basic-info/approve',
+    method: 'post',
+    data
+  })
+}
+
+/**
+ * 批量审批植物
+ * @param data 批量审批请求参数
+ * @returns 影响的行数
+ */
+export const batchApprove = (data: PlantBatchApproveRequest) => {
+  return request<number>({
+    url: '/sys/plant-basic-info/batch-approve',
+    method: 'post',
+    data
+  })
+}
+
+/**
+ * 获取所有标签列表
+ * @returns 标签列表
+ */
+export const getAllTags = () => {
+  return request<PlantTag[]>({
+    url: '/sys/plant-basic-info/tags',
+    method: 'post'
+  })
+}
+
+/**
+ * 新增标签
+ * @param tagName 标签名称
+ * @returns 成功信息
+ */
+export const addTag = (tagName: string) => {
+  return request<string>({
+    url: '/sys/plant-basic-info/tag/add',
+    method: 'post',
+    data: { tagName }
+  })
+}
+
+/**
  * 植物信息 API 对象
  */
 export const plantApi = {
@@ -115,5 +168,9 @@ export const plantApi = {
   update,
   delete: deletePlant,
   deleteBatch,
-  selectCommon
+  selectCommon,
+  approve,
+  batchApprove,
+  getAllTags,
+  addTag
 }

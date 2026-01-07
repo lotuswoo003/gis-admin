@@ -27,6 +27,7 @@ export function usePlantList() {
     searchName: '',
     filterCategoryId: '',
     filterCommonFlag: undefined,
+    filterTags: [],
     selectedIds: []
   })
 
@@ -43,6 +44,7 @@ export function usePlantList() {
         name: listState.searchName || undefined,
         categoryId: listState.filterCategoryId || undefined,
         commonFlag: listState.filterCommonFlag,
+        tags: listState.filterTags.length > 0 ? listState.filterTags : undefined,
         organizationId: userStore.currentOrganizationId, // 可选，管理端可能没有
         sortBy: 'createdAt',
         sortOrder: 'desc'
@@ -86,6 +88,7 @@ export function usePlantList() {
     listState.searchName = ''
     listState.filterCategoryId = ''
     listState.filterCommonFlag = undefined
+    listState.filterTags = []
     loadList()
   }
 

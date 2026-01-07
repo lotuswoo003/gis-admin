@@ -100,6 +100,8 @@ export interface PlantPageRequest {
   categoryId?: string
   /** 是否常见植物 (0/1) */
   commonFlag?: number
+  /** 标签筛选（标签列表，满足任意一个标签即可） */
+  tags?: string[]
   /** 组织 ID - 从用户上下文获取，前端不可修改 */
   organizationId?: string
   /** 排序字段 */
@@ -217,8 +219,38 @@ export interface PlantListState {
   filterCategoryId: string
   /** 常见植物筛选 (undefined=全部, 0=否, 1=是) */
   filterCommonFlag?: number
+  /** 标签筛选（选中的标签列表） */
+  filterTags: string[]
   /** 已选中的行 */
   selectedIds: string[]
+}
+
+/** 植物标签 */
+export interface PlantTag {
+  /** 标签名称 */
+  name: string
+  /** 标签颜色（可选） */
+  color?: string
+}
+
+/** 批量审批请求参数 */
+export interface PlantBatchApproveRequest {
+  /** ID 列表 (必填) */
+  ids: string[]
+  /** 审批状态 (APPROVED=通过, REJECTED=拒绝) */
+  status: 'APPROVED' | 'REJECTED'
+  /** 审批意见（可选） */
+  remark?: string
+}
+
+/** 单个审批请求参数 */
+export interface PlantApproveRequest {
+  /** 主键 ID (必填) */
+  id: string
+  /** 审批状态 (APPROVED=通过, REJECTED=拒绝) */
+  status: 'APPROVED' | 'REJECTED'
+  /** 审批意见（可选） */
+  remark?: string
 }
 
 /** 表单对话框状态 */

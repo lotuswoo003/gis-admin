@@ -35,13 +35,26 @@
         show-overflow-tooltip
       />
 
-      <!-- 拉丁学名 -->
+      <!-- 标签 -->
       <el-table-column
-        prop="latinScientificName"
-        label="拉丁学名"
-        min-width="150"
-        show-overflow-tooltip
-      />
+        prop="tags"
+        label="标签"
+        min-width="200"
+      >
+        <template #default="{ row }">
+          <template v-if="row.tags && row.tags.length > 0">
+            <el-tag
+              v-for="tag in row.tags"
+              :key="tag"
+              size="small"
+              style="margin-right: 4px"
+            >
+              {{ tag }}
+            </el-tag>
+          </template>
+          <span v-else style="color: #999">-</span>
+        </template>
+      </el-table-column>
 
       <!-- 是否常见 -->
       <el-table-column
@@ -57,15 +70,27 @@
         </template>
       </el-table-column>
 
+      <!-- 来源 -->
+      <el-table-column
+        prop="source"
+        label="来源"
+        width="100"
+        align="center"
+      >
+        <template #default="{ row }">
+          {{ row.source === 'SYSTEM' ? '系统维护' : row.source === 'USER' ? '用户上传' : row.source || '-' }}
+        </template>
+      </el-table-column>
+
       <!-- 状态 -->
       <el-table-column
         prop="status"
         label="状态"
-        width="80"
+        width="100"
         align="center"
       >
         <template #default="{ row }">
-          <el-tag :type="row.status === 'APPROVED' ? 'success' : 'danger'" size="small">
+          <el-tag :type="row.status === 'APPROVED' ? 'success' : row.status === 'PENDING' ? 'warning' : 'danger'" size="small">
             {{ row.status === 'APPROVED' ? '已审核' : row.status === 'PENDING' ? '待审核' : '已拒绝' }}
           </el-tag>
         </template>
@@ -75,7 +100,7 @@
       <el-table-column
         prop="createdAt"
         label="创建时间"
-        width="160"
+        width="170"
         show-overflow-tooltip
       >
         <template #default="{ row }">
@@ -83,9 +108,30 @@
         </template>
       </el-table-column>
 
-      <!-- 操作列 -->
-      <el-table-column label="操作" width="150" fixed="right">
+      <!-- 最后修改时间 -->
+      <el-table-column
+        prop="updatedAt"
+        label="最后修改时间"
+        width="170"
+        show-overflow-tooltip
+      >
         <template #default="{ row }">
+          {{ formatDate(row.updatedAt) }}
+        </template>
+      </el-table-column>
+
+      <!-- 操作列 -->
+      <el-table-column label="操作" width="200" fixed="right">
+        <template #default="{ row }">
+          <el-button
+            v-if="row.status === 'PENDING'"
+            type="success"
+            link
+            size="small"
+            @click="handleApprove(row)"
+          >
+            审核
+          </el-button>
           <el-button type="primary" link size="small" @click="handleEdit(row)">
             编辑
           </el-button>
@@ -141,6 +187,7 @@ interface Emits {
   (e: 'selectionChange', selectedIds: string[]): void
   (e: 'edit', row: PlantBasicInfoListResponse): void
   (e: 'delete', row: PlantBasicInfoListResponse): void
+  (e: 'approve', row: PlantBasicInfoListResponse): void
   (e: 'reset'): void
 }
 
@@ -202,6 +249,13 @@ const handleEdit = (row: PlantBasicInfoListResponse) => {
  */
 const handleDelete = (row: PlantBasicInfoListResponse) => {
   emit('delete', row)
+}
+
+/**
+ * 审批
+ */
+const handleApprove = (row: PlantBasicInfoListResponse) => {
+  emit('approve', row)
 }
 
 /**
