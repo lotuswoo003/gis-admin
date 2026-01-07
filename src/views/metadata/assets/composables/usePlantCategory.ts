@@ -55,7 +55,7 @@ export function usePlantCategory() {
   const convertToTreeSelectFormat = (categories: PlantCategory[]): PlantCategory[] => {
     return categories.map(category => ({
       ...category,
-      label: category.name,
+      label: category.categoryName,
       value: category.id,
       children: category.children ? convertToTreeSelectFormat(category.children) : undefined
     }))

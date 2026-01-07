@@ -67,7 +67,7 @@ export interface PlantCategory {
   /** 分类 ID */
   id: string
   /** 分类名称 */
-  name: string
+  categoryName: string
   /** 父级 ID */
   parentId?: string | null
   /** 层级 (1,2,3) */
