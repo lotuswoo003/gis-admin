@@ -25,6 +25,7 @@ export const menuData: Menus[] = [
     children: [
       { id: '21', pid: '2', index: '/data-craft', title: '智能工艺' },
       { id: '22', pid: '2', index: '/data-rjc', title: '人机协同' },
+      { id: '26', pid: '2', index: '/metadata-assets', title: '资产信息' },
       { id: '291', pid: '2', index: '/security-check', title: '安全管理' },
       { id: '25', pid: '2', index: '/data-scheme', title: '计划方案' },
     ],

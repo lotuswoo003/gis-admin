@@ -104,6 +104,15 @@ const routes: RouteRecordRaw[] = [
                 component: () => import(/* webpackChunkName: "data-craft" */ '@/views/data/craft.vue'),
             },
             {
+                path: '/metadata-assets',
+                name: 'metadata-assets',
+                meta: {
+                    title: '资产信息',
+                    permiss: '26',
+                },
+                component: () => import(/* webpackChunkName: "metadata-assets" */ '../views/metadata/assets/index.vue'),
+            },
+            {
                 path: '/security-check',
                 name: 'security-check',
                 meta: {
