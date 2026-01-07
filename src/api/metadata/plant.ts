@@ -21,7 +21,7 @@ import type {
  */
 export const selectPage = (params: PlantPageRequest) => {
   return request<PageResult<PlantBasicInfoListResponse>>({
-    url: '/plant-basic-info/select-page',
+    url: '/sys/plant-basic-info/select-page',
     method: 'post',
     data: params
   })
@@ -34,7 +34,7 @@ export const selectPage = (params: PlantPageRequest) => {
  */
 export const selectById = (id: string) => {
   return request<PlantBasicInfoListResponse>({
-    url: '/plant-basic-info/select-by-id',
+    url: '/sys/plant-basic-info/select-by-id',
     method: 'post',
     data: { id }
   })
@@ -47,7 +47,7 @@ export const selectById = (id: string) => {
  */
 export const insert = (data: PlantInsertRequest) => {
   return request<string>({
-    url: '/plant-basic-info/insert',
+    url: '/sys/plant-basic-info/insert',
     method: 'post',
     data
   })
@@ -60,7 +60,7 @@ export const insert = (data: PlantInsertRequest) => {
  */
 export const update = (data: PlantUpdateRequest) => {
   return request<number>({
-    url: '/plant-basic-info/update',
+    url: '/sys/plant-basic-info/update',
     method: 'post',
     data
   })
@@ -73,7 +73,7 @@ export const update = (data: PlantUpdateRequest) => {
  */
 export const deletePlant = (data: PlantDeleteRequest) => {
   return request<number>({
-    url: '/plant-basic-info/delete',
+    url: '/sys/plant-basic-info/delete',
     method: 'post',
     data
   })
@@ -86,7 +86,7 @@ export const deletePlant = (data: PlantDeleteRequest) => {
  */
 export const deleteBatch = (data: PlantBatchDeleteRequest) => {
   return request<number>({
-    url: '/plant-basic-info/delete-batch',
+    url: '/sys/plant-basic-info/delete-batch',
     method: 'post',
     data
   })
@@ -99,7 +99,7 @@ export const deleteBatch = (data: PlantBatchDeleteRequest) => {
  */
 export const selectCommon = (params: PlantPageRequest) => {
   return request<PageResult<PlantBasicInfoListResponse>>({
-    url: '/plant-basic-info/select-common',
+    url: '/sys/plant-basic-info/select-common',
     method: 'post',
     data: params
   })

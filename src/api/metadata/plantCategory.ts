@@ -16,7 +16,7 @@ import type {
  */
 export const selectList = (params: PlantCategoryListRequest) => {
   return request<PlantCategory[]>({
-    url: '/plant-category/select-list',
+    url: '/sys/plant-category/select-list',
     method: 'post',
     data: params
   })
@@ -29,7 +29,7 @@ export const selectList = (params: PlantCategoryListRequest) => {
  */
 export const selectById = (id: string) => {
   return request<PlantCategory>({
-    url: '/plant-category/select-by-id',
+    url: '/sys/plant-category/select-by-id',
     method: 'post',
     data: { id }
   })
