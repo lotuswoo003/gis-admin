@@ -227,10 +227,32 @@ export interface PlantListState {
 
 /** 植物标签 */
 export interface PlantTag {
+  /** 主键ID */
+  id: string
   /** 标签名称 */
-  name: string
-  /** 标签颜色（可选） */
-  color?: string
+  tagName: string
+  /** 状态：ENABLED-启用，DISABLED-禁用 */
+  status?: string
+  /** 备注信息 */
+  remark?: string
+  /** 创建时间 */
+  createdAt?: number
+  /** 更新时间 */
+  updatedAt?: number
+  /** 创建人ID */
+  createdBy?: string
+  /** 更新人ID */
+  updatedBy?: string
+}
+
+/** 新增标签请求 */
+export interface PlantTagInsertRequest {
+  /** 标签名称（必填） */
+  tagName: string
+  /** 备注信息（可选） */
+  remark?: string
+  /** 创建时绑定的植物ID列表（可选） */
+  plantIds?: string[]
 }
 
 /** 批量审批请求参数 */

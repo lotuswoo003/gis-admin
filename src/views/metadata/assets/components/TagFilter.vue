@@ -5,13 +5,13 @@
       <!-- 已有标签 -->
       <el-tag
         v-for="tag in allTags"
-        :key="tag.name"
-        :type="isTagSelected(tag.name) ? 'primary' : 'info'"
-        :effect="isTagSelected(tag.name) ? 'dark' : 'plain'"
+        :key="tag.id"
+        :type="isTagSelected(tag.tagName) ? 'primary' : 'info'"
+        :effect="isTagSelected(tag.tagName) ? 'dark' : 'plain'"
         class="tag-item"
-        @click="toggleTag(tag.name)"
+        @click="toggleTag(tag.tagName)"
       >
-        {{ tag.name }}
+        {{ tag.tagName }}
       </el-tag>
 
       <!-- 新增标签按钮 -->

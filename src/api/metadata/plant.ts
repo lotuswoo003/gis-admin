@@ -14,7 +14,8 @@ import type {
   PlantBatchDeleteRequest,
   PlantApproveRequest,
   PlantBatchApproveRequest,
-  PlantTag
+  PlantTag,
+  PlantTagInsertRequest
 } from '@/types/metadata/plant'
 
 /**
@@ -140,21 +141,21 @@ export const batchApprove = (data: PlantBatchApproveRequest) => {
  */
 export const getAllTags = () => {
   return request<PlantTag[]>({
-    url: '/sys/plant-basic-info/tags',
+    url: '/plant-tag/select-list',
     method: 'post'
   })
 }
 
 /**
  * 新增标签
- * @param tagName 标签名称
- * @returns 成功信息
+ * @param data 新增标签请求参数
+ * @returns 新增成功的标签 ID
  */
-export const addTag = (tagName: string) => {
+export const addTag = (data: PlantTagInsertRequest) => {
   return request<string>({
-    url: '/sys/plant-basic-info/tag/add',
+    url: '/plant-tag/insert',
     method: 'post',
-    data: { tagName }
+    data
   })
 }
 

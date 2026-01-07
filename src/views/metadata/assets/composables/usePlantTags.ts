@@ -72,7 +72,11 @@ export function usePlantTags() {
     addTagLoading.value = true
 
     try {
-      const res = await plantApi.addTag(tagName)
+      const res = await plantApi.addTag({
+        tagName,
+        remark: undefined,
+        plantIds: undefined
+      })
 
       if (res.code === 0) {
         ElMessage.success('标签添加成功')
