@@ -68,17 +68,10 @@ export function usePlantForm(onSuccess: () => void) {
    * 加载分类列表
    */
   const loadCategories = async (): Promise<void> => {
-    const organizationId = userStore.currentOrganizationId
-    if (!organizationId) {
-      ElMessage.error('未获取到组织信息，请重新登录')
-      router.push('/login')
-      return
-    }
-
     try {
       const res = await plantCategoryApi.selectList({
         status: 1, // 只加载启用的分类
-        organizationId
+        organizationId: userStore.currentOrganizationId // 可选，管理端可能没有
       })
 
       if (res.code === 0) {
@@ -151,19 +144,11 @@ export function usePlantForm(onSuccess: () => void) {
    * @param formData 表单数据
    */
   const handleFormSubmit = async (formData: PlantInsertRequest | PlantUpdateRequest): Promise<void> => {
-    // 检查 organizationId
-    const organizationId = userStore.currentOrganizationId
-    if (!organizationId) {
-      ElMessage.error('未获取到组织信息，请重新登录')
-      router.push('/login')
-      return
-    }
-
     formState.loading = true
 
     try {
-      // 确保 organizationId 来自用户上下文
-      formData.organizationId = organizationId
+      // organizationId 从用户上下文获取（可选）
+      formData.organizationId = userStore.currentOrganizationId
 
       let res
       if (formState.mode === 'add') {

@@ -11,8 +11,8 @@ export interface UserInfo {
   id: string
   /** 用户名 */
   username: string
-  /** 组织 ID - 从 JWT Token 或用户信息 API 获取 */
-  organizationId: string
+  /** 组织 ID - 可选，管理端可能没有 */
+  organizationId?: string
   /** 组织名称 */
   organizationName?: string
   /** 权限码列表 */

@@ -26,19 +26,12 @@ export function usePlantCategory() {
    * @description 只加载启用的分类（status=1）
    */
   const loadCategories = async (): Promise<void> => {
-    // 检查 organizationId
-    const organizationId = userStore.currentOrganizationId
-    if (!organizationId) {
-      ElMessage.error('未获取到组织信息，请重新登录')
-      return
-    }
-
     loading.value = true
 
     try {
       const res = await plantCategoryApi.selectList({
         status: 1, // 只加载启用的分类
-        organizationId
+        organizationId: userStore.currentOrganizationId // 可选，管理端可能没有
       })
 
       if (res.code === 0) {

@@ -34,14 +34,6 @@ export function usePlantList() {
    * 加载列表
    */
   const loadList = async (): Promise<void> => {
-    // 1. 检查 organizationId
-    const organizationId = userStore.currentOrganizationId
-    if (!organizationId) {
-      ElMessage.error('未获取到组织信息，请重新登录')
-      router.push('/login')
-      return
-    }
-
     listState.loading = true
 
     try {
@@ -51,7 +43,7 @@ export function usePlantList() {
         name: listState.searchName || undefined,
         categoryId: listState.filterCategoryId || undefined,
         commonFlag: listState.filterCommonFlag,
-        organizationId, // 已验证的 organizationId
+        organizationId: userStore.currentOrganizationId, // 可选，管理端可能没有
         sortBy: 'createdAt',
         sortOrder: 'desc'
       }
