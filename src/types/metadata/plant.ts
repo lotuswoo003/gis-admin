@@ -74,8 +74,6 @@ export interface PlantCategory {
   level: number
   /** 排序号 */
   orderNum?: number
-  /** 状态 (0=禁用, 1=启用) */
-  status?: number
   /** 子分类列表 */
   children?: PlantCategory[]
   /** Element Plus TreeSelect 需要的 label 字段 */
@@ -239,8 +237,6 @@ export interface DeleteConfirmState {
 
 /** 分类查询请求参数 */
 export interface PlantCategoryListRequest {
-  /** 状态筛选 */
-  status?: number
   /** 组织 ID */
   organizationId?: string
 }

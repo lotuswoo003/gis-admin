@@ -70,7 +70,6 @@ export function usePlantForm(onSuccess: () => void) {
   const loadCategories = async (): Promise<void> => {
     try {
       const res = await plantCategoryApi.selectList({
-        status: 1, // 只加载启用的分类
         organizationId: userStore.currentOrganizationId // 可选，管理端可能没有
       })
 
