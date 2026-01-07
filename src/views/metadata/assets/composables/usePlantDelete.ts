@@ -67,14 +67,11 @@ export function usePlantDelete(onSuccess: () => void, listState: PlantListState)
         res = await plantApi.deleteBatch({ ids: deleteState.deleteIds })
       }
 
-      if (res.code === 'success') {
+      if (res.code === 0) {
         ElMessage.success('删除成功')
         deleteState.visible = false
         listState.selectedIds = [] // 清空选中
         onSuccess() // 刷新列表
-      } else if (res.code === 'unauthorized') {
-        ElMessage.error('登录已过期，请重新登录')
-        // 这里可以跳转登录页，但需要 router 实例
       } else {
         ElMessage.error(res.message || '删除失败')
       }

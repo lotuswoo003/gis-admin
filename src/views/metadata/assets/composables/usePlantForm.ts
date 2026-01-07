@@ -81,12 +81,9 @@ export function usePlantForm(onSuccess: () => void) {
         organizationId
       })
 
-      if (res.code === 'success') {
+      if (res.code === 0) {
         // 转换数据格式，添加 Element Plus TreeSelect 需要的字段
         categoryOptions.value = convertToTreeSelectFormat(res.data)
-      } else if (res.code === 'unauthorized') {
-        ElMessage.error('登录已过期，请重新登录')
-        router.push('/login')
       } else {
         ElMessage.error(res.message || '加载分类失败')
       }
@@ -175,13 +172,10 @@ export function usePlantForm(onSuccess: () => void) {
         res = await plantApi.update(formData as PlantUpdateRequest)
       }
 
-      if (res.code === 'success') {
+      if (res.code === 0) {
         ElMessage.success(formState.mode === 'add' ? '新增成功' : '编辑成功')
         formState.visible = false
         onSuccess() // 刷新列表
-      } else if (res.code === 'unauthorized') {
-        ElMessage.error('登录已过期，请重新登录')
-        router.push('/login')
       } else {
         ElMessage.error(res.message || '操作失败')
       }

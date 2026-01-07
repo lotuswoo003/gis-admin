@@ -41,12 +41,9 @@ export function usePlantCategory() {
         organizationId
       })
 
-      if (res.code === 'success') {
+      if (res.code === 0) {
         // 转换数据格式，添加 Element Plus TreeSelect 需要的字段
         categoryList.value = convertToTreeSelectFormat(res.data)
-      } else if (res.code === 'unauthorized') {
-        ElMessage.error('登录已过期，请重新登录')
-        // 这里可以跳转登录页，但需要 router 实例
       } else {
         ElMessage.error(res.message || '加载分类失败')
       }

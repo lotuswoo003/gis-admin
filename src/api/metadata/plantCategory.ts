@@ -5,7 +5,6 @@
 
 import request from '@/utils/request'
 import type {
-  ApiResponse,
   PlantCategory,
   PlantCategoryListRequest
 } from '@/types/metadata/plant'
@@ -16,7 +15,7 @@ import type {
  * @returns 分类列表
  */
 export const selectList = (params: PlantCategoryListRequest) => {
-  return request<ApiResponse<PlantCategory[]>>({
+  return request<PlantCategory[]>({
     url: '/plant-category/select-list',
     method: 'post',
     data: params
@@ -29,7 +28,7 @@ export const selectList = (params: PlantCategoryListRequest) => {
  * @returns 分类详情
  */
 export const selectById = (id: string) => {
-  return request<ApiResponse<PlantCategory>>({
+  return request<PlantCategory>({
     url: '/plant-category/select-by-id',
     method: 'post',
     data: { id }

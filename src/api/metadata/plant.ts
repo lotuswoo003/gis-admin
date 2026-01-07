@@ -5,7 +5,6 @@
 
 import request from '@/utils/request'
 import type {
-  ApiResponse,
   PageResult,
   PlantBasicInfoListResponse,
   PlantPageRequest,
@@ -21,7 +20,7 @@ import type {
  * @returns 分页结果
  */
 export const selectPage = (params: PlantPageRequest) => {
-  return request<ApiResponse<PageResult<PlantBasicInfoListResponse>>>({
+  return request<PageResult<PlantBasicInfoListResponse>>({
     url: '/plant-basic-info/select-page',
     method: 'post',
     data: params
@@ -34,7 +33,7 @@ export const selectPage = (params: PlantPageRequest) => {
  * @returns 植物详情
  */
 export const selectById = (id: string) => {
-  return request<ApiResponse<PlantBasicInfoListResponse>>({
+  return request<PlantBasicInfoListResponse>({
     url: '/plant-basic-info/select-by-id',
     method: 'post',
     data: { id }
@@ -47,7 +46,7 @@ export const selectById = (id: string) => {
  * @returns 新增成功的植物 ID
  */
 export const insert = (data: PlantInsertRequest) => {
-  return request<ApiResponse<string>>({
+  return request<string>({
     url: '/plant-basic-info/insert',
     method: 'post',
     data
@@ -60,7 +59,7 @@ export const insert = (data: PlantInsertRequest) => {
  * @returns 更新影响的行数
  */
 export const update = (data: PlantUpdateRequest) => {
-  return request<ApiResponse<number>>({
+  return request<number>({
     url: '/plant-basic-info/update',
     method: 'post',
     data
@@ -73,7 +72,7 @@ export const update = (data: PlantUpdateRequest) => {
  * @returns 删除影响的行数
  */
 export const deletePlant = (data: PlantDeleteRequest) => {
-  return request<ApiResponse<number>>({
+  return request<number>({
     url: '/plant-basic-info/delete',
     method: 'post',
     data
@@ -86,7 +85,7 @@ export const deletePlant = (data: PlantDeleteRequest) => {
  * @returns 删除影响的行数
  */
 export const deleteBatch = (data: PlantBatchDeleteRequest) => {
-  return request<ApiResponse<number>>({
+  return request<number>({
     url: '/plant-basic-info/delete-batch',
     method: 'post',
     data
@@ -99,7 +98,7 @@ export const deleteBatch = (data: PlantBatchDeleteRequest) => {
  * @returns 分页结果
  */
 export const selectCommon = (params: PlantPageRequest) => {
-  return request<ApiResponse<PageResult<PlantBasicInfoListResponse>>>({
+  return request<PageResult<PlantBasicInfoListResponse>>({
     url: '/plant-basic-info/select-common',
     method: 'post',
     data: params

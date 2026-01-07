@@ -170,16 +170,6 @@ export interface PlantBatchDeleteRequest {
   ids: string[]
 }
 
-/** 统一响应结构 */
-export interface ApiResponse<T = unknown> {
-  /** 响应码 ("success" | "error" | "unauthorized") */
-  code: 'success' | 'error' | 'unauthorized'
-  /** 响应消息 */
-  message: string
-  /** 响应数据 */
-  data: T
-}
-
 /** Element Plus 表单验证规则类型 */
 export interface FormItemRule {
   required?: boolean

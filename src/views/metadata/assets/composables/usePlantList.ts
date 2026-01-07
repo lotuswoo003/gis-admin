@@ -58,16 +58,12 @@ export function usePlantList() {
 
       const res = await plantApi.selectPage(params)
 
-      if (res.code === 'success') {
+      if (res.code === 0) {
         // 成功加载
         listState.list = res.data.list
         listState.total = res.data.total
-      } else if (res.code === 'unauthorized') {
-        // 2. 处理权限错误
-        ElMessage.error('登录已过期，请重新登录')
-        router.push('/login')
       } else {
-        // 3. 处理业务错误
+        // 处理业务错误
         ElMessage.error(res.message || '加载失败')
       }
     } catch (error) {
