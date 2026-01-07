@@ -17,7 +17,11 @@ export interface PlantBasicInfo {
   commonFlag: number
   /** 中国植物志编码 */
   chinaCode?: string
+  /** 中文学名 */
+  chinaScientificName?: string
   /** 拉丁学名 */
+  latinScientificName?: string
+  /** 拉丁学名（已废弃，使用 latinScientificName） */
   latinName?: string
   /** 英文名 */
   englishName?: string
@@ -44,16 +48,18 @@ export interface PlantBasicInfo {
   /** 种 */
   kind?: string
 
+  /** 标签列表 */
+  tags?: string[]
   /** 数据来源 */
   source?: string
-  /** 状态 (0=禁用, 1=启用) */
-  status?: number
+  /** 审核状态 (PENDING=待审核, APPROVED=已审核, REJECTED=已拒绝) */
+  status?: 'PENDING' | 'APPROVED' | 'REJECTED'
   /** 组织 ID (VARCHAR) */
   organizationId?: string
-  /** 创建时间 */
-  createdAt?: string
-  /** 更新时间 */
-  updatedAt?: string
+  /** 创建时间（时间戳） */
+  createdAt?: number
+  /** 更新时间（时间戳） */
+  updatedAt?: number
   /** 创建人 */
   createdBy?: string
   /** 更新人 */
@@ -107,7 +113,7 @@ export interface PageResult<T> {
   /** 总记录数 */
   total: number
   /** 当前页数据列表 */
-  list: T[]
+  rows: T[]
 }
 
 /** 列表响应项 - 包含分类名称 */
@@ -126,7 +132,11 @@ export interface PlantInsertRequest {
   commonFlag?: number
   /** 中国植物志编码 */
   chinaCode?: string
+  /** 中文学名 */
+  chinaScientificName?: string
   /** 拉丁学名 */
+  latinScientificName?: string
+  /** 拉丁学名（已废弃，使用 latinScientificName） */
   latinName?: string
   /** 英文名 */
   englishName?: string
@@ -144,8 +154,8 @@ export interface PlantInsertRequest {
   kind?: string
   /** 数据来源 */
   source?: string
-  /** 状态 */
-  status?: number
+  /** 审核状态 */
+  status?: 'PENDING' | 'APPROVED' | 'REJECTED'
   /** 组织 ID - 从用户上下文自动填充 */
   organizationId?: string
 }

@@ -37,7 +37,7 @@
 
       <!-- 拉丁学名 -->
       <el-table-column
-        prop="latinName"
+        prop="latinScientificName"
         label="拉丁学名"
         min-width="150"
         show-overflow-tooltip
@@ -65,8 +65,8 @@
         align="center"
       >
         <template #default="{ row }">
-          <el-tag :type="row.status === 1 ? 'success' : 'danger'" size="small">
-            {{ row.status === 1 ? '启用' : '禁用' }}
+          <el-tag :type="row.status === 'APPROVED' ? 'success' : 'danger'" size="small">
+            {{ row.status === 'APPROVED' ? '已审核' : row.status === 'PENDING' ? '待审核' : '已拒绝' }}
           </el-tag>
         </template>
       </el-table-column>
@@ -77,7 +77,11 @@
         label="创建时间"
         width="160"
         show-overflow-tooltip
-      />
+      >
+        <template #default="{ row }">
+          {{ formatDate(row.createdAt) }}
+        </template>
+      </el-table-column>
 
       <!-- 操作列 -->
       <el-table-column label="操作" width="150" fixed="right">
@@ -205,6 +209,22 @@ const handleDelete = (row: PlantBasicInfoListResponse) => {
  */
 const handleResetClick = () => {
   emit('reset')
+}
+
+/**
+ * 格式化时间戳为日期时间字符串
+ */
+const formatDate = (timestamp: number | string | undefined): string => {
+  if (!timestamp) return '-'
+  const date = new Date(typeof timestamp === 'string' ? parseInt(timestamp) : timestamp)
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  })
 }
 </script>
 
