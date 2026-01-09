@@ -12,14 +12,15 @@ export const fetchProjectPage = (data: ProjectPageQuery) => {
 
 export const getProject = (id: string) => {
     return request<Project>({
-        url: `sys/business-projects/get/${id}`,
-        method: 'get',
+        url: 'sys/business-projects/getProject',
+        method: 'post',
+        params: { id },
     });
 };
 
 export const saveProject = (data: ProjectSave) => {
     return request<boolean>({
-        url: 'sys/business-projects/save',
+        url: 'sys/business-projects/createProject',
         method: 'post',
         data,
     });
@@ -27,7 +28,7 @@ export const saveProject = (data: ProjectSave) => {
 
 export const updateProject = (data: ProjectUpdate) => {
     return request<boolean>({
-        url: 'sys/business-projects/update',
+        url: 'sys/business-projects/updateProject',
         method: 'post',
         data,
     });
