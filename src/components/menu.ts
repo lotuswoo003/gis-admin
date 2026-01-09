@@ -36,7 +36,7 @@ export const menuData: Menus[] = [
     index: '3',
     icon: 'Setting',
     children: [
-      { id: '316', pid: '3', index: '/system-project', title: '项目管理' },
+      { id: '16', pid: '3', index: '/system-project', title: '项目管理' },
       { id: '314', pid: '3', index: '/resource-pool', title: '资源池管理' },
     ],
   },

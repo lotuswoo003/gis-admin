@@ -144,7 +144,7 @@ const routes: RouteRecordRaw[] = [
                   name: 'system-project',
                   meta: {
                       title: '项目管理',
-                      permiss: '316',
+                      permiss: '16',
                   },
                   component: () => import(/* webpackChunkName: "system-project" */ '../views/system/project.vue'),
               },
