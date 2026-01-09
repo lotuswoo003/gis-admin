@@ -141,7 +141,7 @@ export const batchApprove = (data: PlantBatchApproveRequest) => {
  */
 export const getAllTags = () => {
   return request<PlantTag[]>({
-    url: '/plant-tag/select-list',
+    url: '/sys/plant-tag/select-list',
     method: 'post'
   })
 }
@@ -153,7 +153,7 @@ export const getAllTags = () => {
  */
 export const addTag = (data: PlantTagInsertRequest) => {
   return request<string>({
-    url: '/plant-tag/insert',
+    url: '/sys/plant-tag/insert',
     method: 'post',
     data
   })
