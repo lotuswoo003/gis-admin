@@ -1,12 +1,27 @@
 
 export interface User {
-    id: number;
+    id: number | string;
+    username: string;
     name: string;
-    password: string;
+    organizationId?: string;
+    organizationName?: string;
+    password?: string;
     email: string;
     phone: string;
-    role: string;
     date: string;
+    role?: string;
+}
+
+export interface UserPageRequest {
+    page: number;
+    rows: number;
+    name?: string;
+    username?: string;
+}
+
+export interface UserPageResult {
+    total: number;
+    list: User[];
 }
 
 export interface Register {

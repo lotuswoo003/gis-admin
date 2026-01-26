@@ -33,10 +33,10 @@ import { FormOption, FormOptionList } from '@/types/form-option';
 
 // 查询相关
 const query = reactive({
-    name: '',
+    username: '',
 });
 const searchOpt = ref<FormOptionList[]>([
-    { type: 'input', label: '用户名：', prop: 'name' }
+    { type: 'input', label: '用户名：', prop: 'username' }
 ])
 const handleSearch = () => {
     changePage(1);
@@ -45,9 +45,9 @@ const handleSearch = () => {
 // 表格相关
 let columns = ref([
     { type: 'index', label: '序号', width: 55, align: 'center' },
-    { prop: 'name', label: '用户名' },
-    { prop: 'phone', label: '手机号' },
-    { prop: 'role', label: '角色' },
+    { prop: 'organizationName', label: '默认组织' },
+    { prop: 'username', label: '用户名' },
+    { prop: 'name', label: '姓名' },
     { prop: 'operator', label: '操作', width: 250 },
 ])
 const page = reactive({
@@ -57,9 +57,13 @@ const page = reactive({
 })
 const tableData = ref<User[]>([]);
 const getData = async () => {
-    const res = await fetchUserData()
+    const res = await fetchUserData({
+        page: page.index,
+        rows: page.rows,
+        username: query.username,
+    });
     tableData.value = res.data.list;
-    page.total = res.data.pageTotal;
+    page.total = res.data.total;
 };
 getData();
 
@@ -73,11 +77,11 @@ let options = ref<FormOption>({
     labelWidth: '100px',
     span: 12,
     list: [
-        { type: 'input', label: '用户名', prop: 'name', required: true },
+        { type: 'input', label: '用户名', prop: 'username', required: true },
+        { type: 'input', label: '姓名', prop: 'name', required: true },
         { type: 'input', label: '手机号', prop: 'phone', required: true },
         { type: 'input', label: '密码', prop: 'password', required: true },
         { type: 'input', label: '邮箱', prop: 'email', required: true },
-        { type: 'input', label: '角色', prop: 'role', required: true },
     ]
 })
 const visible = ref(false);
@@ -112,8 +116,16 @@ const handleView = (row: User) => {
             label: '用户ID',
         },
         {
-            prop: 'name',
+            prop: 'organizationName',
+            label: '默认组织',
+        },
+        {
+            prop: 'username',
             label: '用户名',
+        },
+        {
+            prop: 'name',
+            label: '姓名',
         },
         {
             prop: 'password',
@@ -126,10 +138,6 @@ const handleView = (row: User) => {
         {
             prop: 'phone',
             label: '电话',
-        },
-        {
-            prop: 'role',
-            label: '角色',
         },
         {
             prop: 'date',

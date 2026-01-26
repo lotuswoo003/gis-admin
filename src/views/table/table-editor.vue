@@ -1,10 +1,10 @@
 <template>
 	<div class="container">
 		<TableCustom :columns="columns" :tableData="tableData" :hasToolbar="false" :hasPagination="false">
-			<template #name="{ rows }">
-				<el-input v-if="rows.editing" v-model="rows.name"></el-input>
-				<span v-else>{{ rows.name }}</span>
-			</template>
+		<template #username="{ rows }">
+			<el-input v-if="rows.editing" v-model="rows.username"></el-input>
+			<span v-else>{{ rows.username }}</span>
+		</template>
 			<template #password="{ rows }">
 				<el-input v-if="rows.editing" v-model="rows.password"></el-input>
 				<span v-else>{{ rows.password }}</span>
@@ -47,32 +47,40 @@ import { ref } from 'vue';
 import { Delete, Edit, CloseBold, Select } from '@element-plus/icons-vue';
 import TableCustom from '@/components/table-custom.vue';
 import { fetchUserData } from '@/api/index';
+import type { User } from '@/types/user';
+
+type EditableUser = User & { editing?: boolean };
 
 let columns = ref([
 	{ type: 'index', label: '序号', width: 55, align: 'center' },
-	{ prop: 'name', label: '用户名' },
+	{ prop: 'username', label: '用户名' },
 	{ prop: 'password', label: '密码' },
 	{ prop: 'email', label: '邮箱' },
 	{ prop: 'role', label: '角色' },
 	{ prop: 'operator', label: '操作', width: 180 },
 ])
-const tableData = ref([]);
+const tableData = ref<EditableUser[]>([]);
 const getData = async () => {
-	const res = await fetchUserData();
+	const res = await fetchUserData({
+		page: 1,
+		rows: 10,
+	});
 	tableData.value = res.data.list;
 };
 getData();
 
-const rowData = ref({})
+const rowData = ref<EditableUser | null>(null)
 
-const handleEdit = (row) => {
+const handleEdit = (row: EditableUser) => {
 	rowData.value = { ...row };
 	row.editing = true;
 };
 
-const handleCancel = (row, index) => {
+const handleCancel = (row: EditableUser, index: number) => {
 	row.editing = false;
-	tableData.value[index] = { ...rowData.value };
+	if (rowData.value) {
+		tableData.value[index] = { ...rowData.value };
+	}
 };
 </script>
 

@@ -1,4 +1,5 @@
 import request from '../utils/request';
+import type { UserPageRequest, UserPageResult } from '../types/user';
 
 export const fetchData = () => {
     return request<{ list: any[]; pageTotal: number }>({
@@ -7,9 +8,10 @@ export const fetchData = () => {
     });
 };
 
-export const fetchUserData = () => {
-    return request<{ list: any[]; pageTotal: number }>({
-        url: './mock/user.json',
-        method: 'get'
+export const fetchUserData = (data: UserPageRequest) => {
+    return request<UserPageResult>({
+        url: 'sys/user/pageAll',
+        method: 'post',
+        data,
     });
 };

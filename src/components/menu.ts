@@ -8,7 +8,6 @@ export const menuData: Menus[] = [
     icon: 'HomeFilled',
     children: [
       { id: '11', pid: '1', index: '/system-user', title: '用户管理' },
-      { id: '12', pid: '1', index: '/system-role', title: '角色管理' },
       { id: '13', pid: '1', index: '/system-menu', title: '菜单管理' },
       { id: '14', pid: '1', index: '/system-org', title: '组织管理' },
       { id: '15', pid: '1', index: '/system-dict', title: '字典管理' },
@@ -37,7 +36,6 @@ export const menuData: Menus[] = [
     icon: 'Setting',
     children: [
       { id: '16', pid: '3', index: '/system-project', title: '项目管理' },
-      { id: '314', pid: '3', index: '/resource-pool', title: '资源池管理' },
     ],
   },
 ];

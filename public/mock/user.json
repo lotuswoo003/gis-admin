@@ -5,7 +5,9 @@
         "list": [
             {
                 "id": 1,
+                "username": "zhangsan",
                 "name": "张三",
+                "organizationName": "默认组织A",
                 "password": "123",
                 "email": "123@qq.com",
                 "phone": "12345678944",
@@ -14,7 +16,9 @@
             },
             {
                 "id": 2,
+                "username": "lisi",
                 "name": "李四",
+                "organizationName": "默认组织B",
                 "password": "123",
                 "email": "1234@qq.com",
                 "phone": "12345678945",
