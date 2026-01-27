@@ -109,6 +109,28 @@
         </el-col>
       </el-row>
 
+      <!-- 标签选择 -->
+      <el-row :gutter="16">
+        <el-col :span="24">
+          <el-form-item label="标签" prop="tags">
+            <el-select
+              v-model="localFormData.tagIds"
+              multiple
+              filterable
+              placeholder="请选择标签"
+              style="width: 100%"
+            >
+              <el-option
+                v-for="tag in tagOptions"
+                :key="tag.id"
+                :label="tag.tagName"
+                :value="tag.id"
+              />
+            </el-select>
+          </el-form-item>
+        </el-col>
+      </el-row>
+
       <!-- 生物学分类 - 可折叠区域 -->
       <el-collapse v-model="activePanels" style="margin-top: 16px">
         <el-collapse-item title="生物学分类（选填）" name="biology">
@@ -184,7 +206,8 @@ import type { FormInstance, FormRules } from 'element-plus'
 import type {
   PlantCategory,
   PlantInsertRequest,
-  PlantUpdateRequest
+  PlantUpdateRequest,
+  PlantTag
 } from '@/types/metadata/plant'
 
 interface Props {
@@ -196,6 +219,8 @@ interface Props {
   formData: PlantInsertRequest | PlantUpdateRequest
   /** 分类选项 */
   categoryOptions: PlantCategory[]
+  /** 标签选项 */
+  tagOptions: PlantTag[]
   /** 加载中 */
   loading?: boolean
 }
