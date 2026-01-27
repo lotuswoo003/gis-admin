@@ -18,7 +18,7 @@ export interface ResourcePoolPageRequest {
 
 export interface PageResultGisResourcePool {
   total: number;
-  records: GisResourcePool[];
+  list: GisResourcePool[];
 }
 
 export interface GisResourcePoolSyncRequest {

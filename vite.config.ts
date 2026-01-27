@@ -16,8 +16,17 @@ export default defineConfig(({ mode }) => {
 
   return {
     base: './',
+    build: {
+      target: 'esnext'
+    },
     plugins: [
-      vue(),
+      vue({
+        template: {
+          compilerOptions: {
+            isCustomElement: (tag) => tag.startsWith('arcgis-')
+          }
+        }
+      }),
       VueSetupExtend(),
       AutoImport({ resolvers: [ElementPlusResolver()] }),
       Components({ resolvers: [ElementPlusResolver()] }),
@@ -34,7 +43,15 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
-    optimizeDeps: { include: ['schart.js'] },
+    optimizeDeps: {
+      include: ['schart.js'],
+      esbuildOptions: {
+        target: 'esnext',
+        supported: {
+          bigint: true
+        }
+      }
+    },
     resolve: {
       alias: {
         '@': '/src',

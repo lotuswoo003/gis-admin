@@ -27,7 +27,12 @@
       </div>
     </div>
     <div class="right-panel">
-      <div class="map-placeholder">地图组件待接入</div>
+      <ArcgisMap
+        ref="mapRef"
+        :polygons="tableData"
+        @polygon-click="onPolygonClick"
+        @map-ready="onMapReady"
+      />
     </div>
   </div>
 </template>
@@ -41,6 +46,7 @@ import { fetchResourcePoolPage, deleteResourcePool, syncResourcePool, importReso
 import type { GisResourcePool, ResourcePoolPageRequest } from '@/types/resource-pool';
 import TableSearch from '@/components/table-search.vue';
 import TableCustom from '@/components/table-custom.vue';
+import ArcgisMap from '@/components/arcgis-map.vue';
 import type { FormOptionList } from '@/types/form-option';
 
 const query = reactive({ keyword: '' });
@@ -62,6 +68,7 @@ const tableData = ref<Row[]>([]);
 const collapsed = ref(false);
 const route = useRoute();
 const organizationId = ref<string | undefined>(undefined);
+const mapRef = ref<InstanceType<typeof ArcgisMap>>();
 
 const loadData = async () => {
   const payload: ResourcePoolPageRequest = {
@@ -73,7 +80,7 @@ const loadData = async () => {
   try {
     const res = await fetchResourcePoolPage(payload);
     page.total = res.data?.total || 0;
-    tableData.value = (res.data?.records || []) as Row[];
+    tableData.value = (res.data?.list || []) as Row[];
   } catch (e: any) {
     ElMessage.error(e?.message || '加载失败');
   }
@@ -86,12 +93,26 @@ onMounted(() => {
 
 const changePage = (val: number) => { page.index = val; loadData(); };
 
-const onLocate = (_row: Row) => {
-  // 定位：后续对接地图定位逻辑
+const onLocate = (row: Row) => {
+  if (!row.id || !mapRef.value) {
+    ElMessage.warning('地图未加载完成');
+    return;
+  }
+  mapRef.value.locatePolygon(row.id);
+  ElMessage.success(`正在定位到: ${row.name}`);
 };
 
 const onSync = (_row: Row) => {
   // 同步：后续对接后端同步接口
+  ElMessage.info('同步功能待实现');
+};
+
+const onPolygonClick = (data: GisResourcePool) => {
+  ElMessage.info(`点击了地块: ${data.name}`);
+};
+
+const onMapReady = () => {
+  console.log('地图加载完成');
 };
 
 const onDelete = async (row: Row) => {
@@ -134,6 +155,5 @@ const onImport = () => {
 .collapse-handle { position: absolute; top: 50%; right: -10px; transform: translateY(-50%); width: 20px; height: 40px; background: #fff; border: 1px solid #e8e8e8; border-left: none; border-radius: 0 6px 6px 0; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
 .left-panel .title { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
 .list-toolbar { margin: 6px 0 8px; }
-.right-panel { flex: 1; background: #f7f8fa; position: relative; }
-.map-placeholder { position: absolute; inset: 12px; border: 2px dashed #c0c4cc; border-radius: 6px; color: #909399; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.right-panel { flex: 1; background: #f7f8fa; position: relative; overflow: hidden; }
 </style>

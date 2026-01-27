@@ -8,6 +8,10 @@ import 'element-plus/dist/index.css';
 import './assets/css/icon.css';
 import { useDictStore } from './store/dict';
 
+// Define ArcGIS Map Components
+import { defineCustomElements } from '@arcgis/map-components/dist/loader';
+defineCustomElements(window, { resourcesUrl: 'https://js.arcgis.com/map-components/4.34/assets' });
+
 const app = createApp(App);
 app.use(createPinia());
 app.use(router);
