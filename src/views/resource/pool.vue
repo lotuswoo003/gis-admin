@@ -1,5 +1,5 @@
 <template>
-  <div class="pool-layout">
+  <div class="pool-layout" @contextmenu.prevent>
     <div class="left-panel" :class="{ collapsed }" :style="{ width: collapsed ? '18px' : '570px' }">
       <div class="collapse-handle" @click="collapsed = !collapsed">
         <span>{{ collapsed ? '>' : '<' }}</span>
@@ -35,22 +35,26 @@
         :polygons="tableData"
         @polygon-click="onPolygonClick"
         @polygon-dblclick="onPolygonDblClick"
+        @right-click="onRightClick"
         @map-ready="onMapReady"
       />
+      <ContextMenu ref="contextMenuRef" :items="contextMenuItems" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts" name="resource-pool">
-import { reactive, ref, onMounted } from 'vue';
-import { Upload } from '@element-plus/icons-vue';
+import { reactive, ref, onMounted, computed } from 'vue';
+import { Upload, Location, Edit, Delete } from '@element-plus/icons-vue';
 import { useRoute } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { fetchResourcePoolPage, deleteResourcePool, syncResourcePool, importResourcePoolShp } from '@/api/resource-pool';
+import { fetchResourcePoolPage, deleteResourcePool, importResourcePoolShp } from '@/api/resource-pool';
 import type { GisResourcePool, ResourcePoolPageRequest } from '@/types/resource-pool';
 import TableSearch from '@/components/table-search.vue';
 import TableCustom from '@/components/table-custom.vue';
 import Map from '@/components/Map.vue';
+import ContextMenu from '@/components/context-menu/index.vue';
+import type { MenuItemData } from '@/components/context-menu/index.d';
 import type { FormOptionList } from '@/types/form-option';
 
 const query = reactive({ keyword: '' });
@@ -74,6 +78,46 @@ const route = useRoute();
 const organizationId = ref<string | undefined>(undefined);
 const mapRef = ref<InstanceType<typeof Map>>();
 const tableRef = ref<InstanceType<typeof TableCustom>>();
+const contextMenuRef = ref<InstanceType<typeof ContextMenu>>();
+const rightClickedData = ref<GisResourcePool | undefined>();
+
+// 右键菜单配置
+const contextMenuItems = computed<MenuItemData[]>(() => [
+  {
+    key: 'locate',
+    label: '定位到此地块',
+    icon: Location,
+    isEnabled: () => !!rightClickedData.value,
+    func: () => {
+      if (rightClickedData.value) {
+        onPolygonDblClick(rightClickedData.value);
+      }
+    },
+  },
+  {
+    key: 'edit',
+    label: '编辑地块',
+    icon: Edit,
+    isEnabled: () => !!rightClickedData.value,
+    func: () => {
+      if (rightClickedData.value) {
+        ElMessage.info(`编辑地块: ${rightClickedData.value.name}`);
+        // TODO: 实现编辑功能
+      }
+    },
+  },
+  {
+    key: 'delete',
+    label: '删除地块',
+    icon: Delete,
+    isEnabled: () => !!rightClickedData.value,
+    func: () => {
+      if (rightClickedData.value) {
+        onDelete(rightClickedData.value);
+      }
+    },
+  },
+]);
 
 const loadData = async () => {
   const payload: ResourcePoolPageRequest = {
@@ -112,8 +156,8 @@ const onSync = (_row: Row) => {
   ElMessage.info('同步功能待实现');
 };
 
-const onPolygonClick = (data: GisResourcePool) => {
-
+const onPolygonClick = (_data: GisResourcePool) => {
+  // TODO: 处理多边形点击事件
 };
 
 const onPolygonDblClick = (data: GisResourcePool) => {
@@ -126,8 +170,16 @@ const onPolygonDblClick = (data: GisResourcePool) => {
   if (collapsed.value) {
     collapsed.value = false;
   }
+};
 
-  ElMessage.success(`已定位到地块: ${data.name}`);
+const onRightClick = (event: any) => {
+  if (!contextMenuRef.value) return;
+
+  // 保存右键点击的数据
+  rightClickedData.value = event.data;
+
+  // 显示右键菜单
+  contextMenuRef.value.show(event.x, event.y, event);
 };
 
 const onMapReady = () => {

@@ -27,7 +27,9 @@
       "Bash(git fetch:*)",
       "Bash(npm run build)",
       "Bash(timeout:*)",
-      "mcp__chrome-devtools__new_page"
+      "mcp__chrome-devtools__new_page",
+      "Bash(npx tsc:*)",
+      "mcp__ide__getDiagnostics"
     ]
   }
 }

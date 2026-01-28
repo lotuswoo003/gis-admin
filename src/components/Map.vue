@@ -18,10 +18,6 @@ import SimpleLineSymbol from "@arcgis/core/symbols/SimpleLineSymbol";
 import wellknown from "wellknown";
 import { ARCGIS_API_KEY } from "@/config/settings";
 import TiandituLayerFactory from "@/components/map-resources/baselayers";
-import {
-  webMercatorToGeographic,
-  geographicToWebMercator,
-} from '@arcgis/core/geometry/support/webMercatorUtils'
 // 设置 ArcGIS API Key
 config.apiKey = ARCGIS_API_KEY;
 // 样式常量
@@ -42,9 +38,10 @@ const SELECTED_POLYGON_STYLE = {
 const SPATIAL_REFERENCE = { wkid: 4326 } as const;
 
 interface PolygonData {
-  id: string;
-  name: string;
-  polygon: string; // WKT格式的MULTIPOLYGON字符串
+  id?: string;
+  name?: string;
+  polygon?: string; // WKT格式的MULTIPOLYGON字符串
+  [key: string]: any; // 允许其他属性
 }
 
 interface Props {
@@ -63,6 +60,7 @@ const emit = defineEmits<{
   (e: "map-ready", map: any): void;
   (e: "polygon-click", data: PolygonData): void;
   (e: "polygon-dblclick", data: PolygonData): void;
+  (e: "right-click", event: { x: number; y: number; screenPoint: any; mapPoint: any; graphic?: any; data?: PolygonData }): void;
 }>();
 
 const mapElement = shallowRef<any>(null);
@@ -90,7 +88,13 @@ const createSelectedPolygonSymbol = () =>
   });
 
 // 从WKT数据创建图形
-const createGraphicFromData = (data: PolygonData): Graphic => {
+const createGraphicFromData = (data: PolygonData): Graphic | null => {
+  // 检查必需的数据
+  if (!data.polygon || !data.id) {
+    console.warn('跳过无效的多边形数据:', data);
+    return null;
+  }
+
   // 使用 wellknown 将 WKT 转换为 GeoJSON
   const geojson = wellknown(data.polygon);
 
@@ -143,7 +147,9 @@ const addPolygonGraphics = async () => {
     for (const data of props.polygons) {
       try {
         const graphic = createGraphicFromData(data);
-        allGraphics.push(graphic);
+        if (graphic) {
+          allGraphics.push(graphic);
+        }
       } catch (error) {
         console.error("解析多边形数据失败:", data.id, error);
       }
@@ -226,11 +232,8 @@ const setupClickListener = (view: any) => {
     if (result?.graphic?.attributes) {
       const clickedGraphic = result.graphic;
 
-      // 如果点击的是已选中的graphic，取消选中
-      if (selectedGraphic === clickedGraphic) {
-        selectedGraphic.symbol = createPolygonSymbol();
-        selectedGraphic = null;
-      } else {
+      // 如果点击的不是当前选中的graphic，需要切换选中
+      if (selectedGraphic !== clickedGraphic) {
         // 恢复之前选中的graphic样式
         if (selectedGraphic) {
           selectedGraphic.symbol = createPolygonSymbol();
@@ -240,6 +243,7 @@ const setupClickListener = (view: any) => {
         clickedGraphic.symbol = createSelectedPolygonSymbol();
         selectedGraphic = clickedGraphic;
       }
+      // 如果点击的是已选中的graphic，保持选中状态（不做任何操作）
 
       const polygonData = props.polygons.find(
         (p) => p.id === result.graphic.attributes.id,
@@ -290,6 +294,55 @@ const setupDblClickListener = (view: any) => {
   });
 };
 
+// 设置地图右键点击事件监听
+const setupRightClickListener = (view: any) => {
+  view.on("pointer-down", async (event: any) => {
+    // 检查是否是右键点击 (button === 2)
+    if (event.button !== 2) return;
+
+    // 阻止默认行为和冒泡
+    event.stopPropagation();
+    if (event.native) {
+      event.native.preventDefault();
+      event.native.stopPropagation();
+    }
+
+    const response = await view.hitTest(event);
+    const result = response.results.find(
+      (r: any) => r.graphic?.layer === graphicsLayer,
+    );
+
+    let polygonData: PolygonData | undefined;
+    if (result?.graphic?.attributes) {
+      polygonData = props.polygons.find(
+        (p) => p.id === result.graphic.attributes.id,
+      );
+    }
+
+    // 使用 native 事件获取正确的浏览器坐标
+    const clientX = event.native?.clientX || event.x;
+    const clientY = event.native?.clientY || event.y;
+
+    emit("right-click", {
+      x: clientX,
+      y: clientY,
+      screenPoint: event.screenPoint,
+      mapPoint: event.mapPoint,
+      graphic: result?.graphic,
+      data: polygonData,
+    });
+  });
+
+  // 阻止浏览器默认右键菜单
+  const container = view.container;
+  if (container) {
+    container.addEventListener("contextmenu", (e: MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
+  }
+};
+
 onMounted(async () => {
   if (!mapElement.value) return;
 
@@ -330,6 +383,7 @@ onMounted(async () => {
     if (view) {
       setupClickListener(view);
       setupDblClickListener(view);
+      setupRightClickListener(view);
     }
 
     await nextTick();
