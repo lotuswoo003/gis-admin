@@ -39,7 +39,12 @@
         @selection-change="onSelectionChange"
         @map-ready="onMapReady"
       />
-      <ContextMenu ref="contextMenuRef" :items="contextMenuItems" />
+      <ContextMenu
+        ref="contextMenuRef"
+        :items="contextMenuItems"
+        :mapContext="mapContext"
+        :commandMap="commandMap"
+      />
     </div>
   </div>
 </template>
@@ -55,7 +60,7 @@ import TableSearch from '@/components/table-search.vue';
 import TableCustom from '@/components/table-custom.vue';
 import Map from '@/components/Map.vue';
 import ContextMenu from '@/components/context-menu/index.vue';
-import contextMenuItems, { rightClickContext, menuActions, selectedCount } from './context-menu-items';
+import contextMenuItems, { rightClickContext, menuActions, selectedCount, commandMap } from './context-menu-items';
 import type { FormOptionList } from '@/types/form-option';
 
 const query = reactive({ keyword: '' });
@@ -80,6 +85,7 @@ const organizationId = ref<string | undefined>(undefined);
 const mapRef = ref<InstanceType<typeof Map>>();
 const tableRef = ref<InstanceType<typeof TableCustom>>();
 const contextMenuRef = ref<InstanceType<typeof ContextMenu>>();
+const mapContext = ref<any>(null);
 
 const loadData = async () => {
   const payload: ResourcePoolPageRequest = {
@@ -102,12 +108,29 @@ onMounted(() => {
   loadData();
 
   // 注册右键菜单操作回调
-  menuActions.onCreateLine = () => ElMessage.info('创建地块(线型)功能待实现');
-  menuActions.onCreatePolygon = () => ElMessage.info('创建地块(面型)功能待实现');
+  menuActions.onCreateLine = async () => {
+    ElMessage.info('请在地图上绘制线型地块...');
+    // TODO: 实现保存到后端的逻辑
+    return { code: 0, data: { id: `temp-${Date.now()}` } };
+  };
+  menuActions.onCreatePolygon = async () => {
+    ElMessage.info('请在地图上绘制面型地块...');
+    // TODO: 实现保存到后端的逻辑
+    return { code: 0, data: { id: `temp-${Date.now()}` } };
+  };
   menuActions.onLocate = (data) => onPolygonDblClick(data);
-  menuActions.onCut = () => ElMessage.info('切割地块功能待实现');
-  menuActions.onMerge = () => ElMessage.info('合并地块功能待实现');
-  menuActions.onRename = (data) => ElMessage.info(`地块命名: ${data.name}`);
+  menuActions.onCut = async (event: any) => {
+    ElMessage.info('请绘制切割线...');
+    // TODO: 实现保存切割结果到后端的逻辑
+    const resultIds = event.resultsGraphics?.map(() => `temp-${Date.now()}-${Math.random()}`) || [];
+    return { code: 0, data: resultIds };
+  };
+  menuActions.onMerge = async () => {
+    ElMessage.info('合并地块中...');
+    // TODO: 实现保存合并结果到后端的逻辑
+    return { code: 0, data: [`temp-merged-${Date.now()}`] };
+  };
+  menuActions.onRename = (data) => handleRename(data);
   menuActions.onSync = (data) => onSync(data);
   menuActions.onDelete = (data) => onDelete(data);
 });
@@ -160,6 +183,130 @@ const onRightClick = (event: any) => {
 
 const onMapReady = () => {
   console.log('地图加载完成');
+  if (mapRef.value) {
+    mapContext.value = mapRef.value.getMapContext();
+  }
+};
+
+// 创建线型地块
+const handleCreateLine = async () => {
+  if (!mapRef.value) return;
+
+  ElMessage.info('请在地图上绘制线型地块...');
+  try {
+    const graphic = await mapRef.value.createLineLandmass();
+    if (graphic) {
+      ElMessage.success('线型地块创建成功，请补充信息并保存');
+      // TODO: 弹出对话框让用户输入地块名称等信息，然后调用API保存
+      console.log('创建的线型地块:', graphic);
+    }
+  } catch (error) {
+    console.error('创建线型地块失败:', error);
+    ElMessage.error('创建失败');
+  }
+};
+
+// 创建面型地块
+const handleCreatePolygon = async () => {
+  if (!mapRef.value) return;
+
+  ElMessage.info('请在地图上绘制面型地块...');
+  try {
+    const graphic = await mapRef.value.createPolygonLandmass();
+    if (graphic) {
+      ElMessage.success('面型地块创建成功，请补充信息并保存');
+      // TODO: 弹出对话框让用户输入地块名称等信息，然后调用API保存
+      console.log('创建的面型地块:', graphic);
+    }
+  } catch (error) {
+    console.error('创建面型地块失败:', error);
+    ElMessage.error('创建失败');
+  }
+};
+
+// 切割地块
+const handleCut = async () => {
+  if (!mapRef.value) return;
+
+  const selectedData = mapRef.value.getSelectedData();
+  if (selectedData.length === 0) {
+    ElMessage.warning('请先选择要切割的地块');
+    return;
+  }
+
+  ElMessage.info('请绘制切割线...');
+  try {
+    const resultGraphics = await mapRef.value.cutLandmass();
+    if (resultGraphics && resultGraphics.length >= 2) {
+      ElMessage.success(`切割成功，产生 ${resultGraphics.length} 个地块`);
+      // TODO: 调用API保存切割结果
+      console.log('切割结果:', resultGraphics);
+      loadData(); // 重新加载数据
+    } else {
+      ElMessage.warning('切割失败，请确保切割线穿过地块');
+    }
+  } catch (error) {
+    console.error('切割地块失败:', error);
+    ElMessage.error('切割失败');
+  }
+};
+
+// 合并地块
+const handleMerge = async () => {
+  if (!mapRef.value) return;
+
+  const selectedData = mapRef.value.getSelectedData();
+  if (selectedData.length < 2) {
+    ElMessage.warning('请至少选择2个地块进行合并');
+    return;
+  }
+
+  try {
+    await ElMessageBox.confirm(
+      `确认合并选中的 ${selectedData.length} 个地块吗？`,
+      '提示',
+      { type: 'warning' }
+    );
+
+    const mergedGraphic = await mapRef.value.mergeLandmass();
+    if (mergedGraphic) {
+      ElMessage.success('合并成功');
+      // TODO: 调用API保存合并结果
+      console.log('合并结果:', mergedGraphic);
+      loadData(); // 重新加载数据
+    } else {
+      ElMessage.error('合并失败');
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('合并地块失败:', error);
+      ElMessage.error('合并失败');
+    }
+  }
+};
+
+// 地块命名
+const handleRename = async (data: GisResourcePool) => {
+  try {
+    const { value: newName } = await ElMessageBox.prompt('请输入新的地块名称', '地块命名', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      inputValue: data.name || '',
+      inputPattern: /.+/,
+      inputErrorMessage: '名称不能为空',
+    });
+
+    if (newName && data.id) {
+      // TODO: 调用API更新地块名称
+      ElMessage.success(`地块 "${data.name}" 已重命名为 "${newName}"`);
+      console.log('重命名:', { id: data.id, oldName: data.name, newName });
+      loadData(); // 重新加载数据
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('重命名失败:', error);
+    }
+  }
 };
 
 const onDelete = async (row: Row) => {

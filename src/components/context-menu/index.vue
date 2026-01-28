@@ -28,6 +28,8 @@ import type { MenuItemData } from './index.d'
 
 const props = defineProps<{
   items: MenuItemData[]
+  mapContext?: any
+  commandMap?: Record<string, any>
 }>()
 
 const visible = ref(false)
@@ -73,6 +75,17 @@ const handleMenuSelect = async (index: string) => {
   try {
     if (item.func) {
       await item.func(contextEvent.value)
+    } else if (item.commandName && props.commandMap && props.mapContext) {
+      // 命令模式
+      const command = props.commandMap[item.commandName]
+      if (command) {
+        command.create(props.mapContext)
+        if (command.execute) {
+          await command.execute(item.callback)
+        } else if (command.startAction) {
+          await command.startAction(item.callback)
+        }
+      }
     } else if (item.callback) {
       await item.callback(contextEvent.value)
     }

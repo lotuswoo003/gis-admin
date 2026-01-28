@@ -5,6 +5,10 @@ import {
   DataLine, CirclePlus, Minus, Connection, EditPen,
 } from '@element-plus/icons-vue'
 import type { GisResourcePool } from '@/types/resource-pool'
+import createLandmassTool from '@/components/context-menu/commands/createLandmassTool'
+import createLineLandmassTool from '@/components/context-menu/commands/createLineLandmassTool'
+import splitTool from '@/components/context-menu/commands/splitTool'
+import mergeTool from '@/components/context-menu/commands/mergeTool'
 
 // 右键上下文状态，由父组件更新
 export const rightClickContext: ShallowRef<GisResourcePool | undefined> = shallowRef()
@@ -24,14 +28,23 @@ export const menuActions = {
   onDelete: (_data: GisResourcePool) => {},
 }
 
+// 命令映射
+export const commandMap: Record<string, any> = {
+  createLandmassTool: new createLandmassTool(),
+  createLineLandmassTool: new createLineLandmassTool(),
+  splitTool: new splitTool(),
+  mergeTool: new mergeTool(),
+}
+
 const contextMenuItemList: Ref<MenuItemData[]> = ref([
   {
     key: 1,
     icon: DataLine,
     label: '创建地块(线型)',
     isEnabled: () => !rightClickContext.value,
-    func: async () => {
-      menuActions.onCreateLine()
+    commandName: 'createLineLandmassTool',
+    callback: async (event) => {
+      return await menuActions.onCreateLine(event)
     },
   },
   {
@@ -39,8 +52,9 @@ const contextMenuItemList: Ref<MenuItemData[]> = ref([
     icon: CirclePlus,
     label: '创建地块(面型)',
     isEnabled: () => !rightClickContext.value,
-    func: async () => {
-      menuActions.onCreatePolygon()
+    commandName: 'createLandmassTool',
+    callback: async (event) => {
+      return await menuActions.onCreatePolygon(event)
     },
   },
   {
@@ -59,10 +73,9 @@ const contextMenuItemList: Ref<MenuItemData[]> = ref([
     icon: Minus,
     label: '切割地块',
     isEnabled: () => !!rightClickContext.value,
-    func: async () => {
-      if (rightClickContext.value) {
-        menuActions.onCut(rightClickContext.value)
-      }
+    commandName: 'splitTool',
+    callback: async (event) => {
+      return await menuActions.onCut(event)
     },
   },
   {
@@ -70,10 +83,9 @@ const contextMenuItemList: Ref<MenuItemData[]> = ref([
     icon: Connection,
     label: '合并地块',
     isEnabled: () => selectedCount.value > 1,
-    func: async () => {
-      if (rightClickContext.value) {
-        menuActions.onMerge(rightClickContext.value)
-      }
+    commandName: 'mergeTool',
+    callback: async (event) => {
+      return await menuActions.onMerge(event)
     },
   },
   {

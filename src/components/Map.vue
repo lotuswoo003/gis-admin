@@ -13,8 +13,11 @@ import Map from "@arcgis/core/Map";
 import GraphicsLayer from "@arcgis/core/layers/GraphicsLayer";
 import Graphic from "@arcgis/core/Graphic";
 import Polygon from "@arcgis/core/geometry/Polygon";
+import Polyline from "@arcgis/core/geometry/Polyline";
 import SimpleFillSymbol from "@arcgis/core/symbols/SimpleFillSymbol";
 import SimpleLineSymbol from "@arcgis/core/symbols/SimpleLineSymbol";
+import SketchViewModel from "@arcgis/core/widgets/Sketch/SketchViewModel";
+import * as geometryEngine from "@arcgis/core/geometry/geometryEngine";
 import wellknown from "wellknown";
 import { ARCGIS_API_KEY } from "@/config/settings";
 import TiandituLayerFactory from "@/components/map-resources/baselayers";
@@ -66,7 +69,34 @@ const emit = defineEmits<{
 
 const mapElement = shallowRef<any>(null);
 let graphicsLayer: GraphicsLayer | null = null;
+let sketchLayer: GraphicsLayer | null = null;
+let sketchViewModel: SketchViewModel | null = null;
 const selectedGraphics: Graphic[] = []; // 当前选中的graphic列表
+let currentTool: any = null;
+
+// 事件系统
+const eventHandlers: Record<string, Array<{ handler: Function; context?: any }>> = {};
+
+const on = (event: string, handler: Function, context?: any) => {
+  if (!eventHandlers[event]) {
+    eventHandlers[event] = [];
+  }
+  eventHandlers[event].push({ handler, context });
+};
+
+const off = (event: string, handler: Function) => {
+  if (eventHandlers[event]) {
+    eventHandlers[event] = eventHandlers[event].filter(h => h.handler !== handler);
+  }
+};
+
+const emitEvent = (event: string, ...args: any[]) => {
+  if (eventHandlers[event]) {
+    eventHandlers[event].forEach(({ handler, context }) => {
+      handler.apply(context, args);
+    });
+  }
+};
 
 // 发出选中变更事件
 const emitSelectionChange = () => {
@@ -74,6 +104,33 @@ const emitSelectionChange = () => {
     .map(g => props.polygons.find(p => p.id === g.attributes?.id))
     .filter((d): d is PolygonData => !!d);
   emit("selection-change", dataList);
+  emitEvent("selection-changed", selectedGraphics);
+};
+
+// 清除选中
+const clearSelection = () => {
+  selectedGraphics.forEach(g => {
+    g.symbol = createPolygonSymbol();
+  });
+  selectedGraphics.length = 0;
+  emitSelectionChange();
+};
+
+// 获取 MapContext
+const getMapContext = () => {
+  return {
+    view: mapElement.value?.view || null,
+    sketchViewModel,
+    graphicsLayer,
+    sketchLayer,
+    selectedGraphics,
+    currentTool,
+    on,
+    off,
+    emit: emitEvent,
+    clearSelection,
+    emitSelectionChange,
+  };
 };
 
 // 创建多边形符号
@@ -212,20 +269,147 @@ const clearGraphics = () => {
   selectedGraphics.length = 0;
 };
 
-// 清除选中状态
-const clearSelection = () => {
-  selectedGraphics.forEach(g => {
-    g.symbol = createPolygonSymbol();
-  });
-  selectedGraphics.length = 0;
-  emitSelectionChange();
-};
-
 // 获取当前选中的数据列表
 const getSelectedData = (): PolygonData[] => {
   return selectedGraphics
     .map(g => props.polygons.find(p => p.id === g.attributes?.id))
     .filter((d): d is PolygonData => !!d);
+};
+
+// 创建多边形地块（面型）
+const createPolygonLandmass = (): Promise<Graphic | null> => {
+  return new Promise((resolve) => {
+    if (!sketchViewModel || !sketchLayer) {
+      resolve(null);
+      return;
+    }
+
+    const createHandler = sketchViewModel.on("create", (event) => {
+      if (event.state === "complete") {
+        const graphic = event.graphic;
+        graphic.symbol = createPolygonSymbol();
+        createHandler.remove();
+        resolve(graphic);
+      }
+    });
+
+    sketchViewModel.layer = sketchLayer;
+    sketchViewModel.create("polygon");
+  });
+};
+
+// 创建线型地块
+const createLineLandmass = (): Promise<Graphic | null> => {
+  return new Promise((resolve) => {
+    if (!sketchViewModel || !sketchLayer) {
+      resolve(null);
+      return;
+    }
+
+    const createHandler = sketchViewModel.on("create", (event) => {
+      if (event.state === "complete") {
+        const lineGraphic = event.graphic;
+        // 将线转换为缓冲区多边形（简化版本，宽度50米）
+        const buffered = geometryEngine.buffer(lineGraphic.geometry, 50, "meters") as Polygon;
+        const polygonGraphic = new Graphic({
+          geometry: buffered,
+          symbol: createPolygonSymbol(),
+        });
+
+        // 移除线graphic，添加多边形graphic
+        sketchLayer?.remove(lineGraphic);
+        sketchLayer?.add(polygonGraphic);
+
+        createHandler.remove();
+        resolve(polygonGraphic);
+      }
+    });
+
+    sketchViewModel.layer = sketchLayer;
+    sketchViewModel.create("polyline");
+  });
+};
+
+// 切割地块
+const cutLandmass = (): Promise<Graphic[] | null> => {
+  return new Promise((resolve) => {
+    if (!sketchViewModel || !sketchLayer || selectedGraphics.length === 0) {
+      resolve(null);
+      return;
+    }
+
+    const createHandler = sketchViewModel.on("create", (event) => {
+      if (event.state === "complete") {
+        const cutter = event.graphic.geometry as Polyline;
+        const targetGraphic = selectedGraphics[0]; // 切割第一个选中的
+
+        try {
+          const cutResults = geometryEngine.cut(targetGraphic.geometry as Polygon, cutter);
+
+          if (cutResults && cutResults.length >= 2) {
+            const resultGraphics = cutResults.map(geom => {
+              return new Graphic({
+                geometry: geom,
+                symbol: createPolygonSymbol(),
+              });
+            });
+
+            // 移除绘制的线
+            sketchLayer?.remove(event.graphic);
+
+            createHandler.remove();
+            resolve(resultGraphics);
+          } else {
+            createHandler.remove();
+            resolve(null);
+          }
+        } catch (error) {
+          console.error("切割失败:", error);
+          createHandler.remove();
+          resolve(null);
+        }
+      }
+    });
+
+    sketchViewModel.layer = sketchLayer;
+    sketchViewModel.create("polyline");
+  });
+};
+
+// 合并地块
+const mergeLandmass = (): Promise<Graphic | null> => {
+  return new Promise((resolve) => {
+    if (selectedGraphics.length < 2) {
+      resolve(null);
+      return;
+    }
+
+    try {
+      const geometries = selectedGraphics.map(g => g.geometry as Polygon);
+      const unioned = geometryEngine.union(geometries) as Polygon;
+
+      if (unioned) {
+        const mergedGraphic = new Graphic({
+          geometry: unioned,
+          symbol: createPolygonSymbol(),
+        });
+
+        resolve(mergedGraphic);
+      } else {
+        resolve(null);
+      }
+    } catch (error) {
+      console.error("合并失败:", error);
+      resolve(null);
+    }
+  });
+};
+
+// 取消当前绘图
+const cancelDrawing = () => {
+  if (sketchViewModel) {
+    sketchViewModel.cancel();
+  }
 };
 
 // 暴露方法给父组件
@@ -235,6 +419,12 @@ defineExpose({
   clearSelection,
   getSelectedData,
   updatePolygons: addPolygonGraphics,
+  createPolygonLandmass,
+  createLineLandmass,
+  cutLandmass,
+  mergeLandmass,
+  cancelDrawing,
+  getMapContext,
   getView: () => mapElement.value?.view,
   getMap: () => mapElement.value?.map,
 });
@@ -390,6 +580,11 @@ onMounted(async () => {
       id: 'polygon-graphics-layer',
     });
 
+    // 创建绘图层
+    sketchLayer = new GraphicsLayer({
+      id: 'sketch-layer',
+    });
+
     // 设置天地图底图
     const baseLayers = TiandituLayerFactory.getBasemap(
       (localStorage.getItem('BASE-LAYER-TYPE') as 'image' | 'vector') || 'image'
@@ -403,6 +598,7 @@ onMounted(async () => {
 
     // 添加图形层到地图
     map.add(graphicsLayer);
+    map.add(sketchLayer);
 
     // 设置地图
     mapElement.value.map = map;
@@ -414,6 +610,38 @@ onMounted(async () => {
     // 清空默认UI组件
     if (view) {
       view.ui.components = [];
+    }
+
+    // 初始化 SketchViewModel
+    if (view && sketchLayer) {
+      sketchViewModel = new SketchViewModel({
+        view: view,
+        layer: sketchLayer,
+        defaultCreateOptions: {
+          mode: "click",
+        },
+        defaultUpdateOptions: {
+          tool: "reshape",
+          enableRotation: false,
+          enableScaling: false,
+        },
+      });
+
+      // 监听绘图事件
+      sketchViewModel.on("create", (event) => {
+        if (event.state === "complete") {
+          emitEvent("graphic-created", event.graphic);
+        }
+        if (event.state === "active") {
+          emitEvent("graphic-drawed", event.graphic);
+        }
+      });
+
+      sketchViewModel.on("update", (event) => {
+        if (event.state === "active") {
+          emitEvent("graphic-editing", event.graphics[0]);
+        }
+      });
     }
 
     emit("map-ready", view);
