@@ -27,7 +27,7 @@
       </div>
     </div>
     <div class="right-panel">
-      <ArcgisMap
+      <Map
         ref="mapRef"
         :polygons="tableData"
         @polygon-click="onPolygonClick"
@@ -46,7 +46,7 @@ import { fetchResourcePoolPage, deleteResourcePool, syncResourcePool, importReso
 import type { GisResourcePool, ResourcePoolPageRequest } from '@/types/resource-pool';
 import TableSearch from '@/components/table-search.vue';
 import TableCustom from '@/components/table-custom.vue';
-import ArcgisMap from '@/components/arcgis-map.vue';
+import Map from '@/components/Map.vue';
 import type { FormOptionList } from '@/types/form-option';
 
 const query = reactive({ keyword: '' });
@@ -68,7 +68,7 @@ const tableData = ref<Row[]>([]);
 const collapsed = ref(false);
 const route = useRoute();
 const organizationId = ref<string | undefined>(undefined);
-const mapRef = ref<InstanceType<typeof ArcgisMap>>();
+const mapRef = ref<InstanceType<typeof Map>>();
 
 const loadData = async () => {
   const payload: ResourcePoolPageRequest = {

@@ -20,7 +20,10 @@
       "Bash(netstat:*)",
       "Bash(findstr:*)",
       "Bash(taskkill:*)",
-      "mcp__chrome-devtools__click"
+      "mcp__chrome-devtools__click",
+      "Bash(cmd.exe /c \"taskkill /F /PID 43936\")",
+      "mcp__chrome-devtools__fill",
+      "Bash(npm install)"
     ]
   }
 }

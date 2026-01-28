@@ -16,9 +16,6 @@ export default defineConfig(({ mode }) => {
 
   return {
     base: './',
-    build: {
-      target: 'esnext'
-    },
     plugins: [
       vue({
         template: {
@@ -45,6 +42,7 @@ export default defineConfig(({ mode }) => {
     },
     optimizeDeps: {
       include: ['schart.js'],
+      exclude: ['@arcgis/core', '@arcgis/map-components'],
       esbuildOptions: {
         target: 'esnext',
         supported: {

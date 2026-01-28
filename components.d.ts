@@ -7,7 +7,6 @@ export {}
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
-    ArcgisMap: typeof import('./src/components/arcgis-map.vue')['default']
     Countup: typeof import('./src/components/countup.vue')['default']
     ElAlert: typeof import('element-plus/es')['ElAlert']
     ElAvatar: typeof import('element-plus/es')['ElAvatar']
@@ -78,6 +77,8 @@ declare module '@vue/runtime-core' {
     ElUpload: typeof import('element-plus/es')['ElUpload']
     ElWatermark: typeof import('element-plus/es')['ElWatermark']
     Header: typeof import('./src/components/header.vue')['default']
+    Map: typeof import('./src/components/Map.vue')['default']
+    MapTest: typeof import('./src/components/MapTest.vue')['default']
     RegionCascader: typeof import('./src/components/region-cascader.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
