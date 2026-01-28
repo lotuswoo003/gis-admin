@@ -4,6 +4,8 @@ import {
   xyToLngLat,
 } from '@arcgis/core/geometry/support/webMercatorUtils'
 import Polygon from '@arcgis/core/geometry/Polygon'
+import * as geometryEngine from '@arcgis/core/geometry/geometryEngine'
+
 export function convertPolygonsToGeoJson(polygons: Array<any>, isWebMercator = true) {
   let geoJson: any = {
     type: 'MultiPolygon',
@@ -184,4 +186,19 @@ export const bufferRings = (ring:any, r:number) => {
 
   const pathsNew = [...bufPath, bufPath[0]]
   return [pathsNew]
+}
+
+
+//寻找最小面积的图形
+export const findMinGraphic = (graphics: any[]) => {
+  let minGraphic = null
+  let minArea = Infinity
+  for (let i = 0; i < graphics.length; i++) {
+    const area = geometryEngine.geodesicArea(graphics[i].geometry, 'square-meters')
+    if (area < minArea) {
+      minArea = area
+      minGraphic = graphics[i]
+    }
+  }
+  return minGraphic
 }
