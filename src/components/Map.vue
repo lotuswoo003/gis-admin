@@ -32,6 +32,13 @@ const POLYGON_STYLE = {
   zoom: 15,
 } as const;
 
+// 选中状态样式
+const SELECTED_POLYGON_STYLE = {
+  fillColor: [255, 255, 0, 0.6] as const, // 黄色高亮填充
+  outlineColor: [255, 165, 0, 1] as const, // 橙色边框
+  outlineWidth: 4, // 更粗的边框
+} as const;
+
 const SPATIAL_REFERENCE = { wkid: 4326 } as const;
 
 interface PolygonData {
@@ -55,10 +62,12 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   (e: "map-ready", map: any): void;
   (e: "polygon-click", data: PolygonData): void;
+  (e: "polygon-dblclick", data: PolygonData): void;
 }>();
 
 const mapElement = shallowRef<any>(null);
 let graphicsLayer: GraphicsLayer | null = null;
+let selectedGraphic: Graphic | null = null; // 当前选中的graphic
 
 // 创建多边形符号
 const createPolygonSymbol = () =>
@@ -67,6 +76,16 @@ const createPolygonSymbol = () =>
     outline: new SimpleLineSymbol({
       color: POLYGON_STYLE.outlineColor,
       width: POLYGON_STYLE.outlineWidth,
+    }),
+  });
+
+// 创建选中状态的多边形符号
+const createSelectedPolygonSymbol = () =>
+  new SimpleFillSymbol({
+    color: SELECTED_POLYGON_STYLE.fillColor,
+    outline: new SimpleLineSymbol({
+      color: SELECTED_POLYGON_STYLE.outlineColor,
+      width: SELECTED_POLYGON_STYLE.outlineWidth,
     }),
   });
 
@@ -115,8 +134,9 @@ const addPolygonGraphics = async () => {
   try {
     await mapElement.value.viewOnReady();
 
-    // 清空现有图形
+    // 清空现有图形和选中状态
     graphicsLayer.removeAll();
+    selectedGraphic = null;
 
     // 创建所有图形
     const allGraphics: Graphic[] = [];
@@ -174,12 +194,22 @@ const locatePolygon = async (polygonId: string) => {
 // 清空所有图形
 const clearGraphics = () => {
   graphicsLayer?.removeAll();
+  selectedGraphic = null;
+};
+
+// 清除选中状态
+const clearSelection = () => {
+  if (selectedGraphic) {
+    selectedGraphic.symbol = createPolygonSymbol();
+    selectedGraphic = null;
+  }
 };
 
 // 暴露方法给父组件
 defineExpose({
   locatePolygon,
   clearGraphics,
+  clearSelection,
   updatePolygons: addPolygonGraphics,
   getView: () => mapElement.value?.view,
   getMap: () => mapElement.value?.map,
@@ -194,11 +224,67 @@ const setupClickListener = (view: any) => {
     );
 
     if (result?.graphic?.attributes) {
+      const clickedGraphic = result.graphic;
+
+      // 如果点击的是已选中的graphic，取消选中
+      if (selectedGraphic === clickedGraphic) {
+        selectedGraphic.symbol = createPolygonSymbol();
+        selectedGraphic = null;
+      } else {
+        // 恢复之前选中的graphic样式
+        if (selectedGraphic) {
+          selectedGraphic.symbol = createPolygonSymbol();
+        }
+
+        // 选中新的graphic
+        clickedGraphic.symbol = createSelectedPolygonSymbol();
+        selectedGraphic = clickedGraphic;
+      }
+
       const polygonData = props.polygons.find(
         (p) => p.id === result.graphic.attributes.id,
       );
       if (polygonData) {
         emit("polygon-click", polygonData);
+      }
+    } else {
+      // 点击空白区域，取消选中
+      if (selectedGraphic) {
+        selectedGraphic.symbol = createPolygonSymbol();
+        selectedGraphic = null;
+      }
+    }
+  });
+};
+
+// 设置地图双击事件监听
+const setupDblClickListener = (view: any) => {
+  view.on("double-click", async (event: any) => {
+    // 阻止默认的双击缩放行为
+    event.stopPropagation();
+
+    const response = await view.hitTest(event);
+    const result = response.results.find(
+      (r: any) => r.graphic?.layer === graphicsLayer,
+    );
+
+    if (result?.graphic?.attributes) {
+      const clickedGraphic = result.graphic;
+
+      // 恢复之前选中的graphic样式
+      if (selectedGraphic && selectedGraphic !== clickedGraphic) {
+        selectedGraphic.symbol = createPolygonSymbol();
+      }
+
+      // 选中新的graphic
+      clickedGraphic.symbol = createSelectedPolygonSymbol();
+      selectedGraphic = clickedGraphic;
+
+      const polygonData = props.polygons.find(
+        (p) => p.id === result.graphic.attributes.id,
+      );
+      if (polygonData) {
+        emit("polygon-dblclick", polygonData);
       }
     }
   });
@@ -243,6 +329,7 @@ onMounted(async () => {
 
     if (view) {
       setupClickListener(view);
+      setupDblClickListener(view);
     }
 
     await nextTick();

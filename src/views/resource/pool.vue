@@ -11,12 +11,15 @@
         <el-button size="small" type="primary" :icon="Upload" @click="onImport">导入</el-button>
       </div>
       <TableCustom
+        ref="tableRef"
         :columns="columns"
         :tableData="tableData"
         :total="page.total"
         :current-page="page.index"
         :page-size="page.rows"
         :change-page="changePage"
+        :hide-on-single-page="true"
+        max-height="calc(100vh - 350px)"
       >
         <template #operator="{ rows }">
           <el-button type="primary" size="small" @click="onLocate(rows)">定位</el-button>
@@ -31,6 +34,7 @@
         ref="mapRef"
         :polygons="tableData"
         @polygon-click="onPolygonClick"
+        @polygon-dblclick="onPolygonDblClick"
         @map-ready="onMapReady"
       />
     </div>
@@ -62,13 +66,14 @@ const columns = ref([
   { prop: 'operator', label: '操作', width: 260 },
 ]);
 
-const page = reactive({ index: 1, rows: 10, total: 0 });
+const page = reactive({ index: 1, rows: 10000, total: 0 });
 type Row = GisResourcePool;
 const tableData = ref<Row[]>([]);
 const collapsed = ref(false);
 const route = useRoute();
 const organizationId = ref<string | undefined>(undefined);
 const mapRef = ref<InstanceType<typeof Map>>();
+const tableRef = ref<InstanceType<typeof TableCustom>>();
 
 const loadData = async () => {
   const payload: ResourcePoolPageRequest = {
@@ -108,7 +113,21 @@ const onSync = (_row: Row) => {
 };
 
 const onPolygonClick = (data: GisResourcePool) => {
-  
+
+};
+
+const onPolygonDblClick = (data: GisResourcePool) => {
+  if (!data.id || !tableRef.value) return;
+
+  // 选中表格中对应的行并滚动到该行
+  tableRef.value.selectRowById(data.id);
+
+  // 如果左侧面板是折叠状态，展开它
+  if (collapsed.value) {
+    collapsed.value = false;
+  }
+
+  ElMessage.success(`已定位到地块: ${data.name}`);
 };
 
 const onMapReady = () => {

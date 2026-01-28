@@ -35,7 +35,9 @@
                 </el-tooltip>
             </div>
         </div>
-        <el-table class="mgb20" :style="{ width: '100%' }" border :data="tableData" :row-key="rowKey"
+        <el-table ref="tableRef" class="mgb20" :style="{ width: '100%' }" border :data="tableData" :row-key="rowKey"
+            :max-height="maxHeight" :height="height"
+            :highlight-current-row="true"
             @selection-change="handleSelectionChange" table-layout="auto">
             <template v-for="item in columns" :key="item.prop">
                 <el-table-column v-if="item.visible" :prop="item.prop" :label="item.label" :width="item.width"
@@ -68,13 +70,13 @@
                 </el-table-column>
             </template>
         </el-table>
-        <el-pagination v-if="hasPagination" :current-page="currentPage" :page-size="pageSize" :background="true"
+        <el-pagination v-if="hasPagination && !(hideOnSinglePage && total <= pageSize)" :current-page="currentPage" :page-size="pageSize" :background="true"
             :layout="layout" :total="total" @current-change="handleCurrentChange" />
     </div>
 </template>
 
 <script setup lang="ts">
-import { toRefs, PropType, ref } from 'vue'
+import { toRefs, PropType, ref, nextTick } from 'vue'
 import { Delete, Edit, View, Refresh } from '@element-plus/icons-vue';
 import { ElMessageBox } from 'element-plus';
 
@@ -96,10 +98,22 @@ const props = defineProps({
         type: Boolean,
         default: true
     },
+    maxHeight: {
+        type: [String, Number],
+        default: undefined
+    },
+    height: {
+        type: [String, Number],
+        default: undefined
+    },
     //  分页相关
     hasPagination: {
         type: Boolean,
         default: true
+    },
+    hideOnSinglePage: {
+        type: Boolean,
+        default: false
     },
     total: {
         type: Number,
@@ -149,7 +163,10 @@ let {
     columns,
     rowKey,
     hasToolbar,
+    maxHeight,
+    height,
     hasPagination,
+    hideOnSinglePage,
     total,
     currentPage,
     pageSize,
@@ -186,6 +203,37 @@ const handleDelete = (row) => {
 const getIndex = (index: number) => {
     return index + 1 + (currentPage.value - 1) * pageSize.value
 }
+
+// 表格ref
+const tableRef = ref()
+
+// 根据id选中并滚动到某一行
+const selectRowById = async (id: string | number) => {
+    await nextTick()
+    if (!tableRef.value || !tableData.value) return
+
+    const row = tableData.value.find((item: any) => item[rowKey.value] === id)
+    if (row) {
+        // 设置当前行高亮
+        tableRef.value.setCurrentRow(row)
+
+        // 滚动到该行
+        await nextTick()
+        const tableBody = tableRef.value.$el.querySelector('.el-table__body-wrapper')
+        if (tableBody) {
+            const rowIndex = tableData.value.findIndex((item: any) => item[rowKey.value] === id)
+            const rowElement = tableBody.querySelector(`tr:nth-child(${rowIndex + 1})`)
+            if (rowElement) {
+                rowElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            }
+        }
+    }
+}
+
+// 暴露方法给父组件
+defineExpose({
+    selectRowById
+})
 
 </script>
 
