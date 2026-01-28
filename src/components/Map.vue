@@ -61,11 +61,20 @@ const emit = defineEmits<{
   (e: "polygon-click", data: PolygonData): void;
   (e: "polygon-dblclick", data: PolygonData): void;
   (e: "right-click", event: { x: number; y: number; screenPoint: any; mapPoint: any; graphic?: any; data?: PolygonData }): void;
+  (e: "selection-change", data: PolygonData[]): void;
 }>();
 
 const mapElement = shallowRef<any>(null);
 let graphicsLayer: GraphicsLayer | null = null;
-let selectedGraphic: Graphic | null = null; // 当前选中的graphic
+const selectedGraphics: Graphic[] = []; // 当前选中的graphic列表
+
+// 发出选中变更事件
+const emitSelectionChange = () => {
+  const dataList = selectedGraphics
+    .map(g => props.polygons.find(p => p.id === g.attributes?.id))
+    .filter((d): d is PolygonData => !!d);
+  emit("selection-change", dataList);
+};
 
 // 创建多边形符号
 const createPolygonSymbol = () =>
@@ -140,7 +149,7 @@ const addPolygonGraphics = async () => {
 
     // 清空现有图形和选中状态
     graphicsLayer.removeAll();
-    selectedGraphic = null;
+    selectedGraphics.length = 0;
 
     // 创建所有图形
     const allGraphics: Graphic[] = [];
@@ -200,15 +209,23 @@ const locatePolygon = async (polygonId: string) => {
 // 清空所有图形
 const clearGraphics = () => {
   graphicsLayer?.removeAll();
-  selectedGraphic = null;
+  selectedGraphics.length = 0;
 };
 
 // 清除选中状态
 const clearSelection = () => {
-  if (selectedGraphic) {
-    selectedGraphic.symbol = createPolygonSymbol();
-    selectedGraphic = null;
-  }
+  selectedGraphics.forEach(g => {
+    g.symbol = createPolygonSymbol();
+  });
+  selectedGraphics.length = 0;
+  emitSelectionChange();
+};
+
+// 获取当前选中的数据列表
+const getSelectedData = (): PolygonData[] => {
+  return selectedGraphics
+    .map(g => props.polygons.find(p => p.id === g.attributes?.id))
+    .filter((d): d is PolygonData => !!d);
 };
 
 // 暴露方法给父组件
@@ -216,6 +233,7 @@ defineExpose({
   locatePolygon,
   clearGraphics,
   clearSelection,
+  getSelectedData,
   updatePolygons: addPolygonGraphics,
   getView: () => mapElement.value?.view,
   getMap: () => mapElement.value?.map,
@@ -229,21 +247,39 @@ const setupClickListener = (view: any) => {
       (r: any) => r.graphic?.layer === graphicsLayer,
     );
 
+    // 检测修饰键
+    const isMultiSelect = event.native?.shiftKey || event.native?.ctrlKey || event.native?.metaKey;
+
     if (result?.graphic?.attributes) {
       const clickedGraphic = result.graphic;
 
-      // 如果点击的不是当前选中的graphic，需要切换选中
-      if (selectedGraphic !== clickedGraphic) {
-        // 恢复之前选中的graphic样式
-        if (selectedGraphic) {
-          selectedGraphic.symbol = createPolygonSymbol();
+      if (isMultiSelect) {
+        // 多选模式：切换选中状态
+        const existingIndex = selectedGraphics.indexOf(clickedGraphic);
+        if (existingIndex !== -1) {
+          // 已选中，取消选中
+          clickedGraphic.symbol = createPolygonSymbol();
+          selectedGraphics.splice(existingIndex, 1);
+        } else {
+          // 未选中，添加到选中列表
+          clickedGraphic.symbol = createSelectedPolygonSymbol();
+          selectedGraphics.push(clickedGraphic);
         }
+      } else {
+        // 单选模式：清除其他选中，只选当前
+        if (!selectedGraphics.includes(clickedGraphic)) {
+          selectedGraphics.forEach(g => {
+            g.symbol = createPolygonSymbol();
+          });
+          selectedGraphics.length = 0;
 
-        // 选中新的graphic
-        clickedGraphic.symbol = createSelectedPolygonSymbol();
-        selectedGraphic = clickedGraphic;
+          clickedGraphic.symbol = createSelectedPolygonSymbol();
+          selectedGraphics.push(clickedGraphic);
+        }
+        // 如果点击的是已选中的且只有一个，保持选中
       }
-      // 如果点击的是已选中的graphic，保持选中状态（不做任何操作）
+
+      emitSelectionChange();
 
       const polygonData = props.polygons.find(
         (p) => p.id === result.graphic.attributes.id,
@@ -252,11 +288,12 @@ const setupClickListener = (view: any) => {
         emit("polygon-click", polygonData);
       }
     } else {
-      // 点击空白区域，取消选中
-      if (selectedGraphic) {
-        selectedGraphic.symbol = createPolygonSymbol();
-        selectedGraphic = null;
-      }
+      // 点击空白区域，取消所有选中
+      selectedGraphics.forEach(g => {
+        g.symbol = createPolygonSymbol();
+      });
+      selectedGraphics.length = 0;
+      emitSelectionChange();
     }
   });
 };
@@ -275,14 +312,15 @@ const setupDblClickListener = (view: any) => {
     if (result?.graphic?.attributes) {
       const clickedGraphic = result.graphic;
 
-      // 恢复之前选中的graphic样式
-      if (selectedGraphic && selectedGraphic !== clickedGraphic) {
-        selectedGraphic.symbol = createPolygonSymbol();
-      }
+      // 双击切换为单选该graphic
+      selectedGraphics.forEach(g => {
+        g.symbol = createPolygonSymbol();
+      });
+      selectedGraphics.length = 0;
 
-      // 选中新的graphic
       clickedGraphic.symbol = createSelectedPolygonSymbol();
-      selectedGraphic = clickedGraphic;
+      selectedGraphics.push(clickedGraphic);
+      emitSelectionChange();
 
       const polygonData = props.polygons.find(
         (p) => p.id === result.graphic.attributes.id,

@@ -36,6 +36,7 @@
         @polygon-click="onPolygonClick"
         @polygon-dblclick="onPolygonDblClick"
         @right-click="onRightClick"
+        @selection-change="onSelectionChange"
         @map-ready="onMapReady"
       />
       <ContextMenu ref="contextMenuRef" :items="contextMenuItems" />
@@ -44,8 +45,8 @@
 </template>
 
 <script setup lang="ts" name="resource-pool">
-import { reactive, ref, onMounted, computed } from 'vue';
-import { Upload, Location, Edit, Delete } from '@element-plus/icons-vue';
+import { reactive, ref, onMounted } from 'vue';
+import { Upload } from '@element-plus/icons-vue';
 import { useRoute } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { fetchResourcePoolPage, deleteResourcePool, importResourcePoolShp } from '@/api/resource-pool';
@@ -54,7 +55,7 @@ import TableSearch from '@/components/table-search.vue';
 import TableCustom from '@/components/table-custom.vue';
 import Map from '@/components/Map.vue';
 import ContextMenu from '@/components/context-menu/index.vue';
-import type { MenuItemData } from '@/components/context-menu/index.d';
+import contextMenuItems, { rightClickContext, menuActions, selectedCount } from './context-menu-items';
 import type { FormOptionList } from '@/types/form-option';
 
 const query = reactive({ keyword: '' });
@@ -79,45 +80,6 @@ const organizationId = ref<string | undefined>(undefined);
 const mapRef = ref<InstanceType<typeof Map>>();
 const tableRef = ref<InstanceType<typeof TableCustom>>();
 const contextMenuRef = ref<InstanceType<typeof ContextMenu>>();
-const rightClickedData = ref<GisResourcePool | undefined>();
-
-// 右键菜单配置
-const contextMenuItems = computed<MenuItemData[]>(() => [
-  {
-    key: 'locate',
-    label: '定位到此地块',
-    icon: Location,
-    isEnabled: () => !!rightClickedData.value,
-    func: () => {
-      if (rightClickedData.value) {
-        onPolygonDblClick(rightClickedData.value);
-      }
-    },
-  },
-  {
-    key: 'edit',
-    label: '编辑地块',
-    icon: Edit,
-    isEnabled: () => !!rightClickedData.value,
-    func: () => {
-      if (rightClickedData.value) {
-        ElMessage.info(`编辑地块: ${rightClickedData.value.name}`);
-        // TODO: 实现编辑功能
-      }
-    },
-  },
-  {
-    key: 'delete',
-    label: '删除地块',
-    icon: Delete,
-    isEnabled: () => !!rightClickedData.value,
-    func: () => {
-      if (rightClickedData.value) {
-        onDelete(rightClickedData.value);
-      }
-    },
-  },
-]);
 
 const loadData = async () => {
   const payload: ResourcePoolPageRequest = {
@@ -138,6 +100,16 @@ onMounted(() => {
   const oid = route.query.organizationId as string | undefined;
   organizationId.value = oid;
   loadData();
+
+  // 注册右键菜单操作回调
+  menuActions.onCreateLine = () => ElMessage.info('创建地块(线型)功能待实现');
+  menuActions.onCreatePolygon = () => ElMessage.info('创建地块(面型)功能待实现');
+  menuActions.onLocate = (data) => onPolygonDblClick(data);
+  menuActions.onCut = () => ElMessage.info('切割地块功能待实现');
+  menuActions.onMerge = () => ElMessage.info('合并地块功能待实现');
+  menuActions.onRename = (data) => ElMessage.info(`地块命名: ${data.name}`);
+  menuActions.onSync = (data) => onSync(data);
+  menuActions.onDelete = (data) => onDelete(data);
 });
 
 const changePage = (val: number) => { page.index = val; loadData(); };
@@ -172,11 +144,15 @@ const onPolygonDblClick = (data: GisResourcePool) => {
   }
 };
 
+const onSelectionChange = (data: any[]) => {
+  selectedCount.value = data.length;
+};
+
 const onRightClick = (event: any) => {
   if (!contextMenuRef.value) return;
 
-  // 保存右键点击的数据
-  rightClickedData.value = event.data;
+  // 更新右键上下文状态
+  rightClickContext.value = event.data;
 
   // 显示右键菜单
   contextMenuRef.value.show(event.x, event.y, event);
