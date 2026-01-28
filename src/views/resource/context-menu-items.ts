@@ -1,4 +1,4 @@
-import { ref, type Ref, type ShallowRef, shallowRef } from 'vue'
+import { ref, type ShallowRef, shallowRef } from 'vue'
 import type { MenuItemData } from '@/components/context-menu/index.d'
 import {
   Location, Refresh, Delete,
@@ -9,17 +9,36 @@ import createLandmassTool from '@/components/context-menu/commands/createLandmas
 import createLineLandmassTool from '@/components/context-menu/commands/createLineLandmassTool'
 import splitTool from '@/components/context-menu/commands/splitTool'
 import mergeTool from '@/components/context-menu/commands/mergeTool'
-
+import { polygonToWkt } from '@/components/map-context/utils'
+import { createResourcePool } from '@/api/resource-pool'
 // 右键上下文状态，由父组件更新
 export const rightClickContext: ShallowRef<GisResourcePool | undefined> = shallowRef()
 
 // 地图多选状态，由父组件通过 selection-change 事件更新
 export const selectedCount = ref(0)
-
+export const currentOrgInfo = ref<{ id: string; name: string }>({ id: '', name: '' })
 // 菜单操作回调，由父组件注册
 export const menuActions = {
-  onCreateLine: (_data?: GisResourcePool) => {},
-  onCreatePolygon: (_data?: GisResourcePool) => {},
+  onCreateLine: (event:any) => {},
+  onCreatePolygon: async (event:any) => {
+    console.log('---创建地块(面型)---', currentOrgInfo)
+    try {
+      const geoWKT = polygonToWkt(event.graphic.geometry)
+      const res = await createResourcePool({
+        organizationId: currentOrgInfo.value.id,
+        polygon: geoWKT
+      })
+
+      if (res.code!==0) {
+        return { code: 1, message: '创建地块失败' }
+      }
+
+      return { code: 0, data: [res.data] }
+    } catch (e) {
+      console.error('---创建地块(面型)失败---', e)
+      return { code: 1, message: '创建地块失败' }
+    }
+  },
   onLocate: (_data: GisResourcePool) => {},
   onCut: (_data: GisResourcePool) => {},
   onMerge: (_data: GisResourcePool) => {},
@@ -36,7 +55,7 @@ export const commandMap: Record<string, any> = {
   mergeTool: new mergeTool(),
 }
 
-const contextMenuItemList: Ref<MenuItemData[]> = ref([
+const contextMenuItemList: ShallowRef<MenuItemData[]> = shallowRef([
   {
     key: 1,
     icon: DataLine,

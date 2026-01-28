@@ -42,14 +42,13 @@
       <ContextMenu
         ref="contextMenuRef"
         :items="contextMenuItems"
-        :mapContext="mapContext"
         :commandMap="commandMap"
       />
     </div>
   </div>
 </template>
 
-<script setup lang="ts" name="resource-pool">
+<script setup lang="ts">
 import { reactive, ref, onMounted } from 'vue';
 import { Upload } from '@element-plus/icons-vue';
 import { useRoute } from 'vue-router';
@@ -85,7 +84,6 @@ const organizationId = ref<string | undefined>(undefined);
 const mapRef = ref<InstanceType<typeof Map>>();
 const tableRef = ref<InstanceType<typeof TableCustom>>();
 const contextMenuRef = ref<InstanceType<typeof ContextMenu>>();
-const mapContext = ref<any>(null);
 
 const loadData = async () => {
   const payload: ResourcePoolPageRequest = {
@@ -183,107 +181,8 @@ const onRightClick = (event: any) => {
 
 const onMapReady = () => {
   console.log('地图加载完成');
-  if (mapRef.value) {
-    mapContext.value = mapRef.value.getMapContext();
-  }
 };
 
-// 创建线型地块
-const handleCreateLine = async () => {
-  if (!mapRef.value) return;
-
-  ElMessage.info('请在地图上绘制线型地块...');
-  try {
-    const graphic = await mapRef.value.createLineLandmass();
-    if (graphic) {
-      ElMessage.success('线型地块创建成功，请补充信息并保存');
-      // TODO: 弹出对话框让用户输入地块名称等信息，然后调用API保存
-      console.log('创建的线型地块:', graphic);
-    }
-  } catch (error) {
-    console.error('创建线型地块失败:', error);
-    ElMessage.error('创建失败');
-  }
-};
-
-// 创建面型地块
-const handleCreatePolygon = async () => {
-  if (!mapRef.value) return;
-
-  ElMessage.info('请在地图上绘制面型地块...');
-  try {
-    const graphic = await mapRef.value.createPolygonLandmass();
-    if (graphic) {
-      ElMessage.success('面型地块创建成功，请补充信息并保存');
-      // TODO: 弹出对话框让用户输入地块名称等信息，然后调用API保存
-      console.log('创建的面型地块:', graphic);
-    }
-  } catch (error) {
-    console.error('创建面型地块失败:', error);
-    ElMessage.error('创建失败');
-  }
-};
-
-// 切割地块
-const handleCut = async () => {
-  if (!mapRef.value) return;
-
-  const selectedData = mapRef.value.getSelectedData();
-  if (selectedData.length === 0) {
-    ElMessage.warning('请先选择要切割的地块');
-    return;
-  }
-
-  ElMessage.info('请绘制切割线...');
-  try {
-    const resultGraphics = await mapRef.value.cutLandmass();
-    if (resultGraphics && resultGraphics.length >= 2) {
-      ElMessage.success(`切割成功，产生 ${resultGraphics.length} 个地块`);
-      // TODO: 调用API保存切割结果
-      console.log('切割结果:', resultGraphics);
-      loadData(); // 重新加载数据
-    } else {
-      ElMessage.warning('切割失败，请确保切割线穿过地块');
-    }
-  } catch (error) {
-    console.error('切割地块失败:', error);
-    ElMessage.error('切割失败');
-  }
-};
-
-// 合并地块
-const handleMerge = async () => {
-  if (!mapRef.value) return;
-
-  const selectedData = mapRef.value.getSelectedData();
-  if (selectedData.length < 2) {
-    ElMessage.warning('请至少选择2个地块进行合并');
-    return;
-  }
-
-  try {
-    await ElMessageBox.confirm(
-      `确认合并选中的 ${selectedData.length} 个地块吗？`,
-      '提示',
-      { type: 'warning' }
-    );
-
-    const mergedGraphic = await mapRef.value.mergeLandmass();
-    if (mergedGraphic) {
-      ElMessage.success('合并成功');
-      // TODO: 调用API保存合并结果
-      console.log('合并结果:', mergedGraphic);
-      loadData(); // 重新加载数据
-    } else {
-      ElMessage.error('合并失败');
-    }
-  } catch (error) {
-    if (error !== 'cancel') {
-      console.error('合并地块失败:', error);
-      ElMessage.error('合并失败');
-    }
-  }
-};
 
 // 地块命名
 const handleRename = async (data: GisResourcePool) => {

@@ -1,9 +1,12 @@
 import Graphic from '@arcgis/core/Graphic'
-import type { IMapTool, IMapContext } from './types.d'
+import type MapContext from '@/components/map-context'
+import { LayerType, type IMapTool } from '@/components/map-context/types.d'
+import { uuid } from '@/utils/commonUtil'
+import { ElMessage } from 'element-plus'
 
 export default class createLandmassTool implements IMapTool {
   private _name = 'CreateLandmassTool'
-  private _mapContext: IMapContext | null = null
+  private _mapContext: MapContext | null = null
   private _cbk?: (event: any) => any = () => {}
 
   get name(): string {
@@ -11,12 +14,12 @@ export default class createLandmassTool implements IMapTool {
   }
 
   get enabled() {
-    return this._mapContext?.selectedGraphics?.length === 0
+    return this._mapContext?.mapSelected?.length === 0
   }
 
-  create(mapContext: IMapContext): void {
+  create(mapContext: MapContext | null): void {
     this._mapContext = mapContext
-    if (!this._mapContext || !this._mapContext.sketchViewModel) {
+    if (!this._mapContext || !this._mapContext.sketchManager) {
       throw new Error('MapContext is not initialized or sketch manager null.')
     }
     if (this._mapContext.currentTool !== this) {
@@ -27,10 +30,11 @@ export default class createLandmassTool implements IMapTool {
   }
 
   async startAction(cbk?: (event: any) => any): Promise<void> {
-    if (!this._mapContext || !this._mapContext.sketchViewModel) return
+    if (!this._mapContext || !this._mapContext.sketchManager) return
     this._cbk = cbk
 
-    this._mapContext.sketchViewModel.create('polygon', { mode: 'click' })
+    this._mapContext.sketchManager.sketch.creationMode = 'update'
+    this._mapContext.sketchManager.sketch.create('polygon', { mode: 'click' })
   }
 
   handleCreated = async (graphic: Graphic) => {
@@ -39,23 +43,39 @@ export default class createLandmassTool implements IMapTool {
       await this.addLandmassToMap(graphic)
     } catch (e) {
       console.error('----地块添加失败----', e)
+      ElMessage.error('地块添加失败')
     }
   }
 
   async addLandmassToMap(graphic: Graphic) {
-    if (!this._cbk) return
+    if (!this._cbk || !this._mapContext) return
+
+    // 设置 graphic 的属性
+    graphic.attributes = {
+      ...graphic.attributes,
+      id: uuid('block'),
+      type: LayerType.Mass,
+      interop: true,
+    }
+    graphic.symbol = this._mapContext.getSymbol(LayerType.Mass, 'normal')
 
     const res = await this._cbk({ action: 'create', graphic })
     if (res && res.code !== 0) {
       console.log('---地块添加失败---', res)
-      this._mapContext?.sketchLayer?.remove(graphic)
+      ElMessage.error(res.message || '地块添加失败')
       return
     }
 
-    // 将绘制的图形移到 graphicsLayer
-    this._mapContext?.sketchLayer?.remove(graphic)
-    this._mapContext?.graphicsLayer?.add(graphic)
+    // 更新 graphic 的 id（从后端返回）
+    if (res?.data?.id) {
+      graphic.attributes.id = res.data.id
+    }
 
+    // 添加到 Mass 图层
+    const massLayer = this._mapContext.getDataLayer(LayerType.Mass)
+    massLayer.addFeature(graphic)
+
+    ElMessage.success('地块创建成功')
     console.log('---create Landmass handle Created---', graphic)
   }
 

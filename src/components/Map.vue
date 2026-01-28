@@ -311,6 +311,11 @@ const setupMapEventListeners = () => {
   }
 }
 
+const initDataLayers = (mapContext: MapContext) => {
+  mapContext.addDataLayer(LayerType.Hover)
+  mapContext.addDataLayer(LayerType.Mass)
+
+}
 onMounted(async () => {
   if (!mapElement.value) return
 
@@ -342,6 +347,7 @@ onMounted(async () => {
     if (view) {
       mapContext = new MapContext(view)
       mapStore.setMapContext(mapContext)
+      initDataLayers(mapContext)
       landMassLayer = mapContext.getDataLayer(LayerType.Mass)
       mapContext.mapStyle = 'image'
 

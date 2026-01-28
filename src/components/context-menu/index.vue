@@ -23,12 +23,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, defineProps, defineExpose } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import type { MenuItemData } from './index.d'
+import { useMapStore } from '@/store/map/map';
 
 const props = defineProps<{
   items: MenuItemData[]
-  mapContext?: any
   commandMap?: Record<string, any>
 }>()
 
@@ -66,20 +66,20 @@ const hide = () => {
   contextEvent.value = null
   justOpened.value = false
 }
-
+const mapStore = useMapStore()
 // 处理菜单选择
 const handleMenuSelect = async (index: string) => {
   const item = props.items.find(it => String(it.key) === index)
   if (!item) return
-
+  const mapContext = mapStore.getMainMapContext()
   try {
     if (item.func) {
       await item.func(contextEvent.value)
-    } else if (item.commandName && props.commandMap && props.mapContext) {
+    } else if (item.commandName && props.commandMap && mapContext) {
       // 命令模式
       const command = props.commandMap[item.commandName]
       if (command) {
-        command.create(props.mapContext)
+        command.create(mapContext)
         if (command.execute) {
           await command.execute(item.callback)
         } else if (command.startAction) {

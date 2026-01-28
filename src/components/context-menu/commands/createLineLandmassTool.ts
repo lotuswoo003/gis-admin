@@ -4,6 +4,7 @@ import { Operation, ModifyType } from '@/components/map-context/OperationStack'
 import type MapContext from '@/components/map-context'
 import { LayerType, type DataLayer, type IMapTool } from '@/components/map-context/types.d'
 import Graphic from '@arcgis/core/Graphic'
+import { uuid } from '@/utils/commonUtil'
 
 export default class createLineLandmassTool implements IMapTool {
   private _name = 'CreateLineLandmassTool'
