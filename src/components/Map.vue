@@ -18,9 +18,12 @@ import SimpleLineSymbol from "@arcgis/core/symbols/SimpleLineSymbol";
 import wellknown from "wellknown";
 import { ARCGIS_API_KEY } from "@/config/settings";
 import TiandituLayerFactory from "@/components/map-resources/baselayers";
+import {
+  webMercatorToGeographic,
+  geographicToWebMercator,
+} from '@arcgis/core/geometry/support/webMercatorUtils'
 // 设置 ArcGIS API Key
 config.apiKey = ARCGIS_API_KEY;
-config.assetsPath = "./assets";
 // 样式常量
 const POLYGON_STYLE = {
   fillColor: [51, 122, 183, 0.5] as const, // 提高透明度到 0.5，更容易看到
@@ -82,12 +85,10 @@ const createGraphicFromData = (data: PolygonData): Graphic => {
     // MultiPolygon: coordinates 是三维数组 [[[ring1], [ring2]], [[ring3]]]
     // 需要拍平成二维数组 [[ring1], [ring2], [ring3]]
     rings = geojson.coordinates.flat();
-    console.log('MultiPolygon 拍平后的 rings 数量:', rings.length);
   } else if (geojson.type === "Polygon") {
     // Polygon: coordinates 是二维数组 [[ring1], [ring2]]
     // 直接使用
     rings = geojson.coordinates;
-    console.log('Polygon 的 rings 数量:', rings.length);
   } else {
     throw new Error(`不支持的几何类型: ${geojson.type}`);
   }
@@ -97,26 +98,13 @@ const createGraphicFromData = (data: PolygonData): Graphic => {
     spatialReference: SPATIAL_REFERENCE,
   });
 
-  console.log('创建多边形图形:', data.id, '总 rings 数:', rings.length);
-
   return new Graphic({
     geometry: polygon,
-    symbol: {
-      type: 'simple-fill',
-      color: [255, 255, 255, 0],
-      outline: {
-        color: [136, 255, 114, 1],
-        width: 1.5,
-      },
-    },//createPolygonSymbol(),
+    symbol: createPolygonSymbol(),
     attributes: {
       id: data.id,
       name: data.name,
-    },
-    popupTemplate: {
-      title: "{name}",
-      content: `<p>地块ID: {id}</p>`,
-    },
+    }
   });
 };
 
@@ -145,14 +133,15 @@ const addPolygonGraphics = async () => {
     if (allGraphics.length > 0) {
       graphicsLayer.addMany(allGraphics);
 
-      console.log('已添加图形数量:', allGraphics.length);
-      console.log('图层中的图形数量:', graphicsLayer.graphics.length);
-      console.log('图层可见性:', graphicsLayer.visible);
-      console.log('图层透明度:', graphicsLayer.opacity);
-
       const view = mapElement.value.view;
       if (view) {
-        await view.goTo(allGraphics);
+        // 使用更明确的参数来定位
+        await view.goTo({
+          target: allGraphics,
+          zoom: 15
+        }, {
+          duration: 1000
+        });
       }
     }
   } catch (error) {
@@ -237,9 +226,6 @@ onMounted(async () => {
 
     // 添加图形层到地图
     map.add(graphicsLayer);
-
-    console.log('图形层已添加到地图:', graphicsLayer.id);
-    console.log('地图中的图层数量:', map.layers.length);
 
     // 设置地图
     mapElement.value.map = map;

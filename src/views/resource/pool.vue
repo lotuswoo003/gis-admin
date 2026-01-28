@@ -108,7 +108,7 @@ const onSync = (_row: Row) => {
 };
 
 const onPolygonClick = (data: GisResourcePool) => {
-  ElMessage.info(`点击了地块: ${data.name}`);
+  
 };
 
 const onMapReady = () => {

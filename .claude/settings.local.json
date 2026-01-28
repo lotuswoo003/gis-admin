@@ -24,7 +24,10 @@
       "Bash(cmd.exe /c \"taskkill /F /PID 43936\")",
       "mcp__chrome-devtools__fill",
       "Bash(npm install)",
-      "Bash(git fetch:*)"
+      "Bash(git fetch:*)",
+      "Bash(npm run build)",
+      "Bash(timeout:*)",
+      "mcp__chrome-devtools__new_page"
     ]
   }
 }
