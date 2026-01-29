@@ -1,7 +1,6 @@
 import type MapContext from '.'
 import type { DataLayer, LayerType, subTypes } from './types'
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer'
-import { createGraphic, wktToGeo,createOtherGraphic } from '@/components/map'
 export default class GraphicDataLayer implements DataLayer {
   id?: string | undefined
   type: LayerType

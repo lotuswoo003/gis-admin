@@ -1,28 +1,31 @@
-import { defineConfig, loadEnv } from 'vite';
-import vue from '@vitejs/plugin-vue';
-import VueSetupExtend from 'vite-plugin-vue-setup-extend';
-import AutoImport from 'unplugin-auto-import/vite';
-import Components from 'unplugin-vue-components/vite';
-import { ElementPlusResolver } from 'unplugin-vue-components/resolvers';
+import { defineConfig, loadEnv } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import VueSetupExtend from 'vite-plugin-vue-setup-extend'
+import AutoImport from 'unplugin-auto-import/vite'
+import Components from 'unplugin-vue-components/vite'
+import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 export default defineConfig(({ mode }) => {
-  const isLynn = mode === 'lynn';
-  const isUat = mode === 'uat';
+  const isLynn = mode === 'lynn'
+  const isUat = mode === 'uat'
   // Route API via dev proxy per mode to avoid CORS during development
   const proxyTarget = isLynn
     ? 'http://localhost:10201'
     : isUat
-    ? 'http://192.168.106.97:8880'
-    : 'http://192.168.106.97:10200';
+      ? 'http://192.168.106.97:8880'
+      : 'http://192.168.106.97:10200'
 
   return {
     base: './',
+    build: {
+      target: 'es2020', // 或 'esnext'
+    },
     plugins: [
       vue({
         template: {
           compilerOptions: {
-            isCustomElement: (tag) => tag.startsWith('arcgis-')
-          }
-        }
+            isCustomElement: (tag) => tag.startsWith('arcgis-'),
+          },
+        },
       }),
       VueSetupExtend(),
       AutoImport({ resolvers: [ElementPlusResolver()] }),
@@ -46,9 +49,9 @@ export default defineConfig(({ mode }) => {
       esbuildOptions: {
         target: 'esnext',
         supported: {
-          bigint: true
-        }
-      }
+          bigint: true,
+        },
+      },
     },
     resolve: {
       alias: {
@@ -59,5 +62,5 @@ export default defineConfig(({ mode }) => {
     define: {
       __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'true',
     },
-  };
-});
+  }
+})

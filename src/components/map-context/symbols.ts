@@ -1,7 +1,5 @@
 import { vector } from 'echarts'
 import { LayerType } from './types.d'
-import iconJc from '@/assets/images/jc.png'
-import uavSymbol from '@/assets/images/uav.png'
 //行政边界样式
 export const boundary = {
   type: 'simple-line',
@@ -115,12 +113,7 @@ const airline_point = {
     width: 2,
   },
 }
-const airport = {
-  type: 'picture-marker',
-  url: iconJc,
-  width: 20,
-  height: 20,
-}
+
 
 const airline = {
   type: 'simple-line',
@@ -128,14 +121,6 @@ const airline = {
   width: 1,
 }
 
-const uav = {
-  type: 'picture-marker',
-  //@ts-ignore
-  url: uavSymbol,
-  width: 40,
-  height: 40,
-  yoffset: 15
-}
 
 interface Symbols {
   [key: string]: any
@@ -147,10 +132,8 @@ const symbols: Symbols = {
 }
 
 export const subTypesSymbols: Symbols = {
-  airport,
   airline_point,
   airline,
-  uav
 }
 
 export default symbols

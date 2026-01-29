@@ -1,9 +1,9 @@
 
-import { convertPolygonsToGeoJson } from '@/components/map/map-context/utils/geo-utils'
+import { convertPolygonsToGeoJson } from '@/components/map-context/utils/geo-utils'
 import { ElMessage } from 'element-plus'
-import { Operation, ModifyType } from '@/components/map/map-context/OperationStack'
-import type MapContext from '@/components/map/map-context'
-import { LayerType, type DataLayer, type IMapTool } from '@/components/map/map-context/types.d'
+import { Operation, ModifyType } from '@/components/map-context/OperationStack'
+import type MapContext from '@/components/map-context'
+import { LayerType, type DataLayer, type IMapTool } from '@/components/map-context/types.d'
 import Graphic from '@arcgis/core/Graphic'
 export default class editTool implements IMapTool {
   private _name = 'EditTool'

@@ -79,7 +79,6 @@ declare module '@vue/runtime-core' {
     ElWatermark: typeof import('element-plus/es')['ElWatermark']
     Header: typeof import('./src/components/header.vue')['default']
     Map: typeof import('./src/components/Map.vue')['default']
-    MapTest: typeof import('./src/components/MapTest.vue')['default']
     RegionCascader: typeof import('./src/components/region-cascader.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

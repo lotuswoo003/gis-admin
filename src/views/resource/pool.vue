@@ -49,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, onMounted } from 'vue';
+import { reactive, ref, onMounted, computed } from 'vue';
 import { Upload } from '@element-plus/icons-vue';
 import { useRoute } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
@@ -59,7 +59,7 @@ import TableSearch from '@/components/table-search.vue';
 import TableCustom from '@/components/table-custom.vue';
 import Map from '@/components/Map.vue';
 import ContextMenu from '@/components/context-menu/index.vue';
-import contextMenuItems, { rightClickContext, menuActions, selectedCount, commandMap } from './context-menu-items';
+import { useResourcePoolContextMenu, commandMap } from './context-menu-items';
 import type { FormOptionList } from '@/types/form-option';
 
 const query = reactive({ keyword: '' });
@@ -80,17 +80,25 @@ type Row = GisResourcePool;
 const tableData = ref<Row[]>([]);
 const collapsed = ref(false);
 const route = useRoute();
-const organizationId = ref<string | undefined>(undefined);
+const organizationId = ref<string>('');
 const mapRef = ref<InstanceType<typeof Map>>();
 const tableRef = ref<InstanceType<typeof TableCustom>>();
 const contextMenuRef = ref<InstanceType<typeof ContextMenu>>();
+
+// 使用组合式函数
+const { rightClickContext, selectedCount, menuActions, contextMenuItems } = useResourcePoolContextMenu({
+  get organizationId() {
+    return organizationId.value;
+  },
+  onRefresh: () => loadData()
+});
 
 const loadData = async () => {
   const payload: ResourcePoolPageRequest = {
     page: page.index,
     rows: page.rows,
     name: (query.keyword || ''),
-    organizationId: organizationId.value,
+    organizationId: organizationId.value || undefined,
   };
   try {
     const res = await fetchResourcePoolPage(payload);
@@ -102,32 +110,12 @@ const loadData = async () => {
 };
 onMounted(() => {
   const oid = route.query.organizationId as string | undefined;
-  organizationId.value = oid;
+  organizationId.value = oid || '';
+
   loadData();
 
   // 注册右键菜单操作回调
-  menuActions.onCreateLine = async () => {
-    ElMessage.info('请在地图上绘制线型地块...');
-    // TODO: 实现保存到后端的逻辑
-    return { code: 0, data: { id: `temp-${Date.now()}` } };
-  };
-  menuActions.onCreatePolygon = async () => {
-    ElMessage.info('请在地图上绘制面型地块...');
-    // TODO: 实现保存到后端的逻辑
-    return { code: 0, data: { id: `temp-${Date.now()}` } };
-  };
   menuActions.onLocate = (data) => onPolygonDblClick(data);
-  menuActions.onCut = async (event: any) => {
-    ElMessage.info('请绘制切割线...');
-    // TODO: 实现保存切割结果到后端的逻辑
-    const resultIds = event.resultsGraphics?.map(() => `temp-${Date.now()}-${Math.random()}`) || [];
-    return { code: 0, data: resultIds };
-  };
-  menuActions.onMerge = async () => {
-    ElMessage.info('合并地块中...');
-    // TODO: 实现保存合并结果到后端的逻辑
-    return { code: 0, data: [`temp-merged-${Date.now()}`] };
-  };
   menuActions.onRename = (data) => handleRename(data);
   menuActions.onSync = (data) => onSync(data);
   menuActions.onDelete = (data) => onDelete(data);
@@ -230,7 +218,7 @@ const onImport = () => {
     const file = (input.files && input.files[0]) as File;
     if (!file) return;
     try {
-      await importResourcePoolShp(organizationId.value!, file);
+      await importResourcePoolShp(organizationId.value, file);
       ElMessage.success('导入成功');
       loadData();
     } catch (e: any) {

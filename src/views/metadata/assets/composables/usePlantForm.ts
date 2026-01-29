@@ -60,7 +60,7 @@ export function usePlantForm(onSuccess: () => void) {
       clan: '',
       category: '',
       kind: '',
-      source: '',
+      source: 'SYSTEM',
       tagIds: [],
       organizationId: userStore.currentOrganizationId
     }
