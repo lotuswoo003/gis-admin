@@ -27,9 +27,9 @@ export function defer() {
  *
  * @param polygon graphic.geometry
  */
-export const polygonToWkt = (polygon: any, isMercator = true) => {
+export const polygonToWkt = (polygon: any) => {
   let rings = polygon.rings
-  if (isMercator || polygon.spatialReference.isWebMercator) {
+  if (polygon.spatialReference.isWebMercator) {
     //墨卡托转经纬度
     const geo = webMercatorToGeographic(polygon) as any
     rings = geo.rings

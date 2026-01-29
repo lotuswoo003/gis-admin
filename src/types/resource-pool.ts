@@ -25,7 +25,7 @@ export interface GisResourcePool {
  */
 export interface ResourcePoolCreateRequest {
   /** 资源池名称 */
-  name: string;
+  name?: string;
   /** 组织ID */
   organizationId: string;
   /** 多边形数据（GeoJSON格式） */
@@ -82,5 +82,45 @@ export interface GisResourcePoolSyncRequest {
   projectId: string;
   /** 要同步的资源池ID列表 */
   idList: string[];
+}
+
+/**
+ * 资源池地块拆分条目
+ */
+export interface ResourcePoolSplitItem {
+  /** 新地块名称（可选，默认继承原地块名称） */
+  name?: string;
+  /** 组织ID（可选，默认继承原地块组织ID） */
+  organizationId?: string;
+  /** 地块多边形 WKT（必填） */
+  polygon: string;
+  /** 地块级别（可选，默认继承原地块级别） */
+  level?: string;
+}
+
+/**
+ * 资源池地块拆分请求
+ */
+export interface ResourcePoolSplitRequest {
+  /** 原地块ID（必填） */
+  id: string;
+  /** 拆分后的地块列表（必填） */
+  items: ResourcePoolSplitItem[];
+}
+
+/**
+ * 资源池地块合并请求
+ */
+export interface ResourcePoolMergeRequest {
+  /** 待合并地块ID列表（必填） */
+  ids: string[];
+  /** 合并后的地块多边形 WKT（必填） */
+  polygon: string;
+  /** 合并后的地块名称（可选，默认继承第一个地块名称） */
+  name?: string;
+  /** 合并后的组织ID（可选，默认继承第一个地块组织ID） */
+  organizationId?: string;
+  /** 合并后的地块级别（可选，默认继承第一个地块级别） */
+  level?: string;
 }
 

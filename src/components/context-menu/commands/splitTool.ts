@@ -55,7 +55,7 @@ export default class splitTool implements IMapTool {
     // const cutter = new Polyline({
     //   paths: graphic.geometry?.paths || [],
     // })
-    const cutter = graphic.geometry as Polyline
+    const cutter = webMercatorToGeographic(graphic.geometry) as Polyline
     const graphicsTarget = [
       ...this._mapContext.mapSelected.filter((item) => item.attributes?.type === LayerType.Mass),
     ]
@@ -70,7 +70,7 @@ export default class splitTool implements IMapTool {
           ...results.map((geom) =>
             createCutResultGraphic(
               this._mapContext!,
-              { sourceId: graphic.attributes.id, id: uuid('block') },
+              { sourceId: graphicTarget.attributes.id, id: uuid('block') },
               geom,
             ),
           ),

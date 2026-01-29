@@ -18,7 +18,12 @@ import splitTool from '@/components/context-menu/commands/splitTool'
 import mergeTool from '@/components/context-menu/commands/mergeTool'
 import editTool from '@/components/context-menu/commands/editTool'
 import { polygonToWkt } from '@/components/map-context/utils'
-import { createResourcePool,updateResourcePool,deleteResourcePool } from '@/api/resource-pool'
+import {
+  createResourcePool,
+  updateResourcePool,
+  splitResourcePool,
+  mergeResourcePool,
+} from '@/api/resource-pool'
 import { ElMessage } from 'element-plus'
 
 // 命令映射（可以保持全局，因为是无状态的）
@@ -127,22 +132,34 @@ export function useResourcePoolContextMenu(options: {
           return { code: 'error', message: '无效的地块数据' }
         }
 
-        // const res = await updateResourcePool({
-        //   removeIdList: sourceGraphics.map((g: any) => g.attributes.id),
-        //   resourcePoolList: resultsGraphics.map((g: any) => ({
-        //     organizationId: currentOrgInfo.id,
-        //     polygon: polygonToWkt(g.geometry),
-        //   })),
-        // })
+        // 只支持单个地块拆分
+        if (sourceGraphics.length !== 1) {
+          return { code: 'error', message: '只能拆分单个地块' }
+        }
 
-        // if (res.code !== 0) {
-        //   return { code: 'error', message: '切割地块失败' }
-        // }
+        const sourceGraphic = sourceGraphics[0]
+        if (!sourceGraphic.attributes?.id) {
+          return { code: 'error', message: '原地块ID不存在' }
+        }
 
-        // return { code: 'success', data: res.data }
+        const res = await splitResourcePool({
+          id: sourceGraphic.attributes.id,
+          items: resultsGraphics.map((g: any) => ({
+            polygon: polygonToWkt(g.geometry),
+          })),
+        })
+
+        if (res.code !== 0) {
+          return { code: 'error', message: '拆分地块失败' }
+        }
+
+        ElMessage.success('地块拆分成功')
+        options.onRefresh?.()
+
+        return { code: 0, data: res.data }
       } catch (e) {
-        console.error('---切割地块失败---', e)
-        return { code: 'error', message: '切割地块失败' }
+        console.error('---拆分地块失败---', e)
+        return { code: 'error', message: '拆分地块失败' }
       }
     },
     onMerge: async (event: any) => {
@@ -152,19 +169,33 @@ export function useResourcePoolContextMenu(options: {
           return { code: 'error', message: '无效的地块数据' }
         }
 
-        // const res = await updateBatchResourceMass({
-        //   removeIdList: sourceGraphics.map((g: any) => g.attributes.id),
-        //   resourcePoolList: [{
-        //     organizationId: currentOrgInfo.id,
-        //     polygon: polygonToWkt(result.geometry),
-        //   }],
-        // })
+        // 至少需要2个地块才能合并
+        if (sourceGraphics.length < 2) {
+          return { code: 'error', message: '至少需要选择2个地块进行合并' }
+        }
 
-        // if (res.code !== 0) {
-        //   return { code: 'error', message: '合并地块失败' }
-        // }
+        // 检查所有地块是否都有ID
+        const ids = sourceGraphics
+          .map((g: any) => g.attributes?.id)
+          .filter((id: string) => id)
 
-        // return { code: 'success', data: res.data }
+        if (ids.length !== sourceGraphics.length) {
+          return { code: 'error', message: '部分地块ID不存在' }
+        }
+
+        const res = await mergeResourcePool({
+          ids,
+          polygon: polygonToWkt(result.geometry),
+        })
+
+        if (res.code !== 0) {
+          return { code: 'error', message: '合并地块失败' }
+        }
+
+        ElMessage.success('地块合并成功')
+        options.onRefresh?.()
+
+        return { code: 0, data: [res.data] }
       } catch (e) {
         console.error('---合并地块失败---', e)
         return { code: 'error', message: '合并地块失败' }

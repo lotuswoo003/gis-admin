@@ -5,7 +5,9 @@ import type {
   ResourcePoolUpdateRequest,
   ResourcePoolPageRequest,
   PageResultGisResourcePool,
-  GisResourcePoolSyncRequest
+  GisResourcePoolSyncRequest,
+  ResourcePoolSplitRequest,
+  ResourcePoolMergeRequest,
 } from '@/types/resource-pool';
 
 /**
@@ -100,6 +102,32 @@ export const importResourcePoolShp = (organizationId: string, file: File) => {
 export const syncResourcePool = (data: GisResourcePoolSyncRequest) => {
   return request<void>({
     url: 'sys/resourcePool/sync',
+    method: 'post',
+    data,
+  });
+};
+
+/**
+ * 分割地块
+ * @param data 分割请求参数
+ * @returns 返回新地块ID列表
+ */
+export const splitResourcePool = (data: ResourcePoolSplitRequest) => {
+  return request<string[]>({
+    url: 'sys/resourcePool/split',
+    method: 'post',
+    data,
+  });
+};
+
+/**
+ * 合并地块
+ * @param data 合并请求参数
+ * @returns 返回新地块ID
+ */
+export const mergeResourcePool = (data: ResourcePoolMergeRequest) => {
+  return request<string>({
+    url: 'sys/resourcePool/merge',
     method: 'post',
     data,
   });
