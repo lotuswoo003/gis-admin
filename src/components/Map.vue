@@ -1,11 +1,12 @@
 <template>
   <div class="arcgis-map-wrapper">
     <arcgis-map ref="mapElement"> </arcgis-map>
+    <FeatureTooltip />
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, watch, nextTick, shallowRef } from 'vue'
+import { onMounted, watch, nextTick, shallowRef, ref } from 'vue'
 import '@arcgis/map-components/components/arcgis-map'
 import config from '@arcgis/core/config'
 import Map from '@arcgis/core/Map'
@@ -20,6 +21,8 @@ import MapContext from '@/components/map-context'
 import type { DataLayer } from '@/components/map-context/types.d'
 import { LayerType } from '@/components/map-context/types.d'
 import { useMapStore } from '@/store/map/map'
+
+import FeatureTooltip from '@/components/FeatureTooltip.vue'
 import symbols from './map-context/symbols'
 // 设置 ArcGIS API Key
 config.apiKey = ARCGIS_API_KEY
@@ -75,6 +78,8 @@ const emit = defineEmits<{
 const mapElement = shallowRef<any>(null)
 let landMassLayer: DataLayer | null = null
 let mapContext: MapContext | null = null
+
+
 
 // 清除选中
 const clearSelection = () => {
@@ -304,6 +309,8 @@ const setupMapEventListeners = () => {
     emit('selection-change', dataList)
   })
 
+
+
   // 阻止浏览器默认右键菜单
   const container = mapContext.mapView.container
   if (container) {
@@ -350,6 +357,7 @@ onMounted(async () => {
     if (view) {
       mapContext = new MapContext(view)
       mapStore.setMapContext(mapContext)
+
       initDataLayers(mapContext)
       landMassLayer = mapContext.getDataLayer(LayerType.Mass)
       mapContext.mapStyle = 'image'
