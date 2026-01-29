@@ -80,6 +80,7 @@ declare module '@vue/runtime-core' {
     Header: typeof import('./src/components/header.vue')['default']
     Map: typeof import('./src/components/Map.vue')['default']
     RegionCascader: typeof import('./src/components/region-cascader.vue')['default']
+    ResourcePoolSyncDialog: typeof import('./src/components/ResourcePoolSyncDialog.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Sidebar: typeof import('./src/components/sidebar.vue')['default']

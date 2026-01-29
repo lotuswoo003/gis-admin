@@ -41,6 +41,12 @@
       />
       <ContextMenu ref="contextMenuRef" :items="contextMenuItems" :commandMap="commandMap" />
     </div>
+
+    <ResourcePoolSyncDialog
+      v-model="syncDialogVisible"
+      :resource-pool-ids="syncingPoolIds"
+      @success="handleSyncSuccess"
+    />
   </div>
 </template>
 
@@ -55,14 +61,16 @@ import {
   importResourcePoolShp,
   updateResourcePool,
 } from '@/api/resource-pool'
+import { fetchProjectPage } from '@/api/project'
 import type { GisResourcePool, ResourcePoolPageRequest } from '@/types/resource-pool'
+import type { RawProject } from '@/types/project'
 import TableSearch from '@/components/table-search.vue'
 import TableCustom from '@/components/table-custom.vue'
 import Map from '@/components/Map.vue'
 import ContextMenu from '@/components/context-menu/index.vue'
+import ResourcePoolSyncDialog from '@/components/ResourcePoolSyncDialog.vue'
 import { useResourcePoolContextMenu, commandMap } from './context-menu-items'
 import type { FormOptionList } from '@/types/form-option'
-import { update } from '@/api/metadata/plant'
 
 const query = reactive({ keyword: '' })
 const searchOpt = ref<FormOptionList[]>([
@@ -95,6 +103,9 @@ const organizationId = ref<string>('')
 const mapRef = ref<InstanceType<typeof Map>>()
 const tableRef = ref<InstanceType<typeof TableCustom>>()
 const contextMenuRef = ref<InstanceType<typeof ContextMenu>>()
+
+const syncDialogVisible = ref(false)
+const syncingPoolIds = ref<string[]>([])
 
 // 使用组合式函数
 const { rightClickContext, selectedCount, menuActions, contextMenuItems } =
@@ -147,9 +158,14 @@ const onLocate = (row: Row) => {
   ElMessage.success(`正在定位到: ${row.name}`)
 }
 
-const onSync = (_row: Row) => {
-  // 同步：后续对接后端同步接口
-  ElMessage.info('同步功能待实现')
+const onSync = (row: Row) => {
+  if (!row.id) return
+  syncingPoolIds.value = [row.id]
+  syncDialogVisible.value = true
+}
+
+const handleSyncSuccess = () => {
+  loadData()
 }
 
 const onPolygonClick = (_data: GisResourcePool) => {
