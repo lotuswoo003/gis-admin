@@ -9,14 +9,16 @@ import {
   Minus,
   Connection,
   EditPen,
+  Edit,
 } from '@element-plus/icons-vue'
 import type { GisResourcePool } from '@/types/resource-pool'
 import createLandmassTool from '@/components/context-menu/commands/createLandmassTool'
 import createLineLandmassTool from '@/components/context-menu/commands/createLineLandmassTool'
 import splitTool from '@/components/context-menu/commands/splitTool'
 import mergeTool from '@/components/context-menu/commands/mergeTool'
+import editTool from '@/components/context-menu/commands/editTool'
 import { polygonToWkt } from '@/components/map-context/utils'
-import { createResourcePool } from '@/api/resource-pool'
+import { createResourcePool,updateResourcePool,deleteResourcePool } from '@/api/resource-pool'
 import { ElMessage } from 'element-plus'
 
 // 命令映射（可以保持全局，因为是无状态的）
@@ -25,6 +27,7 @@ export const commandMap: Record<string, any> = {
   createLineLandmassTool: new createLineLandmassTool(),
   splitTool: new splitTool(),
   mergeTool: new mergeTool(),
+  editTool: new editTool(),
 }
 
 /**
@@ -89,10 +92,84 @@ export function useResourcePoolContextMenu(options: {
     },
 
     onLocate: (_data: GisResourcePool) => {},
-    onCut: async (_event: any) => {
-      
+    onEdit: async (event: any) => {
+      try {
+        const { graphic } = event
+        if (!graphic || !graphic.attributes?.id) {
+          return { code: 'error', message: '无效的地块数据' }
+        }
+
+        const geoWKT = polygonToWkt(graphic.geometry)
+        const res = await updateResourcePool({id: graphic.attributes.id, polygon: geoWKT})
+
+        if (res.code !== 0) {
+          return { code: 'error', message: '更新地块失败' }
+        }
+
+        ElMessage.success('地块更新成功')
+        options.onRefresh?.()
+
+        return { code: 0, data: res.data }
+      } catch (e) {
+        console.error('---更新地块失败---', e)
+        return { code: 'error', message: '更新地块失败' }
+      }
     },
-    onMerge: async (_event: any) => {},
+    onCut: async (event: any) => {
+      try {
+        const { sourceGraphics, resultsGraphics } = event
+        if (
+          !sourceGraphics ||
+          !resultsGraphics ||
+          sourceGraphics.length === 0 ||
+          resultsGraphics.length === 0
+        ) {
+          return { code: 'error', message: '无效的地块数据' }
+        }
+
+        // const res = await updateResourcePool({
+        //   removeIdList: sourceGraphics.map((g: any) => g.attributes.id),
+        //   resourcePoolList: resultsGraphics.map((g: any) => ({
+        //     organizationId: currentOrgInfo.id,
+        //     polygon: polygonToWkt(g.geometry),
+        //   })),
+        // })
+
+        // if (res.code !== 0) {
+        //   return { code: 'error', message: '切割地块失败' }
+        // }
+
+        // return { code: 'success', data: res.data }
+      } catch (e) {
+        console.error('---切割地块失败---', e)
+        return { code: 'error', message: '切割地块失败' }
+      }
+    },
+    onMerge: async (event: any) => {
+      try {
+        const { sourceGraphics, result } = event
+        if (!sourceGraphics || !result || sourceGraphics.length === 0) {
+          return { code: 'error', message: '无效的地块数据' }
+        }
+
+        // const res = await updateBatchResourceMass({
+        //   removeIdList: sourceGraphics.map((g: any) => g.attributes.id),
+        //   resourcePoolList: [{
+        //     organizationId: currentOrgInfo.id,
+        //     polygon: polygonToWkt(result.geometry),
+        //   }],
+        // })
+
+        // if (res.code !== 0) {
+        //   return { code: 'error', message: '合并地块失败' }
+        // }
+
+        // return { code: 'success', data: res.data }
+      } catch (e) {
+        console.error('---合并地块失败---', e)
+        return { code: 'error', message: '合并地块失败' }
+      }
+    },
     onRename: (_data: GisResourcePool) => {},
     onSync: (_data: GisResourcePool) => {},
     onDelete: (_data: GisResourcePool) => {},
@@ -133,6 +210,16 @@ export function useResourcePoolContextMenu(options: {
     },
     {
       key: 4,
+      icon: Edit,
+      label: '编辑地块',
+      isEnabled: () => !!rightClickContext.value && selectedCount.value <= 1,
+      commandName: 'editTool',
+      callback: async (event) => {
+        return await menuActions.onEdit(event)
+      },
+    },
+    {
+      key: 5,
       icon: Minus,
       label: '切割地块',
       isEnabled: () => !!rightClickContext.value,
@@ -142,7 +229,7 @@ export function useResourcePoolContextMenu(options: {
       },
     },
     {
-      key: 5,
+      key: 6,
       icon: Connection,
       label: '合并地块',
       isEnabled: () => selectedCount.value > 1,
@@ -152,7 +239,7 @@ export function useResourcePoolContextMenu(options: {
       },
     },
     {
-      key: 6,
+      key: 7,
       icon: EditPen,
       label: '地块命名',
       isEnabled: () => !!rightClickContext.value && selectedCount.value <= 1,
@@ -163,7 +250,7 @@ export function useResourcePoolContextMenu(options: {
       },
     },
     {
-      key: 7,
+      key: 8,
       icon: Refresh,
       label: '同步地块',
       isEnabled: () => !!rightClickContext.value && selectedCount.value <= 1,
@@ -174,7 +261,7 @@ export function useResourcePoolContextMenu(options: {
       },
     },
     {
-      key: 8,
+      key: 9,
       icon: Delete,
       label: '删除地块',
       isEnabled: () => !!rightClickContext.value,
