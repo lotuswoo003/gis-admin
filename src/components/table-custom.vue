@@ -39,6 +39,7 @@
             :max-height="maxHeight" :height="height"
             :highlight-current-row="true"
             @selection-change="handleSelectionChange" table-layout="auto">
+            <el-table-column v-if="hasSelection" type="selection" width="55" align="center" />
             <template v-for="item in columns" :key="item.prop">
                 <el-table-column v-if="item.visible" :prop="item.prop" :label="item.label" :width="item.width"
                     :type="item.type" :align="item.align || 'center'">
@@ -97,6 +98,10 @@ const props = defineProps({
     hasToolbar: {
         type: Boolean,
         default: true
+    },
+    hasSelection: {
+        type: Boolean,
+        default: false
     },
     maxHeight: {
         type: [String, Number],
@@ -163,6 +168,7 @@ let {
     columns,
     rowKey,
     hasToolbar,
+    hasSelection,
     maxHeight,
     height,
     hasPagination,
@@ -172,6 +178,8 @@ let {
     pageSize,
     layout,
 } = toRefs(props)
+
+const emit = defineEmits(['selection-change'])
 
 columns.value.forEach((item) => {
     if (item.visible === undefined) {
@@ -183,6 +191,7 @@ columns.value.forEach((item) => {
 const multipleSelection = ref([])
 const handleSelectionChange = (selection: any[]) => {
     multipleSelection.value = selection
+    emit('selection-change', selection)
 }
 
 // 当前页码变化的事件

@@ -9,6 +9,14 @@
         <TableSearch :query="query" :options="searchOpt" :search="handleSearch" />
         <div class="list-toolbar">
           <el-button size="small" type="primary" :icon="Upload" @click="onImport">导入</el-button>
+          <el-button
+            size="small"
+            type="success"
+            @click="onBatchSync"
+            :disabled="selectedRows.length === 0"
+            >批量同步</el-button
+          >
+          <el-checkbox v-model="showCheckbox" label="开启多选" style="margin-left: 10px" />
         </div>
         <TableCustom
           ref="tableRef"
@@ -19,6 +27,8 @@
           :page-size="page.rows"
           :change-page="changePage"
           :hide-on-single-page="true"
+          :has-selection="showCheckbox"
+          @selection-change="handleTableSelectionChange"
           max-height="calc(100vh - 350px)"
         >
           <template #operator="{ rows }">
@@ -106,6 +116,8 @@ const contextMenuRef = ref<InstanceType<typeof ContextMenu>>()
 
 const syncDialogVisible = ref(false)
 const syncingPoolIds = ref<string[]>([])
+const selectedRows = ref<Row[]>([])
+const showCheckbox = ref(false)
 
 // 使用组合式函数
 const { rightClickContext, selectedCount, menuActions, contextMenuItems } =
@@ -164,8 +176,23 @@ const onSync = (row: Row) => {
   syncDialogVisible.value = true
 }
 
+const onBatchSync = () => {
+  if (selectedRows.value.length === 0) {
+    ElMessage.warning('请至少选择一条数据')
+    return
+  }
+  syncingPoolIds.value = selectedRows.value.map((r) => r.id!).filter(Boolean)
+  syncDialogVisible.value = true
+}
+
+
+
 const handleSyncSuccess = () => {
   loadData()
+}
+
+const handleTableSelectionChange = (selection: Row[]) => {
+  selectedRows.value = selection
 }
 
 const onPolygonClick = (_data: GisResourcePool) => {
