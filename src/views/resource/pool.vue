@@ -43,11 +43,13 @@
       <Map
         ref="mapRef"
         :polygons="tableData"
+        :auto-fit="firstLoad"
         @polygon-click="onPolygonClick"
         @polygon-dblclick="onPolygonDblClick"
         @right-click="onRightClick"
         @selection-change="onSelectionChange"
         @map-ready="onMapReady"
+        @data-loaded="onDataLoaded"
       />
       <ContextMenu ref="contextMenuRef" :items="contextMenuItems" :commandMap="commandMap" />
     </div>
@@ -95,6 +97,7 @@ const searchOpt = ref<FormOptionList[]>([
 
 const handleSearch = () => {
   page.index = 1
+  firstLoad.value = true
   loadData()
 }
 
@@ -118,6 +121,7 @@ const syncDialogVisible = ref(false)
 const syncingPoolIds = ref<string[]>([])
 const selectedRows = ref<Row[]>([])
 const showCheckbox = ref(false)
+const firstLoad = ref(true)
 
 // 使用组合式函数
 const { rightClickContext, selectedCount, menuActions, contextMenuItems } =
@@ -227,6 +231,12 @@ const onRightClick = (event: any) => {
 
 const onMapReady = () => {
   console.log('地图加载完成')
+  firstLoad.value = true
+}
+
+const onDataLoaded = () => {
+  console.log('数据加载完成')
+  firstLoad.value = false
 }
 
 // 地块命名

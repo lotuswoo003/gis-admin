@@ -45,6 +45,7 @@ interface Props {
   polygons?: PolygonData[]
   center?: [number, number] // [经度, 纬度]
   zoom?: number
+  autoFit?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -52,11 +53,11 @@ const props = withDefaults(defineProps<Props>(), {
   center: () => [120.5, 31.3], // 苏州默认中心点
   zoom: 11,
 })
-
 const emit = defineEmits<{
   (e: 'map-ready', map: any): void
   (e: 'polygon-click', data: PolygonData): void
   (e: 'polygon-dblclick', data: PolygonData): void
+  (e: 'data-loaded'): void
   (
     e: 'right-click',
     event: {
@@ -164,7 +165,7 @@ const addPolygonGraphics = async () => {
       landMassLayer.addFeatures(allGraphics)
 
       const view = mapElement.value.view
-      if (view) {
+      if (view && props.autoFit) {
         // 使用更明确的参数来定位
         await view.goTo(
           {
@@ -177,6 +178,8 @@ const addPolygonGraphics = async () => {
         )
       }
     }
+
+    emit('data-loaded')
   } catch (error) {
     console.error('添加多边形失败:', error)
   }
