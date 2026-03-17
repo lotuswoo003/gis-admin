@@ -3,6 +3,13 @@ export interface SecurityCheck {
   code?: string;
   name?: string; // 安全检查项目
   mode?: string; // 类别 security_mode
+  securityCheckJson?: string | {
+    code?: string;
+    name?: string;
+    description?: string;
+    attachIdList?: string[];
+    imageList?: string[];
+  };
   parentId?: string;
   imageList?: string;
   description?: string;
@@ -22,12 +29,4 @@ export interface SecurityCheckPageRequest {
 export interface PageResultSecurityCheck {
   total: number;
   list: SecurityCheck[];
-}
-
-export interface ConserveSecurityCheck {
-  id?: string;
-  code?: string;
-  name?: string;
-  mode?: string;
-  parentId?: string;
 }

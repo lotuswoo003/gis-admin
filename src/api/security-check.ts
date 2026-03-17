@@ -1,9 +1,9 @@
 import request from '@/utils/request';
-import type { SecurityCheck, SecurityCheckPageRequest, PageResultSecurityCheck, ConserveSecurityCheck } from '@/types/security-check';
+import type { SecurityCheck, SecurityCheckPageRequest, PageResultSecurityCheck } from '@/types/security-check';
 
 export const fetchSecurityCheckPage = (data: SecurityCheckPageRequest) => {
   return request<PageResultSecurityCheck>({
-    url: 'sys/securityCheck/page',
+    url: 'sys/conserveSecurityCheck/page',
     method: 'post',
     data,
   });
@@ -11,14 +11,14 @@ export const fetchSecurityCheckPage = (data: SecurityCheckPageRequest) => {
 
 export const getSecurityCheck = (id: string) => {
   return request<SecurityCheck>({
-    url: `sys/securityCheck/get/${id}`,
+    url: `sys/conserveSecurityCheck/get/${id}`,
     method: 'post',
   });
 };
 
 export const createSecurityCheck = (data: SecurityCheck) => {
   return request<string>({
-    url: 'sys/securityCheck/create',
+    url: 'sys/conserveSecurityCheck/create',
     method: 'post',
     data,
   });
@@ -26,7 +26,7 @@ export const createSecurityCheck = (data: SecurityCheck) => {
 
 export const updateSecurityCheck = (data: SecurityCheck) => {
   return request<boolean>({
-    url: 'sys/securityCheck/update',
+    url: 'sys/conserveSecurityCheck/update',
     method: 'post',
     data,
   });
@@ -34,15 +34,7 @@ export const updateSecurityCheck = (data: SecurityCheck) => {
 
 export const deleteSecurityCheck = (id: string) => {
   return request<boolean>({
-    url: `sys/securityCheck/delete/${id}`,
+    url: `sys/conserveSecurityCheck/delete/${id}`,
     method: 'post',
-  });
-};
-
-export const fetchConserveSecurityCheckList = (data?: Partial<ConserveSecurityCheck>) => {
-  return request<ConserveSecurityCheck[]>({
-    url: 'sys/conserveSecurityCheck/list',
-    method: 'post',
-    data,
   });
 };

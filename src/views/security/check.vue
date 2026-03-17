@@ -73,9 +73,8 @@ import {
   createSecurityCheck,
   updateSecurityCheck,
   deleteSecurityCheck,
-  fetchConserveSecurityCheckList,
 } from '@/api/security-check';
-import type { SecurityCheck, ConserveSecurityCheck } from '@/types/security-check';
+import type { SecurityCheck } from '@/types/security-check';
 import type { UploadRequestOptions, UploadUserFile } from 'element-plus';
 
 // 查询
@@ -113,51 +112,47 @@ const row = ref<Row>({});
 const viewRow = ref<Row>({});
 const viewImages = ref<string[]>([]);
 const fileList = ref<UploadUserFile[]>([]);
-type SelectOption = { label: string; value: string };
-const conserveSecurityChecks = ref<ConserveSecurityCheck[]>([]);
-const securityItemOpts = ref<SelectOption[]>([]);
-
-const syncSecurityItemOption = () => {
-  const field = formOptions.value.list.find((item) => item.prop === 'code');
-  if (field) field.opts = securityItemOpts.value;
-};
 
 const toStr = (value: unknown): string => String(value ?? '').trim();
 
-const upsertSecurityItemOption = (code: string, name: string) => {
-  if (!code || !name) return;
-  const exists = securityItemOpts.value.some((opt) => opt.value === code);
-  if (!exists) securityItemOpts.value.unshift({ label: name, value: code });
-  syncSecurityItemOption();
+type SecurityCheckJsonObj = {
+  code?: string;
+  name?: string;
+  description?: string;
+  attachIdList?: string[];
+  imageList?: string[];
 };
 
-const getSecurityItemName = (code: string): string => {
-  if (!code) return '';
-  const hit = conserveSecurityChecks.value.find((item) => toStr(item.code) === code);
-  if (hit?.name) return hit.name;
-  return securityItemOpts.value.find((opt) => opt.value === code)?.label || '';
+const parseSecurityCheckJson = (raw: SecurityCheck['securityCheckJson']): SecurityCheckJsonObj => {
+  if (!raw) return {};
+  if (typeof raw === 'string') {
+    try {
+      const parsed = JSON.parse(raw) as SecurityCheckJsonObj;
+      return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch {
+      return {};
+    }
+  }
+  return raw;
 };
 
-const loadConserveSecurityCheckOptions = async (mode = '') => {
-  const res = await fetchConserveSecurityCheckList(mode ? { mode } : undefined);
-  const records = (res.data || []).filter((item) => item.code && item.name);
-  conserveSecurityChecks.value = records;
-  securityItemOpts.value = records.map((item) => ({ label: item.name as string, value: item.code as string }));
-  syncSecurityItemOption();
+const parseImageList = (raw: unknown): string[] => {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw.filter((item): item is string => typeof item === 'string' && item.length > 0);
+  if (typeof raw === 'string') {
+    try {
+      const parsed = JSON.parse(raw) as unknown;
+      if (Array.isArray(parsed)) return parsed.filter((item): item is string => typeof item === 'string' && item.length > 0);
+    } catch {}
+    return raw.split(',').map((item) => item.trim()).filter(Boolean);
+  }
+  return [];
 };
 
-const handleSecurityItemChange = (value: unknown, form: Record<string, unknown>) => {
-  const code = toStr(value);
-  form.code = code;
-  form.name = getSecurityItemName(code);
-};
-
-const handleModeChange = (value: unknown, form: Record<string, unknown>) => {
-  const mode = toStr(value);
-  form.mode = mode;
-  form.code = '';
-  form.name = '';
-  void loadConserveSecurityCheckOptions(mode);
+const extractAttachUrls = (jsonObj: SecurityCheckJsonObj): string[] => {
+  if (Array.isArray(jsonObj.imageList)) return jsonObj.imageList.filter(Boolean);
+  if (Array.isArray(jsonObj.attachIdList)) return jsonObj.attachIdList.filter(Boolean);
+  return [];
 };
 
 // 表单选项
@@ -165,8 +160,8 @@ const formOptions = ref<FormOption>({
   labelWidth: '110px',
   span: 12,
   list: [
-    { type: 'select', label: '安全检查项', prop: 'code', required: true, placeholder: '请选择检查项', opts: securityItemOpts.value, filterable: true, onChange: handleSecurityItemChange },
-    { type: 'select', label: '类别', prop: 'mode', required: true, opts: [], onChange: handleModeChange },
+    { type: 'input', label: '安全检查项', prop: 'name', required: true, placeholder: '请输入检查项' },
+    { type: 'select', label: '类别', prop: 'mode', required: true, opts: [] },
     { type: 'slot', label: '安全检查说明图片', prop: 'imageList', span: 24 },
     { type: 'textarea', label: '安全检查说明', prop: 'description', span: 24, placeholder: '请输入检查说明' },
   ],
@@ -185,7 +180,6 @@ watchEffect(() => {
   // 表单里的类别下拉
   const modeField = formOptions.value.list.find((it) => it.prop === 'mode');
   if (modeField) modeField.opts = secTypeOpts.value;
-  syncSecurityItemOption();
   if (!row.value.mode && secTypeOpts.value.length) row.value.mode = toStr(secTypeOpts.value[0].value);
 });
 
@@ -195,21 +189,19 @@ const loadData = async () => {
   const records = (res.data?.list || []) as SecurityCheck[];
   tableData.value = records.map((r) => ({
     ...r,
+    description: toStr(r.description) || parseSecurityCheckJson(r.securityCheckJson).description || '',
     typeText: dictStore.getLabel('security_mode', r.mode),
   } as Row));
   page.total = total;
 };
 loadData();
-void loadConserveSecurityCheckOptions();
 
 const changePage = (val: number) => { page.index = val; loadData(); };
 
-const openAdd = async () => {
+const openAdd = () => {
   isEdit.value = false;
   visible.value = true;
-  const defaultMode = toStr(secTypeOpts.value[0]?.value);
-  await loadConserveSecurityCheckOptions(defaultMode);
-  row.value = { code: '', name: '', mode: defaultMode, attachUrls: [], description: '' };
+  row.value = { name: '', mode: '', attachUrls: [], description: '' };
   fileList.value = [];
 };
 
@@ -218,26 +210,15 @@ const handleEdit = async (r: Row) => {
   visible.value = true;
   const res = await getSecurityCheck(r.id!);
   const sc = res.data as SecurityCheck;
-  await loadConserveSecurityCheckOptions(toStr(sc.mode));
-  const full = { ...(sc || {}) } as Row;
-  if (!full.code && full.name) {
-    const matched = conserveSecurityChecks.value.find((item) => item.name === full.name);
-    if (matched?.code) full.code = matched.code;
-  }
-  if (full.code && full.name) upsertSecurityItemOption(toStr(full.code), full.name);
+  const jsonObj = parseSecurityCheckJson(sc.securityCheckJson);
+  const legacyUrls = parseImageList(sc.imageList);
+  const urls = legacyUrls.length > 0 ? legacyUrls : extractAttachUrls(jsonObj);
+  const full = {
+    ...(sc || {}),
+    description: toStr(sc.description) || jsonObj.description || '',
+    attachUrls: urls,
+  } as Row;
   row.value = full;
-  // 解析图片列表
-  let urls: string[] = [];
-  try {
-    if (row.value.imageList) {
-      const raw = row.value.imageList as any;
-      if (typeof raw === 'string') {
-        try { urls = JSON.parse(raw); } catch { urls = (raw as string).split(',').filter(Boolean); }
-      } else if (Array.isArray(raw)) {
-        urls = raw as string[];
-      }
-    }
-  } catch {}
   fileList.value = (urls || []).map(u => ({ name: (u.split('/').pop() || '附件'), url: u }));
   row.value.attachUrls = urls || [];
 };
@@ -258,24 +239,23 @@ const handleView = async (r: Row) => {
   if (!r.id) return;
   const res = await getSecurityCheck(r.id);
   const sc = res.data as SecurityCheck;
-  const full = { ...sc, typeText: dictStore.getLabel('security_mode', sc.mode) } as Row;
+  const jsonObj = parseSecurityCheckJson(sc.securityCheckJson);
+  const full = {
+    ...sc,
+    description: toStr(sc.description) || jsonObj.description || '',
+    typeText: dictStore.getLabel('security_mode', sc.mode),
+  } as Row;
   viewRow.value = full;
-  let urls: string[] = [];
-  const raw = full.imageList as any;
-  if (typeof raw === 'string' && raw) {
-    try { urls = JSON.parse(raw); } catch { urls = raw.split(',').filter(Boolean); }
-  } else if (Array.isArray(raw)) {
-    urls = raw as string[];
-  }
+  const legacyUrls = parseImageList(sc.imageList);
+  const urls = legacyUrls.length > 0 ? legacyUrls : extractAttachUrls(jsonObj);
   viewImages.value = urls || [];
   viewVisible.value = true;
 };
 
 const saveRow = async (form: Record<string, unknown>) => {
-  const code = toStr(form.code ?? row.value.code);
-  const name = getSecurityItemName(code) || toStr(form.name ?? row.value.name);
-  if (!code || !name) {
-    ElMessage.warning('请选择安全检查项');
+  const name = toStr(form.name ?? row.value.name);
+  if (!name) {
+    ElMessage.warning('请输入安全检查项');
     return;
   }
   const mode = toStr(form.mode ?? row.value.mode);
@@ -283,14 +263,15 @@ const saveRow = async (form: Record<string, unknown>) => {
     ElMessage.warning('请选择类别');
     return;
   }
-  const imageList = JSON.stringify(row.value.attachUrls || []);
+  const imageList = row.value.attachUrls || [];
   const description = toStr(form.description ?? row.value.description);
   const id = toStr(row.value.id ?? form.id);
+  const securityCheckJson = JSON.stringify({ description, imageList });
   if (isEdit.value && id) {
-    await updateSecurityCheck({ id, code, name, mode, imageList, description });
+    await updateSecurityCheck({ id, code: row.value.code, name, mode, securityCheckJson });
     ElMessage.success('保存成功');
   } else {
-    const idRes = await createSecurityCheck({ code, name, mode, imageList, description });
+    const idRes = await createSecurityCheck({ code: row.value.code, name, mode, securityCheckJson });
     if (idRes.data) row.value.id = String(idRes.data);
     ElMessage.success('新增成功');
   }
