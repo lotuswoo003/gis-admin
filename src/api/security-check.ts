@@ -3,7 +3,7 @@ import type { SecurityCheck, SecurityCheckPageRequest, PageResultSecurityCheck }
 
 export const fetchSecurityCheckPage = (data: SecurityCheckPageRequest) => {
   return request<PageResultSecurityCheck>({
-    url: 'sys/conserveSecurityCheck/page',
+    url: 'sys/securityCheck/page',
     method: 'post',
     data,
   });
@@ -11,14 +11,14 @@ export const fetchSecurityCheckPage = (data: SecurityCheckPageRequest) => {
 
 export const getSecurityCheck = (id: string) => {
   return request<SecurityCheck>({
-    url: `sys/conserveSecurityCheck/get/${id}`,
+    url: `sys/securityCheck/get/${id}`,
     method: 'post',
   });
 };
 
 export const createSecurityCheck = (data: SecurityCheck) => {
   return request<string>({
-    url: 'sys/conserveSecurityCheck/create',
+    url: 'sys/securityCheck/create',
     method: 'post',
     data,
   });
@@ -26,7 +26,7 @@ export const createSecurityCheck = (data: SecurityCheck) => {
 
 export const updateSecurityCheck = (data: SecurityCheck) => {
   return request<boolean>({
-    url: 'sys/conserveSecurityCheck/update',
+    url: 'sys/securityCheck/update',
     method: 'post',
     data,
   });
@@ -34,7 +34,7 @@ export const updateSecurityCheck = (data: SecurityCheck) => {
 
 export const deleteSecurityCheck = (id: string) => {
   return request<boolean>({
-    url: `sys/conserveSecurityCheck/delete/${id}`,
+    url: `sys/securityCheck/delete/${id}`,
     method: 'post',
   });
 };

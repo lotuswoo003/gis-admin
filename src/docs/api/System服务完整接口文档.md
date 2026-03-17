@@ -733,33 +733,33 @@
 
 ## 20. 保养安全检查
 
-**基础路径**: `/conserveSecurityCheck`
+**基础路径**: `/securityCheck`
 
 ### 20.1 获取保养安全检查
 - **方法**: POST
-- **路径**: `/conserveSecurityCheck/get/{id}`
+- **路径**: `/securityCheck/get/{id}`
 
 ### 20.2 保养安全检查列表
 - **方法**: POST
-- **路径**: `/conserveSecurityCheck/list`
+- **路径**: `/securityCheck/list`
 
 ### 20.3 创建保养安全检查
 - **方法**: POST
-- **路径**: `/conserveSecurityCheck/create`
+- **路径**: `/securityCheck/create`
 - **请求体**: ConserveSecurityCheck
 
 ### 20.4 更新保养安全检查
 - **方法**: POST
-- **路径**: `/conserveSecurityCheck/update`
+- **路径**: `/securityCheck/update`
 - **请求体**: ConserveSecurityCheck
 
 ### 20.5 删除保养安全检查
 - **方法**: POST
-- **路径**: `/conserveSecurityCheck/delete/{id}`
+- **路径**: `/securityCheck/delete/{id}`
 
 ### 20.6 分页查询保养安全检查
 - **方法**: POST
-- **路径**: `/conserveSecurityCheck/page`
+- **路径**: `/securityCheck/page`
 - **请求体**: ConserveSecurityCheckPageRequest (code, name, mode, parentId, page, rows)
 
 ---
