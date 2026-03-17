@@ -26,4 +26,5 @@ export interface FormOptionList {
     activeText?: string;
     inactiveText?: string;
     required?: boolean;
+    onChange?: (value: unknown, form: Record<string, unknown>) => void;
 }

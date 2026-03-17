@@ -12,7 +12,8 @@
 						:placeholder="item.placeholder" :rows="item.rows || 4"></el-input>
 					<el-select v-else-if="item.type === 'select'" v-model="form[item.prop]" :disabled="item.disabled"
 						:placeholder="item.placeholder" clearable :multiple="item.multiple === true"
-						:filterable="item.remote || item.filterable" :remote="item.remote === true" :remote-method="item.remoteMethod">
+						:filterable="item.remote || item.filterable" :remote="item.remote === true" :remote-method="item.remoteMethod"
+                                                @change="(value) => handleSelectChange(item, value)">
 						<el-option v-for="opt in item.opts" :label="opt.label" :value="opt.value"></el-option>
 					</el-select>
 					<el-date-picker v-else-if="item.type === 'date'" type="date" v-model="form[item.prop]"
@@ -46,7 +47,7 @@
 </template>
 
 <script lang="ts" setup>
-import { FormOption } from '@/types/form-option';
+import { FormOption, FormOptionList } from '@/types/form-option';
 import { FormInstance, FormRules, UploadProps } from 'element-plus';
 import { PropType, ref } from 'vue';
 
@@ -107,6 +108,10 @@ const handleRegionChange = (val: {
         form.value.city = val.cityName || '';
         form.value.countyId = val.countyId;
         form.value.county = val.countyName || '';
+};
+
+const handleSelectChange = (item: FormOptionList, value: unknown) => {
+        item.onChange?.(value, form.value as Record<string, unknown>);
 };
 
 </script>

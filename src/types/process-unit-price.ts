@@ -6,6 +6,7 @@ export interface ProcessUnitPrice {
   cityId?: string;
   type?: string; // human/machine/material or backend defined
   name?: string;
+  conserveId?: string;
   unit?: string;
   organizationId?: string;
   organizationName?: string;
@@ -22,6 +23,6 @@ export interface ProcessUnitPricePageRequest {
   cityId?: string;
   type?: string;
   name?: string;
+  conserveId?: string;
   organizationId?: string;
 }
-

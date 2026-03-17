@@ -33,6 +33,7 @@
 import { ref, reactive } from 'vue';
 import { Edit, Delete } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
+import request from '@/utils/request';
 import TableCustom from '@/components/table-custom.vue';
 import TableSearch from '@/components/table-search.vue';
 import type { FormOption, FormOptionList } from '@/types/form-option';
@@ -41,10 +42,13 @@ import { fetchProcessUnitPricePage, getProcessUnitPrice, createProcessUnitPrice,
 import type { ProcessUnitPrice } from '@/types/process-unit-price';
 
 type RJCType = 'human' | 'machine' | 'material';
+type OptionItem = { label: string; value: string };
+type ConserveItem = { id: string; name: string; mode?: string };
 type RJCRow = {
   id: string;
   kind: RJCType; // 人/机/材
   name: string;
+  conserveId?: string;
   model?: string; // 规格/型号/岗位
   unit?: string;
   quantity?: number;
@@ -68,10 +72,10 @@ const query = reactive({
   organizationId: null as string | null,
 });
 
-const orgOpts = ref<any[]>([]);
+const orgOpts = ref<OptionItem[]>([]);
 const handleOrgRemote = async (kw: string) => {
   const res = await fetchOrganizationPage({ page: 1, rows: 10, name: kw || '' });
-  const records = (res.data?.list || []) as any[];
+  const records = (res.data?.list || []) as Array<{ id: string | number; name: string }>;
   orgOpts.value = records.map(r => ({ label: r.name, value: String(r.id) }));
   const opt = searchOpt.value.find(o => o.prop === 'organizationId');
   if (opt) opt.opts = orgOpts.value;
@@ -113,6 +117,7 @@ const loadData = async () => {
     kind: pi.type as any,
     kindText: pi.type === 'human' ? '人' : pi.type === 'machine' ? '机' : pi.type === 'material' ? '材' : (pi.type || ''),
     name: pi.name || '',
+    conserveId: pi.conserveId || '',
     unit: pi.unit || '',
     price: pi.price,
     organizationId: pi.organizationId || null,
@@ -129,13 +134,50 @@ const changePage = (val: number) => { page.index = val; loadData(); };
 // 弹窗表单
 const visible = ref(false);
 const isEdit = ref(false);
-const row = ref<any>({ kind: 'human' });
+const row = ref<Partial<RJCRow>>({ kind: 'human' });
+const currentKind = ref<RJCType>('human');
 
-const orgOptsModal = ref<any[]>([]);
+const orgOptsModal = ref<OptionItem[]>([]);
 const handleOrgRemoteModal = async (kw: string) => {
   const res = await fetchOrganizationPage({ page: 1, rows: 10, name: kw || '' });
-  const records = (res.data?.list || []) as any[];
+  const records = (res.data?.list || []) as Array<{ id: string | number; name: string }>;
   orgOptsModal.value.splice(0, orgOptsModal.value.length, ...records.map(r => ({ label: r.name, value: String(r.id) })));
+};
+
+const conserveOptsModal = ref<OptionItem[]>([]);
+const syncConserveOption = () => {
+  const field = formOptions.value.list.find(i => i.prop === 'conserveId');
+  if (field) field.opts = conserveOptsModal.value;
+};
+const fetchConserveOptions = async (mode: RJCType, keyword = '') => {
+  if (!mode) {
+    conserveOptsModal.value = [];
+    syncConserveOption();
+    return;
+  }
+  const res = await request<ConserveItem[]>({
+    url: 'sys/conserve/list',
+    method: 'post',
+    data: { mode, name: keyword || undefined },
+  });
+  const records = res.data || [];
+  conserveOptsModal.value = records.map(i => ({ label: i.name, value: String(i.id) }));
+  syncConserveOption();
+};
+const handleConserveRemoteModal = async (kw: string) => {
+  await fetchConserveOptions(currentKind.value, kw || '');
+};
+const normalizeKind = (value: unknown): RJCType => {
+  const str = String(value || '');
+  if (str === 'machine' || str === 'material' || str === 'human') return str;
+  return 'human';
+};
+const handleKindChange = (value: unknown, form: Record<string, unknown>) => {
+  const kind = normalizeKind(value);
+  currentKind.value = kind;
+  form.conserveId = '';
+  form.name = '';
+  void fetchConserveOptions(kind);
 };
 
 const formOptions = ref<FormOption>({
@@ -144,55 +186,71 @@ const formOptions = ref<FormOption>({
   list: [
     { type: 'select', label: '类别', prop: 'kind', required: true, opts: [
       { label: '人', value: 'human' }, { label: '机', value: 'machine' }, { label: '材', value: 'material' },
-    ] },
-    { type: 'input', label: '名称', prop: 'name', required: true, placeholder: '请输入名称' },
+    ], onChange: handleKindChange },
+    { type: 'select', label: '名称', prop: 'conserveId', required: true, placeholder: '请选择名称', opts: conserveOptsModal.value, remote: true, remoteMethod: handleConserveRemoteModal, filterable: true },
     { type: 'input', label: '单位', prop: 'unit', placeholder: '如：人/台/件' },
     { type: 'number', label: '单价', prop: 'price' },
     { type: 'select', label: '乙方单位', prop: 'organizationId', required: true, placeholder: '搜索乙方单位', opts: orgOptsModal.value, remote: true, remoteMethod: handleOrgRemoteModal, span: 24 },
   ],
 });
 
-const openAdd = () => {
+const openAdd = async () => {
   isEdit.value = false;
+  currentKind.value = 'human';
+  await fetchConserveOptions('human');
+  row.value = { kind: 'human', conserveId: '', unit: '', price: undefined, organizationId: null };
   visible.value = true;
-  row.value = { kind: 'human', name: '', unit: '', price: null, organizationId: null };
 };
 
 const handleEdit = async (r: RJCRow) => {
   isEdit.value = true;
-  visible.value = true;
-  let full: any = r;
+  let full: Partial<RJCRow> = { ...r };
   if (r.id) {
     const res = await getProcessUnitPrice(r.id);
-    const pi = res.data as any as ProcessUnitPrice;
+    const pi = res.data as ProcessUnitPrice;
     full = {
       id: pi.id,
-      kind: pi.type as any,
-      name: pi.name,
+      kind: normalizeKind(pi.type),
+      name: pi.name || '',
+      conserveId: pi.conserveId || '',
       unit: pi.unit,
       price: pi.price,
       organizationId: pi.organizationId || null,
+      organizationName: pi.organizationName || '',
     };
   }
-  row.value = { ...full, organizationId: full.organizationId ? String(full.organizationId) : null } as any;
+  currentKind.value = normalizeKind(full.kind);
+  await fetchConserveOptions(currentKind.value);
+  if (full.conserveId && full.name) {
+    const exists = conserveOptsModal.value.some(o => o.value === String(full.conserveId));
+    if (!exists) conserveOptsModal.value.unshift({ label: full.name, value: String(full.conserveId) });
+  }
+  row.value = { ...full, organizationId: full.organizationId ? String(full.organizationId) : null };
+  visible.value = true;
   if (full.organizationId && full.organizationName) {
     const exists = orgOptsModal.value.some(o => o.value === String(full.organizationId));
     if (!exists) orgOptsModal.value.unshift({ label: full.organizationName, value: String(full.organizationId) });
   }
 };
 
-const saveRow = async (form: any) => {
+const saveRow = async (form: Record<string, unknown>) => {
   // 乙方单位必须为远程项
   const idStr = form.organizationId ? String(form.organizationId) : '';
-  const orgHit = idStr ? orgOptsModal.value.find((o: any) => o.value === idStr) : null;
+  const orgHit = idStr ? orgOptsModal.value.find(o => o.value === idStr) : null;
   if (!orgHit) { ElMessage.error('请选择有效的乙方单位'); return; }
 
+  const conserveId = form.conserveId ? String(form.conserveId) : '';
+  const conserveHit = conserveId ? conserveOptsModal.value.find(o => o.value === conserveId) : null;
+  if (!conserveHit) { ElMessage.error('请选择有效的名称'); return; }
+
+  const kind = normalizeKind(form.kind);
   // 组装 ProcessInfo 载荷
   const payloadPU: ProcessUnitPrice = {
-    id: form.id,
-    type: form.kind,
-    name: form.name,
-    unit: form.unit,
+    id: form.id ? String(form.id) : undefined,
+    type: kind,
+    name: conserveHit.label,
+    conserveId: conserveHit.value,
+    unit: form.unit ? String(form.unit) : undefined,
     price: form.price != null ? Number(form.price) : undefined,
     organizationId: idStr,
   };
@@ -221,4 +279,3 @@ const closeDialog = () => { visible.value = false; isEdit.value = false; };
 <style scoped>
 .container { background: #fff; padding: 12px; border: 1px solid #ddd; border-radius: 5px; }
 </style>
-
