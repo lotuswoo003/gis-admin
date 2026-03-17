@@ -23,3 +23,11 @@ export interface PageResultSecurityCheck {
   total: number;
   list: SecurityCheck[];
 }
+
+export interface ConserveSecurityCheck {
+  id?: string;
+  code?: string;
+  name?: string;
+  mode?: string;
+  parentId?: string;
+}

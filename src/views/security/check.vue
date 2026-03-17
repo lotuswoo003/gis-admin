@@ -67,8 +67,15 @@ import TableDetail from '@/components/table-detail.vue';
 import type { FormOption, FormOptionList } from '@/types/form-option';
 import { useDictStore } from '@/store/dict';
 import { uploadToOss } from '@/utils/oss';
-import { fetchSecurityCheckPage, getSecurityCheck, createSecurityCheck, updateSecurityCheck, deleteSecurityCheck } from '@/api/security-check';
-import type { SecurityCheck } from '@/types/security-check';
+import {
+  fetchSecurityCheckPage,
+  getSecurityCheck,
+  createSecurityCheck,
+  updateSecurityCheck,
+  deleteSecurityCheck,
+  fetchConserveSecurityCheckList,
+} from '@/api/security-check';
+import type { SecurityCheck, ConserveSecurityCheck } from '@/types/security-check';
 import type { UploadRequestOptions, UploadUserFile } from 'element-plus';
 
 // 查询
@@ -106,14 +113,60 @@ const row = ref<Row>({});
 const viewRow = ref<Row>({});
 const viewImages = ref<string[]>([]);
 const fileList = ref<UploadUserFile[]>([]);
+type SelectOption = { label: string; value: string };
+const conserveSecurityChecks = ref<ConserveSecurityCheck[]>([]);
+const securityItemOpts = ref<SelectOption[]>([]);
+
+const syncSecurityItemOption = () => {
+  const field = formOptions.value.list.find((item) => item.prop === 'code');
+  if (field) field.opts = securityItemOpts.value;
+};
+
+const toStr = (value: unknown): string => String(value ?? '').trim();
+
+const upsertSecurityItemOption = (code: string, name: string) => {
+  if (!code || !name) return;
+  const exists = securityItemOpts.value.some((opt) => opt.value === code);
+  if (!exists) securityItemOpts.value.unshift({ label: name, value: code });
+  syncSecurityItemOption();
+};
+
+const getSecurityItemName = (code: string): string => {
+  if (!code) return '';
+  const hit = conserveSecurityChecks.value.find((item) => toStr(item.code) === code);
+  if (hit?.name) return hit.name;
+  return securityItemOpts.value.find((opt) => opt.value === code)?.label || '';
+};
+
+const loadConserveSecurityCheckOptions = async (mode = '') => {
+  const res = await fetchConserveSecurityCheckList(mode ? { mode } : undefined);
+  const records = (res.data || []).filter((item) => item.code && item.name);
+  conserveSecurityChecks.value = records;
+  securityItemOpts.value = records.map((item) => ({ label: item.name as string, value: item.code as string }));
+  syncSecurityItemOption();
+};
+
+const handleSecurityItemChange = (value: unknown, form: Record<string, unknown>) => {
+  const code = toStr(value);
+  form.code = code;
+  form.name = getSecurityItemName(code);
+};
+
+const handleModeChange = (value: unknown, form: Record<string, unknown>) => {
+  const mode = toStr(value);
+  form.mode = mode;
+  form.code = '';
+  form.name = '';
+  void loadConserveSecurityCheckOptions(mode);
+};
 
 // 表单选项
 const formOptions = ref<FormOption>({
   labelWidth: '110px',
   span: 12,
   list: [
-    { type: 'input', label: '安全检查项', prop: 'name', required: true, placeholder: '请输入检查项' },
-    { type: 'select', label: '类别', prop: 'mode', required: true, opts: [] },
+    { type: 'select', label: '安全检查项', prop: 'code', required: true, placeholder: '请选择检查项', opts: securityItemOpts.value, filterable: true, onChange: handleSecurityItemChange },
+    { type: 'select', label: '类别', prop: 'mode', required: true, opts: [], onChange: handleModeChange },
     { type: 'slot', label: '安全检查说明图片', prop: 'imageList', span: 24 },
     { type: 'textarea', label: '安全检查说明', prop: 'description', span: 24, placeholder: '请输入检查说明' },
   ],
@@ -126,12 +179,14 @@ const secTypeOpts = computed(() => dictStore.getOptions('security_mode'));
 watchEffect(() => {
   // 搜索下拉
   const idx = searchOpt.value.findIndex(it => it.prop === 'type');
-  if (idx >= 0) searchOpt.value[idx] = { ...searchOpt.value[idx], opts: [ { label: '全部', value: '' }, ...secTypeOpts.value ] } as any;
+  if (idx >= 0) {
+    searchOpt.value[idx] = { ...searchOpt.value[idx], opts: [ { label: '全部', value: '' }, ...secTypeOpts.value ] };
+  }
   // 表单里的类别下拉
-  const list: any[] = (formOptions.value as any).list || [];
-  const i = list.findIndex((it: any) => it.prop === 'mode');
-  if (i >= 0) list[i] = { ...list[i], opts: secTypeOpts.value };
-  if (!row.value.mode && secTypeOpts.value.length) row.value.mode = secTypeOpts.value[0].value as any;
+  const modeField = formOptions.value.list.find((it) => it.prop === 'mode');
+  if (modeField) modeField.opts = secTypeOpts.value;
+  syncSecurityItemOption();
+  if (!row.value.mode && secTypeOpts.value.length) row.value.mode = toStr(secTypeOpts.value[0].value);
 });
 
 const loadData = async () => {
@@ -145,13 +200,16 @@ const loadData = async () => {
   page.total = total;
 };
 loadData();
+void loadConserveSecurityCheckOptions();
 
 const changePage = (val: number) => { page.index = val; loadData(); };
 
-const openAdd = () => {
+const openAdd = async () => {
   isEdit.value = false;
   visible.value = true;
-  row.value = { name: '', mode: '', attachUrls: [], description: '' } as any;
+  const defaultMode = toStr(secTypeOpts.value[0]?.value);
+  await loadConserveSecurityCheckOptions(defaultMode);
+  row.value = { code: '', name: '', mode: defaultMode, attachUrls: [], description: '' };
   fileList.value = [];
 };
 
@@ -160,7 +218,14 @@ const handleEdit = async (r: Row) => {
   visible.value = true;
   const res = await getSecurityCheck(r.id!);
   const sc = res.data as SecurityCheck;
-  row.value = { ...(sc || {}) } as Row;
+  await loadConserveSecurityCheckOptions(toStr(sc.mode));
+  const full = { ...(sc || {}) } as Row;
+  if (!full.code && full.name) {
+    const matched = conserveSecurityChecks.value.find((item) => item.name === full.name);
+    if (matched?.code) full.code = matched.code;
+  }
+  if (full.code && full.name) upsertSecurityItemOption(toStr(full.code), full.name);
+  row.value = full;
   // 解析图片列表
   let urls: string[] = [];
   try {
@@ -206,15 +271,27 @@ const handleView = async (r: Row) => {
   viewVisible.value = true;
 };
 
-const saveRow = async (form: any) => {
+const saveRow = async (form: Record<string, unknown>) => {
+  const code = toStr(form.code ?? row.value.code);
+  const name = getSecurityItemName(code) || toStr(form.name ?? row.value.name);
+  if (!code || !name) {
+    ElMessage.warning('请选择安全检查项');
+    return;
+  }
+  const mode = toStr(form.mode ?? row.value.mode);
+  if (!mode) {
+    ElMessage.warning('请选择类别');
+    return;
+  }
   const imageList = JSON.stringify(row.value.attachUrls || []);
-  const description = (form.description ?? row.value.description) || '';
-  if (isEdit.value && (row.value.id || form.id)) {
-    await updateSecurityCheck({ id: (row.value.id || form.id), name: (form.name || row.value.name), mode: (form.mode || row.value.mode), imageList, description } as any);
+  const description = toStr(form.description ?? row.value.description);
+  const id = toStr(row.value.id ?? form.id);
+  if (isEdit.value && id) {
+    await updateSecurityCheck({ id, code, name, mode, imageList, description });
     ElMessage.success('保存成功');
   } else {
-    const idRes = await createSecurityCheck({ name: form.name, mode: form.mode, imageList, description } as any);
-    row.value.id = (idRes.data as any) || row.value.id;
+    const idRes = await createSecurityCheck({ code, name, mode, imageList, description });
+    if (idRes.data) row.value.id = String(idRes.data);
     ElMessage.success('新增成功');
   }
   closeDialog();

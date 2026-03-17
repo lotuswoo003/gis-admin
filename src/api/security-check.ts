@@ -1,5 +1,5 @@
 import request from '@/utils/request';
-import type { SecurityCheck, SecurityCheckPageRequest, PageResultSecurityCheck } from '@/types/security-check';
+import type { SecurityCheck, SecurityCheckPageRequest, PageResultSecurityCheck, ConserveSecurityCheck } from '@/types/security-check';
 
 export const fetchSecurityCheckPage = (data: SecurityCheckPageRequest) => {
   return request<PageResultSecurityCheck>({
@@ -39,3 +39,10 @@ export const deleteSecurityCheck = (id: string) => {
   });
 };
 
+export const fetchConserveSecurityCheckList = (data?: Partial<ConserveSecurityCheck>) => {
+  return request<ConserveSecurityCheck[]>({
+    url: 'sys/conserveSecurityCheck/list',
+    method: 'post',
+    data,
+  });
+};
