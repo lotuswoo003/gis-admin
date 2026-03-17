@@ -145,6 +145,10 @@ const handleOrgRemoteModal = async (kw: string) => {
 };
 
 const conserveOptsModal = ref<OptionItem[]>([]);
+const toConserveMode = (kind: RJCType): string => {
+  if (kind === 'human') return 'people';
+  return kind;
+};
 const syncConserveOption = () => {
   const field = formOptions.value.list.find(i => i.prop === 'conserveId');
   if (field) field.opts = conserveOptsModal.value;
@@ -158,7 +162,7 @@ const fetchConserveOptions = async (mode: RJCType, keyword = '') => {
   const res = await request<ConserveItem[]>({
     url: 'sys/conserve/list',
     method: 'post',
-    data: { mode, name: keyword || undefined },
+    data: { mode: toConserveMode(mode), name: keyword || undefined },
   });
   const records = res.data || [];
   conserveOptsModal.value = records.map(i => ({ label: i.name, value: String(i.id) }));
