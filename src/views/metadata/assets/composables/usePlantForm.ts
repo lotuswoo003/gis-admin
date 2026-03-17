@@ -60,7 +60,8 @@ export function usePlantForm(onSuccess: () => void) {
       clan: '',
       category: '',
       kind: '',
-      source: '',
+      source: 'SYSTEM',
+      tagIds: [],
       organizationId: userStore.currentOrganizationId
     }
   }
@@ -150,7 +151,6 @@ export function usePlantForm(onSuccess: () => void) {
     try {
       // organizationId 从用户上下文获取（可选）
       formData.organizationId = userStore.currentOrganizationId
-
       let res
       if (formState.mode === 'add') {
         res = await plantApi.insert(formData as PlantInsertRequest)

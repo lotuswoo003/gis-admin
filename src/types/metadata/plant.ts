@@ -50,8 +50,8 @@ export interface PlantBasicInfo {
 
   /** 标签列表 */
   tags?: string[]
-  /** 数据来源 */
-  source?: string
+  /** 数据来源 (SYSTEM=系统维护, APP=外业标注, EXCEL=Excel导入) */
+  source?: 'SYSTEM' | 'APP' | 'EXCEL'
   /** 审核状态 (PENDING=待审核, APPROVED=已审核, REJECTED=已拒绝) */
   status?: 'PENDING' | 'APPROVED' | 'REJECTED'
   /** 组织 ID (VARCHAR) */
@@ -154,8 +154,10 @@ export interface PlantInsertRequest {
   clan?: string
   category?: string
   kind?: string
-  /** 数据来源 */
-  source?: string
+  /** 标签列表 */
+  tagIds?: string[]
+  /** 数据来源 (SYSTEM=系统维护, APP=外业标注, EXCEL=Excel导入) */
+  source?: 'SYSTEM' | 'APP' | 'EXCEL'
   /** 审核状态 */
   status?: 'PENDING' | 'APPROVED' | 'REJECTED'
   /** 组织 ID - 从用户上下文自动填充 */

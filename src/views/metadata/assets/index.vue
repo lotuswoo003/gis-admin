@@ -70,6 +70,7 @@
       :mode="formState.mode"
       :form-data="formState.formData"
       :category-options="categoryOptions"
+      :tag-options="allTags"
       :loading="formState.loading"
       @submit="handleFormSubmit"
       @cancel="handleFormCancel"
@@ -91,6 +92,16 @@
       :loading="addTagLoading"
       @submit="handleAddTagSubmit"
     />
+
+    <!-- 审核对话框 -->
+    <PlantApproveDialog
+      v-model:visible="approveDialogVisible"
+      :plant-data="currentApprovePlant"
+      :category-options="categoryOptions"
+      :loading="approving"
+      @submit="handleApproveDialogSubmit"
+      @cancel="handleApproveDialogCancel"
+    />
   </div>
 </template>
 
@@ -104,6 +115,7 @@ import PlantFormDialog from './components/PlantFormDialog.vue'
 import DeleteConfirmDialog from './components/DeleteConfirmDialog.vue'
 import TagFilter from './components/TagFilter.vue'
 import AddTagDialog from './components/AddTagDialog.vue'
+import PlantApproveDialog from './components/PlantApproveDialog.vue'
 
 import { usePlantList } from './composables/usePlantList'
 import { usePlantForm } from './composables/usePlantForm'
@@ -155,7 +167,11 @@ const {
 // 审批逻辑
 const {
   approving,
+  approveDialogVisible,
+  currentApprovePlant,
   handleApprove,
+  handleApproveDialogSubmit,
+  handleApproveDialogCancel,
   handleBatchApprove
 } = usePlantApprove(loadList, listState)
 

@@ -20,44 +20,71 @@ export function usePlantApprove(
   // 审批加载中
   const approving = ref(false)
 
+  // 审核对话框可见性
+  const approveDialogVisible = ref(false)
+
+  // 当前待审核的植物数据
+  const currentApprovePlant = ref<PlantBasicInfoListResponse | null>(null)
+
   /**
-   * 单个审批（通过）
+   * 单个审批（通过）- 打开审核对话框
    * @param row 要审批的行数据
    */
   const handleApprove = async (row: PlantBasicInfoListResponse): Promise<void> => {
-    try {
-      await ElMessageBox.confirm(
-        `确定要审核通过植物"${row.name}"吗？`,
-        '审核确认',
-        {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }
-      )
+    currentApprovePlant.value = row
+    approveDialogVisible.value = true
+  }
 
+  /**
+   * 审核对话框提交
+   * @param data 表单数据
+   */
+  const handleApproveDialogSubmit = async (data: {
+    name: string
+    categoryId: string
+    mergeNameSubmit: boolean
+  }): Promise<void> => {
+    if (!currentApprovePlant.value) {
+      ElMessage.error('数据异常')
+      return
+    }
+
+    try {
       approving.value = true
 
+      // TODO: 根据实际后端接口调整参数
+      // 如果后端支持在审核时修改名称和分类，可以传递这些参数
       const res = await plantApi.approve({
-        id: row.id,
+        id: currentApprovePlant.value.id,
         status: 'APPROVED'
+        // 如果后端支持，可以添加以下参数：
+        // name: data.name,
+        // categoryId: data.categoryId,
+        // mergeNameSubmit: data.mergeNameSubmit
       })
 
       if (res.code === 0) {
         ElMessage.success('审核成功')
+        approveDialogVisible.value = false
         await loadList()
       } else {
         ElMessage.error(res.message || '审核失败')
       }
     } catch (error) {
-      if (error !== 'cancel') {
-        console.error('审批失败:', error)
-        const errorMessage = error instanceof Error ? error.message : '审批失败，请稍后重试'
-        ElMessage.error(errorMessage)
-      }
+      console.error('审批失败:', error)
+      const errorMessage = error instanceof Error ? error.message : '审批失败，请稍后重试'
+      ElMessage.error(errorMessage)
     } finally {
       approving.value = false
     }
+  }
+
+  /**
+   * 审核对话框取消
+   */
+  const handleApproveDialogCancel = () => {
+    approveDialogVisible.value = false
+    currentApprovePlant.value = null
   }
 
   /**
@@ -149,7 +176,11 @@ export function usePlantApprove(
 
   return {
     approving,
+    approveDialogVisible,
+    currentApprovePlant,
     handleApprove,
+    handleApproveDialogSubmit,
+    handleApproveDialogCancel,
     handleBatchApprove,
     handleReject
   }
