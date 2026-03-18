@@ -125,7 +125,7 @@ const routes: RouteRecordRaw[] = [
                 path: '/data-rjc',
                 name: 'data-rjc',
                 meta: {
-                    title: '人机协同',
+                    title: '成本设置',
                     permiss: '22',
                 },
                 component: () => import(/* webpackChunkName: "data-rjc" */ '../views/data/rjc.vue'),

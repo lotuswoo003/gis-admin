@@ -23,7 +23,7 @@ export const menuData: Menus[] = [
     icon: 'Collection',
     children: [
       { id: '21', pid: '2', index: 'data-craft', title: '智能工艺' },
-      { id: '22', pid: '2', index: 'data-rjc', title: '人机协同' },
+      { id: '22', pid: '2', index: 'data-rjc', title: '成本设置' },
       { id: '29', pid: '2', index: '/data-conserve', title: '人机材' },
       { id: '26', pid: '2', index: '/metadata-assets', title: '资产信息' },
       { id: '291', pid: '2', index: 'security-check', title: '安全管理' },
