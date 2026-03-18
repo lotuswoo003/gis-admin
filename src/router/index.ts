@@ -130,6 +130,15 @@ const routes: RouteRecordRaw[] = [
                 },
                 component: () => import(/* webpackChunkName: "data-rjc" */ '../views/data/rjc.vue'),
             },
+            {
+                path: '/data-conserve',
+                name: 'data-conserve',
+                meta: {
+                    title: '人机材',
+                    permiss: '29',
+                },
+                component: () => import(/* webpackChunkName: "data-conserve" */ '../views/data/conserve.vue'),
+            },
               {
                   path: '/system-org',
                   name: 'system-org',
