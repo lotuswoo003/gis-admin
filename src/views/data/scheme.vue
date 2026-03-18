@@ -185,15 +185,14 @@ const formOptions = ref<FormOption>({
 
 const openAdd = () => {
   isEdit.value = false;
-  visible.value = true;
   schemeRow.value = {
     types: [], month: null, inputLabor: null, workload: null, description: '', finishStandards: '', suggestions: '', intelligentSuggestions: '', organizationId: null, provinceId: null, cityId: null, countyId: null,
   };
+  visible.value = true;
 };
 
 const handleEdit = (row: SchemeRow) => {
   isEdit.value = true;
-  visible.value = true;
   schemeRow.value = {
     id: row.id,
     types: (row.type ? String(row.type).split(',') : []),
@@ -213,6 +212,7 @@ const handleEdit = (row: SchemeRow) => {
     const exists = orgOptsModal.value.some(o => o.value === String(row.organizationId));
     if (!exists) orgOptsModal.value.unshift({ label: row.organizationName, value: String(row.organizationId) });
   }
+  visible.value = true;
 };
 
 const saveScheme = async (form: any) => {
@@ -235,14 +235,14 @@ const saveScheme = async (form: any) => {
     finishStandards: form.finishStandards,
     suggestions: form.suggestions,
     intelligentSuggestions: form.intelligentSuggestions,
-    organizationId: Number(idStr),
+    organizationId: idStr || undefined,
     organizationName: orgHit.label,
     province: form.province,
     city: form.city,
     county: form.county,
-    provinceId: form.provinceId ? Number(form.provinceId) : undefined,
-    cityId: form.cityId ? Number(form.cityId) : undefined,
-    countyId: form.countyId ? Number(form.countyId) : undefined,
+    provinceId: form.provinceId ? String(form.provinceId) : undefined,
+    cityId: form.cityId ? String(form.cityId) : undefined,
+    countyId: form.countyId ? String(form.countyId) : undefined,
   };
 
   if (isEdit.value) {

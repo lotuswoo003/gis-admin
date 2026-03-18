@@ -1,6 +1,6 @@
 export interface PlanTemplate {
-  id?: number;
-  organizationId?: number;
+  id?: string;
+  organizationId?: string;
   organizationName?: string;
   month?: number;
   type?: string;
@@ -13,13 +13,12 @@ export interface PlanTemplate {
   province?: string;
   city?: string;
   county?: string;
-  provinceId?: number;
-  cityId?: number;
-  countyId?: number;
+  provinceId?: string;
+  cityId?: string;
+  countyId?: string;
   createdBy?: number;
   updatedBy?: number;
   createdAt?: string; // date-time
   updatedAt?: string; // date-time
   deletedAt?: string; // date-time
 }
-
