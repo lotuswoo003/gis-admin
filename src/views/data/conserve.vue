@@ -43,6 +43,7 @@ import type { Conserve, ConserveMode } from '@/types/conserve';
 
 type QueryParams = {
   name: string;
+  mode: '' | ConserveMode;
 };
 
 type ConserveTableRow = {
@@ -51,7 +52,6 @@ type ConserveTableRow = {
   modeText: string;
   code: string;
   name: string;
-  dispalyOrder?: number;
 };
 
 const modeOptions: Array<{ label: string; value: ConserveMode }> = [
@@ -66,26 +66,36 @@ const modeLabelMap: Record<ConserveMode, string> = {
   material: '材',
 };
 
-const getModeText = (mode?: string): string => {
-  if (mode === 'people' || mode === 'machine' || mode === 'material') {
-    return modeLabelMap[mode];
+const normalizeMode = (mode?: string): ConserveMode | null => {
+  if (mode === 'people' || mode === 'human') {
+    return 'people';
   }
-  return mode || '';
-};
-
-const normalizeMode = (mode?: string): ConserveMode => {
   if (mode === 'machine' || mode === 'material') {
     return mode;
   }
-  return 'people';
+  return null;
+};
+
+const getModeText = (mode?: string): string => {
+  const normalizedMode = normalizeMode(mode);
+  return normalizedMode ? modeLabelMap[normalizedMode] : '';
+};
+
+const getRequestMode = (mode: '' | ConserveMode): ConserveMode | undefined => {
+  if (mode === 'machine' || mode === 'material') {
+    return mode;
+  }
+  return undefined;
 };
 
 const query = reactive<QueryParams>({
   name: '',
+  mode: '',
 });
 
 const searchOpt = ref<FormOptionList[]>([
   { type: 'input', label: '名称：', prop: 'name', placeholder: '输入名称', inputStyle: { width: '320px' } },
+  { type: 'select', label: '类别：', prop: 'mode', placeholder: '请选择类别', opts: modeOptions, inputStyle: { width: '180px' } },
 ]);
 
 const columns = ref([
@@ -93,8 +103,7 @@ const columns = ref([
   { prop: 'modeText', label: '类别', width: 100 },
   { prop: 'code', label: '编码', minWidth: 180, align: 'left' },
   { prop: 'name', label: '名称', minWidth: 180, align: 'left' },
-  { prop: 'dispalyOrder', label: '排序', width: 100 },
-  { prop: 'operator', label: '操作', width: 180 },
+  { prop: 'operator', label: '操作', width: 220 },
 ]);
 
 const page = reactive({ index: 1, rows: 10, total: 0 });
@@ -105,17 +114,28 @@ const loadData = async () => {
     page: page.index,
     rows: page.rows,
     name: query.name || undefined,
+    mode: getRequestMode(query.mode),
   });
   const records = (res.data?.list || res.data?.records || []) as Conserve[];
   page.total = res.data?.total || 0;
-  tableData.value = records.map((item) => ({
-    id: item.id || '',
-    mode: normalizeMode(item.mode),
-    modeText: getModeText(item.mode),
-    code: item.code || '',
-    name: item.name || '',
-    dispalyOrder: item.dispalyOrder,
-  }));
+  tableData.value = records
+    .map((item) => {
+      const normalizedMode = normalizeMode(item.mode);
+      if (!normalizedMode) {
+        return null;
+      }
+      if (query.mode && normalizedMode !== query.mode) {
+        return null;
+      }
+      return {
+        id: item.id || '',
+        mode: normalizedMode,
+        modeText: modeLabelMap[normalizedMode],
+        code: item.code || '',
+        name: item.name || '',
+      } satisfies ConserveTableRow;
+    })
+    .filter((item): item is ConserveTableRow => item !== null);
 };
 
 const handleSearch = () => {
@@ -164,7 +184,7 @@ const handleEdit = async (currentRow: ConserveTableRow) => {
   const res = await getConserve(currentRow.id);
   row.value = {
     ...res.data,
-    mode: normalizeMode(res.data?.mode),
+    mode: normalizeMode(res.data?.mode) || 'people',
   };
   visible.value = true;
 };
