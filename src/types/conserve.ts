@@ -22,6 +22,7 @@ export interface ConservePageRequest {
   code?: string;
   name?: string;
   mode?: ConserveMode | string;
+  onlyRjc?: boolean;
   parentId?: number;
   organizationId?: number;
   versionId?: number;

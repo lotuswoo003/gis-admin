@@ -48,7 +48,7 @@ type QueryParams = {
 
 type ConserveTableRow = {
   id: string;
-  mode: ConserveMode;
+  mode: string;
   modeText: string;
   code: string;
   name: string;
@@ -78,11 +78,11 @@ const normalizeMode = (mode?: string): ConserveMode | null => {
 
 const getModeText = (mode?: string): string => {
   const normalizedMode = normalizeMode(mode);
-  return normalizedMode ? modeLabelMap[normalizedMode] : '';
+  return normalizedMode ? modeLabelMap[normalizedMode] : mode || '';
 };
 
 const getRequestMode = (mode: '' | ConserveMode): ConserveMode | undefined => {
-  if (mode === 'machine' || mode === 'material') {
+  if (mode === 'people' || mode === 'machine' || mode === 'material') {
     return mode;
   }
   return undefined;
@@ -115,27 +115,19 @@ const loadData = async () => {
     rows: page.rows,
     name: query.name || undefined,
     mode: getRequestMode(query.mode),
+    onlyRjc: true,
   });
   const records = (res.data?.list || res.data?.records || []) as Conserve[];
   page.total = res.data?.total || 0;
-  tableData.value = records
-    .map((item) => {
-      const normalizedMode = normalizeMode(item.mode);
-      if (!normalizedMode) {
-        return null;
-      }
-      if (query.mode && normalizedMode !== query.mode) {
-        return null;
-      }
-      return {
-        id: item.id || '',
-        mode: normalizedMode,
-        modeText: modeLabelMap[normalizedMode],
-        code: item.code || '',
-        name: item.name || '',
-      } satisfies ConserveTableRow;
-    })
-    .filter((item): item is ConserveTableRow => item !== null);
+  tableData.value = records.map((item) => {
+    return {
+      id: item.id || '',
+      mode: item.mode || '',
+      modeText: getModeText(item.mode),
+      code: item.code || '',
+      name: item.name || '',
+    } satisfies ConserveTableRow;
+  });
 };
 
 const handleSearch = () => {
@@ -192,7 +184,7 @@ const handleEdit = async (currentRow: ConserveTableRow) => {
 const saveRow = async (form: Record<string, unknown>) => {
   const payload: Conserve = {
     id: form.id ? String(form.id) : undefined,
-    mode: normalizeMode(String(form.mode || 'people')),
+    mode: normalizeMode(String(form.mode || 'people')) || 'people',
     code: String(form.code || '').trim(),
     name: String(form.name || '').trim(),
     dispalyOrder: form.dispalyOrder == null || form.dispalyOrder === '' ? undefined : Number(form.dispalyOrder),
