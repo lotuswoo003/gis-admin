@@ -25,22 +25,22 @@
 
     <el-dialog :title="isEdit ? '编辑方案' : '新增方案'" v-model="visible" width="1000px" destroy-on-close :close-on-click-modal="false" @close="closeDialog">
       <TableEdit :form-data="schemeRow" :options="formOptions" :edit="isEdit" :update="saveScheme">
-        <template #finishStandards>
+        <template #finishStandards="{ form }">
           <div class="rt-field">
             <Toolbar :editor="finishEditor" style="border-bottom:1px solid #ccc" />
-            <Editor v-model="schemeRow.finishStandards" :defaultConfig="editorCfg" style="height:240px; overflow-y:hidden" @onCreated="(ed:any)=>finishEditor=ed" />
+            <Editor v-model="form.finishStandards" :defaultConfig="editorCfg" style="height:240px; overflow-y:hidden" @onCreated="(ed:any)=>finishEditor=ed" />
           </div>
         </template>
-        <template #suggestions>
+        <template #suggestions="{ form }">
           <div class="rt-field">
             <Toolbar :editor="suggestEditor" style="border-bottom:1px solid #ccc" />
-            <Editor v-model="schemeRow.suggestions" :defaultConfig="editorCfg" style="height:240px; overflow-y:hidden" @onCreated="(ed:any)=>suggestEditor=ed" />
+            <Editor v-model="form.suggestions" :defaultConfig="editorCfg" style="height:240px; overflow-y:hidden" @onCreated="(ed:any)=>suggestEditor=ed" />
           </div>
         </template>
-        <template #intelligentSuggestions>
+        <template #intelligentSuggestions="{ form }">
           <div class="rt-field">
             <Toolbar :editor="intelEditor" style="border-bottom:1px solid #ccc" />
-            <Editor v-model="schemeRow.intelligentSuggestions" :defaultConfig="editorCfg" style="height:240px; overflow-y:hidden" @onCreated="(ed:any)=>intelEditor=ed" />
+            <Editor v-model="form.intelligentSuggestions" :defaultConfig="editorCfg" style="height:240px; overflow-y:hidden" @onCreated="(ed:any)=>intelEditor=ed" />
           </div>
         </template>
       </TableEdit>

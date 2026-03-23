@@ -33,7 +33,7 @@
                                                 :model-value="{ provinceId: form.provinceId, cityId: form.cityId, countyId: form.countyId }"
                                                 @change="handleRegionChange"
                                         />
-                                        <slot :name="item.prop" v-else>
+                                        <slot :name="item.prop" v-else :form="form">
 
                                         </slot>
 				</el-form-item>
