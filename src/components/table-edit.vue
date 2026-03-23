@@ -1,7 +1,7 @@
 <template>
-	<el-form ref="formRef" :model="form" :rules="rules" :label-width="options.labelWidth">
+	<el-form ref="formRef" :model="form" :rules="rules" :label-width="props.options.labelWidth">
                 <el-row>
-                        <el-col v-for="item in options.list" :span="item.span || options.span">
+                        <el-col v-for="item in props.options.list" :span="item.span || props.options.span">
                                 <el-form-item :label="item.label" :prop="item.prop">
 					<!-- 文本框、数字框、下拉框、日期框、开关、上传 -->
 					<el-input v-if="item.type === 'input'" v-model="form[item.prop]" :disabled="item.disabled"
@@ -49,9 +49,9 @@
 <script lang="ts" setup>
 import { FormOption, FormOptionList } from '@/types/form-option';
 import { FormInstance, FormRules, UploadProps } from 'element-plus';
-import { PropType, ref } from 'vue';
+import { PropType, ref, watch } from 'vue';
 
-const { options, formData, edit, update } = defineProps({
+const props = defineProps({
 	options: {
 		type: Object as PropType<FormOption>,
 		required: true
@@ -71,9 +71,17 @@ const { options, formData, edit, update } = defineProps({
 });
 
 
-const form = ref({ ...(edit ? formData : {}) });
+const form = ref({ ...(props.formData || {}) });
 
-const rules: FormRules = options.list.map(item => {
+watch(
+	() => props.formData,
+	(value) => {
+		form.value = { ...(value || {}) };
+	},
+	{ immediate: true, deep: true }
+);
+
+const rules: FormRules = props.options.list.map(item => {
 	if (item.required) {
 		return { [item.prop]: [{ required: true, message: `${item.label}不能为空`, trigger: 'blur' }] };
 	}
@@ -86,7 +94,7 @@ const saveEdit = (formEl: FormInstance | undefined) => {
 	if (!formEl) return;
 	formEl.validate(valid => {
 		if (!valid) return false;
-		update(form.value);
+		props.update(form.value);
 	});
 };
 

@@ -28,7 +28,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, watch, onMounted } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import type { PostalCode } from '@/types/postal-code';
 import { fetchPostalCodeList } from '@/api/postal-code';
 
@@ -47,23 +47,44 @@ const counties = ref<PostalCode[]>([]);
 const provinceId = ref<string | null>(null);
 const cityId = ref<string | null>(null);
 const countyId = ref<string | null>(null);
+const syncingFromProps = ref(false);
 
 const emit = defineEmits(['change']);
 
-onMounted(async () => {
+const loadProvinces = async () => {
   const res = await fetchPostalCodeList({ level: 1, parentId: '-1' });
-  provinces.value = res.data;
-  if (props.modelValue?.provinceId) {
-    provinceId.value = String(props.modelValue.provinceId);
-    await onProvinceChange(provinceId.value);
-    if (props.modelValue.cityId) {
-      cityId.value = String(props.modelValue.cityId);
-      await onCityChange(cityId.value);
-      if (props.modelValue.countyId) {
-        countyId.value = String(props.modelValue.countyId);
-      }
-    }
+  provinces.value = res.data || [];
+};
+
+const syncModelValue = async (value?: RegionModel) => {
+  syncingFromProps.value = true;
+  if (!provinces.value.length) {
+    await loadProvinces();
   }
+
+  provinceId.value = value?.provinceId ? String(value.provinceId) : null;
+  cityId.value = value?.cityId ? String(value.cityId) : null;
+  countyId.value = value?.countyId ? String(value.countyId) : null;
+
+  if (provinceId.value) {
+    const cityRes = await fetchPostalCodeList({ level: 2, parentId: provinceId.value });
+    cities.value = cityRes.data || [];
+  } else {
+    cities.value = [];
+  }
+
+  if (cityId.value) {
+    const countyRes = await fetchPostalCodeList({ level: 3, parentId: cityId.value });
+    counties.value = countyRes.data || [];
+  } else {
+    counties.value = [];
+  }
+
+  syncingFromProps.value = false;
+};
+
+onMounted(async () => {
+  await syncModelValue(props.modelValue);
 });
 
 const onProvinceChange = async (val: string) => {
@@ -72,17 +93,28 @@ const onProvinceChange = async (val: string) => {
   cities.value = [];
   counties.value = [];
   const res = await fetchPostalCodeList({ level: 2, parentId: val });
-  cities.value = res.data;
+  cities.value = res.data || [];
 };
 
 const onCityChange = async (val: string) => {
   countyId.value = null;
   counties.value = [];
   const res = await fetchPostalCodeList({ level: 3, parentId: val });
-  counties.value = res.data;
+  counties.value = res.data || [];
 };
 
+watch(
+  () => props.modelValue,
+  async (value) => {
+    await syncModelValue(value);
+  },
+  { deep: true }
+);
+
 watch([provinceId, cityId, countyId], () => {
+  if (syncingFromProps.value) {
+    return;
+  }
   emit('change', {
     provinceId: provinceId.value,
     provinceName: provinces.value.find((p) => String(p.id) === provinceId.value)?.displayName,

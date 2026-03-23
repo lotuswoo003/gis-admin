@@ -144,6 +144,9 @@ const schemeRow = ref<any>({
   suggestions: '',
   intelligentSuggestions: '',
   organizationId: null,
+  province: '',
+  city: '',
+  county: '',
   provinceId: null,
   cityId: null,
   countyId: null,
@@ -186,7 +189,7 @@ const formOptions = ref<FormOption>({
 const openAdd = () => {
   isEdit.value = false;
   schemeRow.value = {
-    types: [], month: null, inputLabor: null, workload: null, description: '', finishStandards: '', suggestions: '', intelligentSuggestions: '', organizationId: null, provinceId: null, cityId: null, countyId: null,
+    types: [], month: null, inputLabor: null, workload: null, description: '', finishStandards: '', suggestions: '', intelligentSuggestions: '', organizationId: null, province: '', city: '', county: '', provinceId: null, cityId: null, countyId: null,
   };
   visible.value = true;
 };
@@ -204,6 +207,9 @@ const handleEdit = (row: SchemeRow) => {
     suggestions: row.suggestions || '',
     intelligentSuggestions: row.intelligentSuggestions || '',
     organizationId: row.organizationId ? String(row.organizationId) : null,
+    province: row.province || '',
+    city: row.city || '',
+    county: row.county || '',
     provinceId: row.provinceId || null,
     cityId: row.cityId || null,
     countyId: row.countyId || null,
@@ -232,14 +238,14 @@ const saveScheme = async (form: any) => {
     inputLabor: form.inputLabor != null ? Number(form.inputLabor) : undefined,
     workload: form.workload != null ? Number(form.workload) : undefined,
     description: form.description,
-    finishStandards: form.finishStandards,
-    suggestions: form.suggestions,
-    intelligentSuggestions: form.intelligentSuggestions,
+    finishStandards: form.finishStandards ?? schemeRow.value.finishStandards,
+    suggestions: form.suggestions ?? schemeRow.value.suggestions,
+    intelligentSuggestions: form.intelligentSuggestions ?? schemeRow.value.intelligentSuggestions,
     organizationId: idStr || undefined,
     organizationName: orgHit.label,
-    province: form.province,
-    city: form.city,
-    county: form.county,
+    province: form.province ?? schemeRow.value.province,
+    city: form.city ?? schemeRow.value.city,
+    county: form.county ?? schemeRow.value.county,
     provinceId: form.provinceId ? String(form.provinceId) : undefined,
     cityId: form.cityId ? String(form.cityId) : undefined,
     countyId: form.countyId ? String(form.countyId) : undefined,
