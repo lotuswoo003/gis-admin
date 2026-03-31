@@ -90,9 +90,15 @@ const typeOptions = [
 ];
 
 // 查询
-const query = reactive({ name: '' });
+const query = reactive({
+  name: '',
+  moveInDateFrom: '',
+  moveInDateTo: '',
+});
 const searchOpt = ref<FormOptionList[]>([
   { type: 'input', label: '组织名称', prop: 'name' },
+  { type: 'date', label: '入驻开始', prop: 'moveInDateFrom', format: 'YYYY-MM-DD' },
+  { type: 'date', label: '入驻结束', prop: 'moveInDateTo', format: 'YYYY-MM-DD' },
 ]);
 const handleSearch = () => { changePage(1); };
 
@@ -104,6 +110,7 @@ let columns = ref([
   { prop: 'province', label: '省' },
   { prop: 'city', label: '市' },
   { prop: 'county', label: '区县' },
+  { prop: 'moveInDate', label: '入驻时间' },
   { prop: 'address', label: '地址' },
   { prop: 'operator', label: '操作', width: 420 },
 ]);
@@ -111,7 +118,13 @@ let columns = ref([
 const page = reactive({ index: 1, rows: 10, total: 0 });
 const tableData = ref<Organization[]>([]);
 const getData = async () => {
-  const res = await fetchOrganizationPage({ page: page.index, rows: page.rows, name: query.name });
+  const res = await fetchOrganizationPage({
+    page: page.index,
+    rows: page.rows,
+    name: query.name,
+    moveInDateFrom: query.moveInDateFrom,
+    moveInDateTo: query.moveInDateTo,
+  });
   tableData.value = (res.data.list || []) as Organization[];
   page.total = res.data.total || 0;
 };
@@ -127,6 +140,7 @@ let options = ref<FormOption>({
     { type: 'input', label: '组织名称', prop: 'name', required: true },
     { type: 'select', label: '组织类型', prop: 'type', required: true, opts: typeOptions },
     { type: 'input', label: '管理员账号', prop: 'adminLoginCode', required: true, span: 24 },
+    { type: 'date', label: '入驻时间', prop: 'moveInDate', format: 'YYYY-MM-DD', span: 24 },
     { type: 'region', label: '省市区', prop: 'provinceId', required: true, span: 24 },
     { type: 'input', label: '地址', prop: 'address', required: true, span: 24 },
   ]
@@ -191,6 +205,7 @@ const handleView = async (row: Organization) => {
     { prop: 'province', label: '省' },
     { prop: 'city', label: '市' },
     { prop: 'county', label: '区县' },
+    { prop: 'moveInDate', label: '入驻时间' },
     { prop: 'address', label: '地址' },
     { prop: 'createdAt', label: '创建时间' },
   ];
