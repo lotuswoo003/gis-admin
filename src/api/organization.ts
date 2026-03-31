@@ -32,6 +32,14 @@ export const updateOrganization = (data: OrganizationUpdate) => {
     });
 };
 
+export const deleteOrganization = (id: string | number) => {
+    return request<boolean>({
+        url: 'sys/organization/delete',
+        method: 'post',
+        params: { id },
+    });
+};
+
 // 查询已绑定的下游企业列表
 export const targetOrgs = (sourceOrgId: string) => {
     return request<Organization[]>({

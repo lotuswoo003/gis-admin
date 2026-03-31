@@ -4,6 +4,7 @@ export interface Permission {
     code: string;
     description: string;
     path: string;
+    icon?: string;
     parentId: string;
     type: string;
     sort: number;
@@ -24,6 +25,7 @@ export interface PermissionCreateRequest {
     code: string;
     description: string;
     path: string;
+    icon?: string;
     parentId: string;
     type: string;
     sort: number;

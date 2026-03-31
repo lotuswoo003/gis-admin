@@ -1,5 +1,5 @@
 export interface Organization {
-    id: number;
+    id: string;
     name: string;
     type: string;
     province: string;
@@ -33,5 +33,5 @@ export interface OrganizationSave {
 }
 
 export interface OrganizationUpdate extends OrganizationSave {
-    id: number;
+    id: string;
 }

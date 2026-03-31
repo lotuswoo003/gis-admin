@@ -72,10 +72,10 @@
 
 <script setup lang="ts" name="system-org">
 import { ref, reactive, onMounted, watch } from 'vue';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { CirclePlusFilled } from '@element-plus/icons-vue';
 import type { Organization } from '@/types/org';
-import { fetchOrganizationPage, getOrganization, saveOrganization, updateOrganization, targetOrgs, bindTargets } from '@/api/organization';
+import { fetchOrganizationPage, getOrganization, saveOrganization, updateOrganization, deleteOrganization, targetOrgs, bindTargets } from '@/api/organization';
 import TableCustom from '@/components/table-custom.vue';
 import TableDetail from '@/components/table-detail.vue';
 import TableSearch from '@/components/table-search.vue';
@@ -197,8 +197,34 @@ const handleView = async (row: Organization) => {
   visible1.value = true;
 };
 
-// 删除（示例）
-const handleDelete = (row: Organization) => {
+const handleDelete = async (row: Organization) => {
+  await ElMessageBox.confirm(`确认删除组织“${row.name}”吗？`, '删除确认', {
+    type: 'warning',
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+  });
+
+  const res = await deleteOrganization(row.id);
+  if (!res.data) {
+    await getData();
+    ElMessage.error('删除失败，组织不存在、已删除或未成功更新');
+    return;
+  }
+
+  await getData();
+  const deletedOrgId = String(row.id);
+  const stillExists = tableData.value.some(item => String(item.id) === deletedOrgId);
+  if (stillExists) {
+    ElMessage.error('删除未生效，列表刷新后该组织仍存在');
+    return;
+  }
+
+  const duplicatedNameExists = tableData.value.some(item => item.name === row.name);
+  if (duplicatedNameExists) {
+    ElMessage.warning('当前记录已删除，但列表中仍有同名组织');
+    return;
+  }
+
   ElMessage.success('删除成功');
 };
 

@@ -62,6 +62,24 @@
             clearable
           />
         </template>
+        <template #icon="{ form }">
+          <div class="menu-icon-field">
+            <el-upload
+              class="menu-icon-uploader"
+              action="#"
+              accept="image/*"
+              :show-file-list="false"
+              :http-request="handleMenuIconUpload"
+            >
+              <img v-if="form.icon" :src="form.icon" class="menu-icon-preview" />
+              <div v-else class="menu-icon-placeholder">上传图标</div>
+            </el-upload>
+            <div class="menu-icon-meta">
+              <el-input v-model="form.icon" placeholder="上传后自动回填图标地址" clearable />
+              <div class="menu-icon-tip">支持 png、jpg、jpeg、svg、webp，建议使用方形图片。</div>
+            </div>
+          </div>
+        </template>
       </TableEdit>
     </el-dialog>
   </div>
@@ -71,11 +89,13 @@
 import { onMounted, ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import { CirclePlusFilled, Edit, Delete } from '@element-plus/icons-vue';
+import type { UploadRequestOptions } from 'element-plus';
 import TableCustom from '@/components/table-custom.vue';
 import TableEdit from '@/components/table-edit.vue';
 import { FormOption } from '@/types/form-option';
 import { getPermissionChildren, getPermission, createPermission, updatePermission, deletePermission, getPermissionTree } from '@/api/permission';
 import type { Permission, PermissionCreateRequest, PermissionUpdateRequest } from '@/types/permission';
+import { uploadToOss } from '@/utils/oss';
 
 // 左侧菜单树数据（仅 type=1）
 const menuTree = ref<any[]>([]);
@@ -220,6 +240,7 @@ let menuOptions = ref<FormOption>({
     { type: 'input', label: '菜单名称', prop: 'name', required: true },
     { type: 'input', label: '权限编码', prop: 'code', required: true },
     { type: 'input', label: '路径', prop: 'path', required: false },
+    { type: 'slot', label: '菜单图标', prop: 'icon' },
     { type: 'input', label: '描述', prop: 'description' },
     { type: 'parent', label: '父级菜单', prop: 'parentId' },
     { type: 'switch', label: '是否禁用', prop: 'disableFlag', activeValue: 1, inactiveValue: 0, activeText: '禁用', inactiveText: '启用' },
@@ -227,7 +248,7 @@ let menuOptions = ref<FormOption>({
 });
 
 const openAddMenu = () => {
-  menuRowData.value = { type: '1', parentId: selectedMenuId.value || '' } as Permission;
+  menuRowData.value = { type: '1', parentId: selectedMenuId.value || '', icon: '' } as Permission;
   menuIsEdit.value = false;
   menuVisible.value = true;
 };
@@ -262,6 +283,21 @@ const saveMenu = async (form: Permission) => {
   menuVisible.value = false;
   await loadMenuTree();
 };
+
+const handleMenuIconUpload = async (opt: UploadRequestOptions) => {
+  try {
+    const file = opt.file as File;
+    const suffix = file.name.includes('.') ? file.name.slice(file.name.lastIndexOf('.')) : '';
+    const fileName = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}${suffix}`;
+    const res = await uploadToOss('system/menu/icon', file, fileName);
+    menuRowData.value.icon = res.url;
+    opt.onSuccess && opt.onSuccess({});
+    ElMessage.success('图标上传成功');
+  } catch (error: any) {
+    opt.onError && opt.onError(error);
+    ElMessage.error(error?.message || '图标上传失败');
+  }
+};
 </script>
 
 <style scoped>
@@ -273,4 +309,28 @@ const saveMenu = async (form: Permission) => {
 .right-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: 600; }
 .tree-node { display: flex; justify-content: space-between; align-items: center; width: 100%; }
 .tree-node .edit-link { margin-left: 8px; }
+.menu-icon-field { display: flex; align-items: flex-start; gap: 12px; width: 100%; }
+.menu-icon-uploader :deep(.el-upload) {
+  width: 88px;
+  height: 88px;
+  border: 1px dashed var(--el-border-color);
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+.menu-icon-uploader :deep(.el-upload:hover) { border-color: var(--el-color-primary); }
+.menu-icon-preview { width: 88px; height: 88px; object-fit: cover; display: block; }
+.menu-icon-placeholder {
+  width: 88px;
+  height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--el-text-color-secondary);
+  font-size: 13px;
+  background: var(--el-fill-color-light);
+}
+.menu-icon-meta { flex: 1; }
+.menu-icon-tip { margin-top: 6px; font-size: 12px; color: var(--el-text-color-secondary); }
 </style>

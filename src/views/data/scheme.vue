@@ -56,7 +56,7 @@ import TableCustom from '@/components/table-custom.vue';
 import TableSearch from '@/components/table-search.vue';
 import type { FormOption, FormOptionList } from '@/types/form-option';
 import type { PlanTemplate } from '@/types/plan-template';
-import { fetchPlanTemplatePage, createPlanTemplate, updatePlanTemplate, deletePlanTemplate } from '@/api/plan-template';
+import { fetchPlanTemplatePage, createPlanTemplate, updatePlanTemplate, deletePlanTemplate, getPlanTemplate } from '@/api/plan-template';
 import { fetchOrganizationPage } from '@/api/organization';
 import '@wangeditor/editor/dist/css/style.css';
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue';
@@ -194,29 +194,30 @@ const openAdd = () => {
   visible.value = true;
 };
 
-const handleEdit = (row: SchemeRow) => {
+const handleEdit = async (row: SchemeRow) => {
+  const detail = row.id ? ((await getPlanTemplate(row.id)).data || row) : row;
   isEdit.value = true;
   schemeRow.value = {
-    id: row.id,
-    types: (row.type ? String(row.type).split(',') : []),
-    month: row.month || null,
-    inputLabor: row.inputLabor || null,
-    workload: row.workload || null,
-    description: row.description || '',
-    finishStandards: row.finishStandards || '',
-    suggestions: row.suggestions || '',
-    intelligentSuggestions: row.intelligentSuggestions || '',
-    organizationId: row.organizationId ? String(row.organizationId) : null,
-    province: row.province || '',
-    city: row.city || '',
-    county: row.county || '',
-    provinceId: row.provinceId || null,
-    cityId: row.cityId || null,
-    countyId: row.countyId || null,
+    id: detail.id,
+    types: (detail.type ? String(detail.type).split(',') : []),
+    month: detail.month || null,
+    inputLabor: detail.inputLabor || null,
+    workload: detail.workload || null,
+    description: detail.description || '',
+    finishStandards: detail.finishStandards || '',
+    suggestions: detail.suggestions || '',
+    intelligentSuggestions: detail.intelligentSuggestions || '',
+    organizationId: detail.organizationId ? String(detail.organizationId) : null,
+    province: detail.province || '',
+    city: detail.city || '',
+    county: detail.county || '',
+    provinceId: detail.provinceId || null,
+    cityId: detail.cityId || null,
+    countyId: detail.countyId || null,
   } as any;
-  if (row.organizationId && row.organizationName) {
-    const exists = orgOptsModal.value.some(o => o.value === String(row.organizationId));
-    if (!exists) orgOptsModal.value.unshift({ label: row.organizationName, value: String(row.organizationId) });
+  if (detail.organizationId && detail.organizationName) {
+    const exists = orgOptsModal.value.some(o => o.value === String(detail.organizationId));
+    if (!exists) orgOptsModal.value.unshift({ label: detail.organizationName, value: String(detail.organizationId) });
   }
   visible.value = true;
 };
