@@ -97,6 +97,24 @@ import { getPermissionChildren, getPermission, createPermission, updatePermissio
 import type { Permission, PermissionCreateRequest, PermissionUpdateRequest } from '@/types/permission';
 import { uploadToOss } from '@/utils/oss';
 
+const comparePermissionSort = (a: { sort?: number; label?: string; name?: string }, b: { sort?: number; label?: string; name?: string }) => {
+  const sortA = Number(a.sort ?? 0);
+  const sortB = Number(b.sort ?? 0);
+  if (sortA !== sortB) {
+    return sortA - sortB;
+  }
+  return String(a.label || a.name || '').localeCompare(String(b.label || b.name || ''), 'zh-Hans-CN');
+};
+
+const sortPermissionTree = (nodes: any[]): any[] => [...(nodes || [])]
+  .sort(comparePermissionSort)
+  .map((node: any) => ({
+    ...node,
+    children: sortPermissionTree(node.children || []),
+  }));
+
+const sortPermissionList = (list: Permission[]): Permission[] => [...(list || [])].sort(comparePermissionSort);
+
 // 左侧菜单树数据（仅 type=1）
 const menuTree = ref<any[]>([]);
 const menuTreeRaw = ref<any[]>([]);
@@ -117,15 +135,16 @@ const adornTree = (nodes: any[]): any[] => (nodes || []).map((n: any) => ({
 
 const loadMenuTree = async () => {
   const res = await getPermissionTree({ type: '1' });
-  const all = adornTree((res.data || []) as any[]);
+  const all = sortPermissionTree(adornTree((res.data || []) as any[]));
   // 左侧只展示菜单（type=1）
   const stripButtons = (nodes: any[]): any[] => nodes.map((n: any) => ({
     id: n.id,
     label: n.label,
+    sort: n.sort,
     desc: n.description,
     children: stripButtons((n.children || []).filter((c: any) => c.type === '1')),
   }));
-  menuTreeRaw.value = stripButtons(all);
+  menuTreeRaw.value = sortPermissionTree(stripButtons(all));
   applyMenuFilter();
   cascaderOptions.value = buildCascaderOptions(menuTreeRaw.value);
   // 左侧用 tree，右侧按钮列表按需加载
@@ -157,6 +176,7 @@ const onSelectMenu = async (node: any) => {
 const columns = ref([
   { prop: 'name', label: '按钮名称', align: 'left' },
   { prop: 'code', label: '权限编码' },
+  { prop: 'sort', label: '排序', width: 90 },
   { prop: 'disableFlag', label: '是否禁用', formatter: (val: number) => (val ? '禁用' : '启用') },
   { prop: 'operator', label: '操作', width: 200 },
 ]);
@@ -164,7 +184,7 @@ const columns = ref([
 const loadButtons = async () => {
   if (!selectedMenuId.value) { permissionData.value = []; return; }
   const res = await getPermissionChildren({ parentId: selectedMenuId.value, type: '2' });
-  permissionData.value = (res.data || []) as Permission[];
+  permissionData.value = sortPermissionList((res.data || []) as Permission[]);
 };
 
 // 权限弹窗
@@ -179,20 +199,21 @@ let options = ref<FormOption>({
     { type: 'input', label: '名称', prop: 'name', required: true },
     { type: 'input', label: '权限编码', prop: 'code', required: true },
     { type: 'input', label: '描述', prop: 'description' },
+    { type: 'number', label: '排序', prop: 'sort' },
     { type: 'switch', label: '是否禁用', prop: 'disableFlag', activeValue: 1, inactiveValue: 0, activeText: '禁用', inactiveText: '启用' },
   ]
 });
 
 const openAdd = () => {
   if (!selectedMenuId.value) return;
-  rowData.value = { type: '2', parentId: selectedMenuId.value } as Permission;
+  rowData.value = { type: '2', parentId: selectedMenuId.value, sort: 0, disableFlag: 0 } as Permission;
   isEdit.value = false;
   visible.value = true;
 };
 
 const handleEdit = async (row: Permission) => {
   const res = await getPermission(row.id);
-  rowData.value = res.data;
+  rowData.value = { ...res.data, sort: Number(res.data?.sort ?? 0) } as Permission;
   isEdit.value = true;
   visible.value = true;
 };
@@ -203,6 +224,7 @@ const updateData = async (form: Permission) => {
     type: '2',
     path: '',
     parentId: selectedMenuId.value,
+    sort: Number(form.sort ?? 0),
   } as Permission;
   if (isEdit.value) {
     await updatePermission(payload as PermissionUpdateRequest);
@@ -243,19 +265,20 @@ let menuOptions = ref<FormOption>({
     { type: 'slot', label: '菜单图标', prop: 'icon' },
     { type: 'input', label: '描述', prop: 'description' },
     { type: 'parent', label: '父级菜单', prop: 'parentId' },
+    { type: 'number', label: '排序', prop: 'sort' },
     { type: 'switch', label: '是否禁用', prop: 'disableFlag', activeValue: 1, inactiveValue: 0, activeText: '禁用', inactiveText: '启用' },
   ]
 });
 
 const openAddMenu = () => {
-  menuRowData.value = { type: '1', parentId: selectedMenuId.value || '', icon: '' } as Permission;
+  menuRowData.value = { type: '1', parentId: selectedMenuId.value || '', icon: '', sort: 0, disableFlag: 0 } as Permission;
   menuIsEdit.value = false;
   menuVisible.value = true;
 };
 
 const openEditMenu = async (data: any) => {
   const res = await getPermission(data.id);
-  menuRowData.value = res.data as Permission;
+  menuRowData.value = { ...(res.data as Permission), sort: Number(res.data?.sort ?? 0) };
   menuIsEdit.value = true;
   menuVisible.value = true;
 };
@@ -264,6 +287,7 @@ const saveMenu = async (form: Permission) => {
   const payload: Permission = {
     ...form,
     type: '1',
+    sort: Number(form.sort ?? 0),
     parentId: ((): string => {
       if (Array.isArray(menuRowData.value.parentId)) {
         const arr = menuRowData.value.parentId as any[];
