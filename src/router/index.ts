@@ -1,6 +1,5 @@
 ﻿import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router';
 import { usePermissStore } from '../store/permiss';
-import { clearAuthStorage, getAccessToken } from '../utils/request';
 import Home from '../views/home.vue';
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
@@ -390,14 +389,11 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
     NProgress.start();
-    const token = getAccessToken();
+    const role = localStorage.getItem('vuems_name');
     const permiss = usePermissStore();
 
-    if (!token && to.meta.noAuth !== true) {
-        clearAuthStorage();
+    if (!role && to.meta.noAuth !== true) {
         next('/login');
-    } else if (token && to.path === '/login') {
-        next('/');
     } else if (typeof to.meta.permiss == 'string' && !permiss.key.includes(to.meta.permiss)) {
         // 如果没有权限，则进入403
         next('/403');

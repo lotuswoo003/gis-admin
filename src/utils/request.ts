@@ -1,18 +1,6 @@
 import axios, { AxiosError, InternalAxiosRequestConfig, AxiosRequestConfig, AxiosHeaders } from 'axios';
 import type { ApiResponse } from '@/types/response';
 
-export const ACCESS_TOKEN_KEY = 'accessToken';
-export const LOGIN_NAME_KEY = 'vuems_name';
-export const USER_INFO_KEY = 'userInfo';
-
-export const getAccessToken = (): string | null => localStorage.getItem(ACCESS_TOKEN_KEY);
-
-export const clearAuthStorage = (): void => {
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(LOGIN_NAME_KEY);
-    localStorage.removeItem(USER_INFO_KEY);
-};
-
 const service = axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL,
     timeout: 5000,
@@ -32,7 +20,7 @@ service.interceptors.request.use(
         if (fixedBearer && String(fixedBearer).trim()) {
             headers.set('Authorization', fixedBearer);
         } else {
-            const token = getAccessToken();
+            const token = localStorage.getItem('accessToken');
             if (token) headers.set('Authorization', `Bearer ${token}`);
         }
         config.headers = headers;
@@ -59,12 +47,6 @@ service.interceptors.response.use(
         return Promise.reject('Error');
     },
     (error: AxiosError) => {
-        if (error.response?.status === 401) {
-            clearAuthStorage();
-            if (window.location.hash !== '#/login') {
-                window.location.hash = '#/login';
-            }
-        }
         console.log(error);
         return Promise.reject(error);
     }
