@@ -67,6 +67,7 @@ import { onMounted } from 'vue';
 import { useSidebarStore } from '../store/sidebar';
 import { useRouter } from 'vue-router';
 import imgurl from '../assets/img/img.jpg';
+import { clearAuthStorage } from '@/utils/request';
 
 const username: string | null = localStorage.getItem('vuems_name');
 const message: number = 2;
@@ -87,7 +88,7 @@ onMounted(() => {
 const router = useRouter();
 const handleCommand = (command: string) => {
     if (command == 'loginout') {
-        localStorage.removeItem('vuems_name');
+        clearAuthStorage();
         router.push('/login');
     } else if (command == 'user') {
         router.push('/ucenter');

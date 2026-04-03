@@ -126,6 +126,12 @@ npm run build:prod
 - `src/utils/request.ts` 会规范化请求 URL，自动去掉开头冗余的 `/`，避免与 `baseURL` 组合产生双斜杠。
 - 若已登录，会为所有请求自动添加 `Authorization: Bearer <accessToken>`。
 
+登录态与 401 排查说明：
+- 管理端登录接口使用 `sys/login/password`，请求体需要携带 `endpoint: 1`，与 `gis4` Web 端保持一致。
+- 路由登录态必须以 `accessToken` 是否存在为准，不能仅依赖 `vuems_name` 这类展示字段，否则会出现“页面能进但所有接口 401”的假登录状态。
+- 当接口返回 `401 Unauthorized` 时，前端应立即清理 `accessToken`、`vuems_name`、`userInfo`，并跳回登录页，避免旧登录态残留。
+- 后续如继续调整鉴权逻辑，完成后需要同步补充本文档，便于线上排查。
+
 ## License
 
 [MIT](https://github.com/lin-xin/vue-manage-system/blob/master/LICENSE)
