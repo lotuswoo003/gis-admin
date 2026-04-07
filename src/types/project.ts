@@ -17,8 +17,8 @@ export interface RawProject {
     partyBOrganizationId: string | null;
     partyAOrganizationName?: string | null;
     partyBOrganizationName?: string | null;
-    startDate?: string | null;
-    endDate?: string | null;
+    startDate?: string | number | null;
+    endDate?: string | number | null;
     notes?: string | null;
     price?: number | null;
     centerPoint?: string | null;
@@ -31,8 +31,8 @@ export interface RawProject {
     status?: number | null;
     abbreviation?: string | null;
     serialNumber?: string | null;
-    createdAt?: string | null;
-    updatedAt?: string | null;
+    createdAt?: string | number | null;
+    updatedAt?: string | number | null;
     deletedAt?: string | null;
     collect?: unknown;
     externalProjectName?: string;
@@ -44,10 +44,10 @@ export interface ExternalProject {
     name: string;
     status?: number | null;
     manager?: number | null;
-    startDate?: string | null;
-    endDate?: string | null;
-    createTime?: string | null;
-    updateTime?: string | null;
+    startDate?: string | number | null;
+    endDate?: string | number | null;
+    createTime?: string | number | null;
+    updateTime?: string | number | null;
     [key: string]: unknown;
 }
 

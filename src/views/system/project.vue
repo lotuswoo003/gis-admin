@@ -140,7 +140,24 @@ const page = reactive({
     rows: 10,
     total: 0,
 });
-const formatDate = (value?: string | null) => (value ? dayjs(value).format('YYYY-MM-DD') : '');
+const normalizeDateInput = (value?: string | number | null) => {
+    if (value == null || value === '') return null;
+    if (typeof value === 'number') {
+        return dayjs(value < 1_000_000_000_000 ? value * 1000 : value);
+    }
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    if (/^\d+$/.test(trimmed)) {
+        const numeric = Number(trimmed);
+        return dayjs(trimmed.length <= 10 ? numeric * 1000 : numeric);
+    }
+    return dayjs(trimmed);
+};
+
+const formatDate = (value?: string | number | null) => {
+    const parsed = normalizeDateInput(value);
+    return parsed?.isValid() ? parsed.format('YYYY-MM-DD') : '';
+};
 
 const toBindKey = (value: unknown): string => {
     if (value == null) return '';
@@ -158,8 +175,8 @@ const toBindKey = (value: unknown): string => {
 };
 
 const normalizeProject = (item: Partial<RawProject> & Partial<Project>): Project => {
-    const startSource = (item as RawProject).startDate ?? (item.startTime as string) ?? null;
-    const endSource = (item as RawProject).endDate ?? (item.endTime as string) ?? null;
+    const startSource = (item as RawProject).startDate ?? item.startTime ?? null;
+    const endSource = (item as RawProject).endDate ?? item.endTime ?? null;
     return {
         id: item.id != null ? String(item.id) : '',
         name: item.name ?? '',
@@ -373,8 +390,8 @@ const handleEdit = async (row: Project) => {
         ...raw,
         partyAName: (raw.partyAName as string) ?? raw.partyAOrganizationName ?? '',
         partyBName: (raw.partyBName as string) ?? raw.partyBOrganizationName ?? '',
-        startTime: raw.startTime ?? formatDate(raw.startDate),
-        endTime: raw.endTime ?? formatDate(raw.endDate),
+        startTime: formatDate(raw.startTime ?? raw.startDate),
+        endTime: formatDate(raw.endTime ?? raw.endDate),
     };
     isEdit.value = true;
     visible.value = true;
