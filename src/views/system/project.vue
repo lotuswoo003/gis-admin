@@ -189,6 +189,24 @@ const normalizeProject = (item: Partial<RawProject> & Partial<Project>): Project
     };
 };
 
+const resolveProjectPartyNames = (
+    detail: Partial<RawProject> & Partial<Project>,
+    fallback?: Partial<Project>
+) => {
+    // getProject 详情接口当前可能不返回甲乙方名称，编辑/查看弹窗需要回退到列表行已展示的名称。
+    const partyAName =
+        (detail.partyAName as string | undefined) ??
+        detail.partyAOrganizationName ??
+        fallback?.partyAName ??
+        '';
+    const partyBName =
+        (detail.partyBName as string | undefined) ??
+        detail.partyBOrganizationName ??
+        fallback?.partyBName ??
+        '';
+    return { partyAName, partyBName };
+};
+
 const tableData = ref<Project[]>([]);
 const getData = async () => {
     const res = await fetchProjectPage({ page: page.index, rows: page.rows, name: query.name });
@@ -386,10 +404,11 @@ const rowData = ref({});
 const handleEdit = async (row: Project) => {
     const res = await getProject(row.id);
     const raw = res.data as Partial<RawProject> & Partial<Project>;
+    const { partyAName, partyBName } = resolveProjectPartyNames(raw, row);
     rowData.value = {
         ...raw,
-        partyAName: (raw.partyAName as string) ?? raw.partyAOrganizationName ?? '',
-        partyBName: (raw.partyBName as string) ?? raw.partyBOrganizationName ?? '',
+        partyAName,
+        partyBName,
         startTime: formatDate(raw.startTime ?? raw.startDate),
         endTime: formatDate(raw.endTime ?? raw.endDate),
     };
@@ -422,7 +441,10 @@ const viewData = ref({
 const handleView = async (row: Project) => {
     const res = await getProject(row.id);
     const raw = res.data as Partial<RawProject> & Partial<Project>;
-    viewData.value.row = normalizeProject(raw);
+    viewData.value.row = normalizeProject({
+        ...raw,
+        ...resolveProjectPartyNames(raw, row),
+    });
     viewData.value.list = [
         { prop: 'id', label: '项目ID' },
         { prop: 'name', label: '项目名称' },
