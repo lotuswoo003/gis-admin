@@ -82,11 +82,11 @@ export interface ProjectPageQuery {
 
 export interface ProjectSave {
     name: string;
-    partyAName: string;
-    partyBName: string;
-    startTime: string;
-    endTime: string;
-    center?: string | null;
+    partyAOrganizationId: string;
+    partyBOrganizationId: string | null;
+    startDate: string;
+    endDate: string;
+    centerPoint?: string | null;
 }
 
 export interface ProjectUpdate extends ProjectSave {

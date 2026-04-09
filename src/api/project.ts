@@ -1,6 +1,8 @@
 import request from '@/utils/request';
 import axios from "axios";
-import type { ProjectPageQuery, ProjectSave, ProjectUpdate, Project, RawProject, ExternalProjectList, ExternalProjectQuery, FeatureDeleteRequest } from '@/types/project';
+import type { ProjectPageQuery, ProjectSave, ProjectUpdate, RawProject, ExternalProjectList, ExternalProjectQuery, FeatureDeleteRequest } from '@/types/project';
+
+const FEATURE_DELETE_TIMEOUT = 60_000;
 
 export const fetchProjectPage = (data: ProjectPageQuery) => {
     return request<{ total: number; list: RawProject[] }>({
@@ -11,7 +13,7 @@ export const fetchProjectPage = (data: ProjectPageQuery) => {
 };
 
 export const getProject = (id: string) => {
-    return request<Project>({
+    return request<RawProject>({
         url: 'sys/business-projects/getProject',
         method: 'post',
         params: { id },
@@ -54,6 +56,7 @@ export const deleteProjectFeatures = (payload: FeatureDeleteRequest) => {
         url: 'internal/internal-feature/v1/delete',
         method: 'post',
         data: payload,
+        timeout: FEATURE_DELETE_TIMEOUT,
     });
 };
 

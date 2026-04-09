@@ -13,7 +13,7 @@
             >
                 <template #toolbarBtn>
                     <el-button type="primary" :icon="Refresh" :loading="syncing" @click="handleSyncExternal">外业项目同步</el-button>
-                    <el-button type="warning" :icon="CirclePlusFilled" @click="visible = true">新增</el-button>
+                    <el-button type="warning" :icon="CirclePlusFilled" @click="openAdd">新增</el-button>
                 </template>
                 <template #operator="{ rows }">
                     <el-button type="primary" size="small" :icon="Link" @click="handleBind(rows)">
@@ -105,13 +105,15 @@ import { ref, reactive } from 'vue';
 import dayjs from 'dayjs';
 import { ElMessage } from 'element-plus';
 import { CirclePlusFilled, Edit, Search, Refresh, Link, VideoCameraFilled, MapLocation, Delete } from '@element-plus/icons-vue';
-import type { Project, RawProject, ExternalProject, ExternalProjectQuery, InternalProjectBind } from '@/types/project';
+import type { Project, RawProject, ExternalProject, ExternalProjectQuery, InternalProjectBind, ProjectSave, ProjectUpdate } from '@/types/project';
 import { fetchProjectPage, getProject, saveProject, updateProject, syncExternalProjects, fetchInternalProjectList, fetchInternalProjectBinds, deleteProjectFeatures, deleteProjectOrthographic, insertBatchInternalBinding, syncInternalOrthographic, syncInternalFeatures, syncParcel } from '@/api/project';
+import { fetchOrganizationPage } from '@/api/organization';
 import TableCustom from '@/components/table-custom.vue';
 import TableDetail from '@/components/table-detail.vue';
 import TableSearch from '@/components/table-search.vue';
 import TableEdit from '@/components/table-edit.vue';
 import { FormOption, FormOptionList } from '@/types/form-option';
+import type { Organization } from '@/types/org';
 
 // 查询相关
 const query = reactive({
@@ -157,6 +159,161 @@ const normalizeDateInput = (value?: string | number | null) => {
 const formatDate = (value?: string | number | null) => {
     const parsed = normalizeDateInput(value);
     return parsed?.isValid() ? parsed.format('YYYY-MM-DD') : '';
+};
+
+const GOVERNMENT_ORG_TYPE = '1';
+const ENTERPRISE_ORG_TYPE = '2';
+const ORGANIZATION_PAGE_SIZE = 50;
+const ORGANIZATION_MAX_PAGES = 20;
+
+type SelectOption = {
+    label: string;
+    value: string;
+};
+
+type ProjectFormData = {
+    id?: string;
+    name: string;
+    partyAOrganizationId: string;
+    partyAName: string;
+    partyBOrganizationId: string;
+    partyBName: string;
+    startTime: string;
+    endTime: string;
+    center?: string | null;
+};
+
+type OrganizationSelectKey = 'partyA' | 'partyB';
+
+const createEmptyProjectForm = (): ProjectFormData => ({
+    name: '',
+    partyAOrganizationId: '',
+    partyAName: '',
+    partyBOrganizationId: '',
+    partyBName: '',
+    startTime: '',
+    endTime: '',
+    center: '',
+});
+
+const partyAOptions = reactive<SelectOption[]>([]);
+const partyBOptions = reactive<SelectOption[]>([]);
+const organizationRequestToken = reactive<Record<OrganizationSelectKey, number>>({
+    partyA: 0,
+    partyB: 0,
+});
+
+const replaceSelectOptions = (target: SelectOption[], next: SelectOption[]) => {
+    target.splice(0, target.length, ...next);
+};
+
+const findSelectOption = (target: SelectOption[], value: string) => {
+    return target.find(option => option.value === value);
+};
+
+const upsertSelectOption = (target: SelectOption[], option: SelectOption | null) => {
+    if (!option?.value) return;
+    const index = target.findIndex(item => item.value === option.value);
+    if (index >= 0) {
+        target.splice(index, 1, option);
+        return;
+    }
+    target.unshift(option);
+};
+
+const buildSelectedOrganizationOption = (id?: string | null, name?: string | null): SelectOption | null => {
+    const organizationId = String(id ?? '').trim();
+    const organizationName = String(name ?? '').trim();
+    if (!organizationId || !organizationName) {
+        return null;
+    }
+    return {
+        label: organizationName,
+        value: organizationId,
+    };
+};
+
+const fetchOrganizationOptionsByType = async (organizationType: string, keyword: string): Promise<SelectOption[]> => {
+    const collected = new Map<string, SelectOption>();
+    const name = keyword.trim();
+    let pageIndex = 1;
+
+    while (pageIndex <= ORGANIZATION_MAX_PAGES) {
+        const res = await fetchOrganizationPage({
+            page: pageIndex,
+            rows: ORGANIZATION_PAGE_SIZE,
+            name,
+        });
+        const records = (res.data?.list ?? []) as Organization[];
+        if (!records.length) {
+            break;
+        }
+
+        records
+            .filter(record => String(record.type ?? '').trim() === organizationType)
+            .forEach(record => {
+                const option = {
+                    label: record.name,
+                    value: String(record.id),
+                };
+                collected.set(option.value, option);
+            });
+
+        const total = Number(res.data?.total ?? 0);
+        const totalPages = total > 0 ? Math.ceil(total / ORGANIZATION_PAGE_SIZE) : 0;
+        if (records.length < ORGANIZATION_PAGE_SIZE || (totalPages > 0 && pageIndex >= totalPages)) {
+            break;
+        }
+        pageIndex += 1;
+    }
+
+    return Array.from(collected.values());
+};
+
+const loadOrganizationOptions = async (selectKey: OrganizationSelectKey, keyword: string) => {
+    organizationRequestToken[selectKey] += 1;
+    const requestToken = organizationRequestToken[selectKey];
+    const optionsTarget = selectKey === 'partyA' ? partyAOptions : partyBOptions;
+    const organizationType = selectKey === 'partyA' ? GOVERNMENT_ORG_TYPE : ENTERPRISE_ORG_TYPE;
+    const nextOptions = await fetchOrganizationOptionsByType(organizationType, keyword);
+    if (requestToken !== organizationRequestToken[selectKey]) {
+        return;
+    }
+    replaceSelectOptions(optionsTarget, nextOptions);
+};
+
+const handlePartyARemoteSearch = (keyword: string) => {
+    void loadOrganizationOptions('partyA', keyword);
+};
+
+const handlePartyBRemoteSearch = (keyword: string) => {
+    void loadOrganizationOptions('partyB', keyword);
+};
+
+const handleOrganizationSelectChange = (
+    selectKey: OrganizationSelectKey,
+    value: unknown,
+    form: Record<string, unknown>
+) => {
+    const selectedValue = String(value ?? '').trim();
+    const idProp = selectKey === 'partyA' ? 'partyAOrganizationId' : 'partyBOrganizationId';
+    const nameProp = selectKey === 'partyA' ? 'partyAName' : 'partyBName';
+    const optionsTarget = selectKey === 'partyA' ? partyAOptions : partyBOptions;
+    form[idProp] = selectedValue;
+    form[nameProp] = selectedValue ? (findSelectOption(optionsTarget, selectedValue)?.label ?? '') : '';
+};
+
+const primeOrganizationOptions = (formData: Partial<ProjectFormData>) => {
+    replaceSelectOptions(partyAOptions, []);
+    replaceSelectOptions(partyBOptions, []);
+    upsertSelectOption(
+        partyAOptions,
+        buildSelectedOrganizationOption(formData.partyAOrganizationId, formData.partyAName)
+    );
+    upsertSelectOption(
+        partyBOptions,
+        buildSelectedOrganizationOption(formData.partyBOrganizationId, formData.partyBName)
+    );
 };
 
 const toBindKey = (value: unknown): string => {
@@ -391,8 +548,30 @@ let options = ref<FormOption>({
     span: 12,
     list: [
         { type: 'input', label: '项目名称', prop: 'name', required: true },
-        { type: 'input', label: '甲方名称', prop: 'partyAName', required: true },
-        { type: 'input', label: '乙方名称', prop: 'partyBName', required: true },
+        {
+            type: 'select',
+            label: '甲方名称',
+            prop: 'partyAOrganizationId',
+            required: true,
+            remote: true,
+            filterable: true,
+            placeholder: '请输入甲方名称搜索',
+            opts: partyAOptions,
+            remoteMethod: handlePartyARemoteSearch,
+            onChange: (value, form) => handleOrganizationSelectChange('partyA', value, form),
+        },
+        {
+            type: 'select',
+            label: '乙方名称',
+            prop: 'partyBOrganizationId',
+            required: true,
+            remote: true,
+            filterable: true,
+            placeholder: '请输入乙方名称搜索',
+            opts: partyBOptions,
+            remoteMethod: handlePartyBRemoteSearch,
+            onChange: (value, form) => handleOrganizationSelectChange('partyB', value, form),
+        },
         { type: 'date', label: '开始时间', prop: 'startTime', required: true, format: 'YYYY-MM-DD' },
         { type: 'date', label: '结束时间', prop: 'endTime', required: true, format: 'YYYY-MM-DD' },
         { type: 'input', label: '中心点', prop: 'center', span: 24 },
@@ -400,25 +579,48 @@ let options = ref<FormOption>({
 });
 const visible = ref(false);
 const isEdit = ref(false);
-const rowData = ref({});
+const rowData = ref<Partial<RawProject & ProjectFormData>>(createEmptyProjectForm());
+const openAdd = () => {
+    rowData.value = createEmptyProjectForm();
+    primeOrganizationOptions(rowData.value);
+    isEdit.value = false;
+    visible.value = true;
+};
 const handleEdit = async (row: Project) => {
     const res = await getProject(row.id);
     const raw = res.data as Partial<RawProject> & Partial<Project>;
     const { partyAName, partyBName } = resolveProjectPartyNames(raw, row);
-    rowData.value = {
+    const formData: Partial<RawProject & ProjectFormData> = {
         ...raw,
+        partyAOrganizationId: raw.partyAOrganizationId ?? '',
+        partyBOrganizationId: raw.partyBOrganizationId ?? '',
         partyAName,
         partyBName,
         startTime: formatDate(raw.startTime ?? raw.startDate),
         endTime: formatDate(raw.endTime ?? raw.endDate),
+        center: raw.center ?? raw.centerPoint ?? '',
     };
+    primeOrganizationOptions(formData);
+    rowData.value = formData;
     isEdit.value = true;
     visible.value = true;
 };
-const updateData = async (form: any) => {
-    const payload = form;
+const updateData = async (form: Partial<ProjectFormData>) => {
+    const partyBOrganizationId = String(form.partyBOrganizationId ?? '').trim();
+    const payload: ProjectSave = {
+        name: String(form.name ?? '').trim(),
+        partyAOrganizationId: String(form.partyAOrganizationId ?? '').trim(),
+        partyBOrganizationId: partyBOrganizationId || null,
+        startDate: String(form.startTime ?? ''),
+        endDate: String(form.endTime ?? ''),
+        centerPoint: String(form.center ?? '').trim() || null,
+    };
     if (isEdit.value) {
-        await updateProject(payload);
+        const updatePayload: ProjectUpdate = {
+            ...payload,
+            id: String(form.id ?? ''),
+        };
+        await updateProject(updatePayload);
     } else {
         await saveProject(payload);
     }
@@ -430,6 +632,8 @@ const updateData = async (form: any) => {
 const closeDialog = () => {
     visible.value = false;
     isEdit.value = false;
+    rowData.value = createEmptyProjectForm();
+    primeOrganizationOptions(rowData.value);
 };
 
 // 查看详情弹窗相关

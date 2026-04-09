@@ -461,11 +461,22 @@
 - **方法**: POST
 - **路径**: `/business-projects/createProject`
 - **请求体**: BusinessProjectDTO
+- **关键字段**:
+  - `partyAOrganizationId`: 甲方组织 ID，只能选择政府类型组织
+  - `partyBOrganizationId`: 乙方组织 ID，只能选择企业类型组织
+  - `startDate` / `endDate`: 项目开始、结束日期
+  - `centerPoint`: 项目中心点，可为空
 
 ### 11.4 更新项目
 - **方法**: POST
 - **路径**: `/business-projects/updateProject`
 - **请求体**: BusinessProjectDTO
+- **关键字段**:
+  - `id`: 项目 ID
+  - `partyAOrganizationId`: 甲方组织 ID，只能选择政府类型组织
+  - `partyBOrganizationId`: 乙方组织 ID，只能选择企业类型组织
+  - `startDate` / `endDate`: 项目开始、结束日期
+  - `centerPoint`: 项目中心点，可为空
 
 ### 11.5 项目委派
 - **方法**: POST
