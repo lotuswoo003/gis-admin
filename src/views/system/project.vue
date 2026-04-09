@@ -395,7 +395,7 @@ let options = ref<FormOption>({
         { type: 'input', label: '乙方名称', prop: 'partyBName', required: true },
         { type: 'date', label: '开始时间', prop: 'startTime', required: true, format: 'YYYY-MM-DD' },
         { type: 'date', label: '结束时间', prop: 'endTime', required: true, format: 'YYYY-MM-DD' },
-        { type: 'input', label: '中心点', prop: 'center', required: true, span: 24 },
+        { type: 'input', label: '中心点', prop: 'center', span: 24 },
     ],
 });
 const visible = ref(false);

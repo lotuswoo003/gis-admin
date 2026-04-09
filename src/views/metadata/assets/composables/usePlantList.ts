@@ -55,10 +55,6 @@ export function usePlantList() {
       if (res.code === 0) {
         // 成功加载
         listState.list = res.data.rows
-        listState.list.forEach(item => {
-          item.source = 'APP'
-          item.status = 'PENDING'
-        })
         listState.total = res.data.total
       } else {
         // 处理业务错误

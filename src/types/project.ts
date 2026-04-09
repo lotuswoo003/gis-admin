@@ -86,7 +86,7 @@ export interface ProjectSave {
     partyBName: string;
     startTime: string;
     endTime: string;
-    center: string;
+    center?: string | null;
 }
 
 export interface ProjectUpdate extends ProjectSave {

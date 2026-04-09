@@ -34,18 +34,44 @@ import { ElTree, ElMessage } from 'element-plus';
 import { getPermissionTree } from '@/api/permission';
 import { bindPermissionPackagePermissions, getPermissionPackage } from '@/api/permission-package';
 import type { Permission } from '@/types/permission';
+import type { PermissionPackage } from '@/types/permission-package';
 
 const props = defineProps<{ packageId: string }>();
 const emit = defineEmits(['saved']);
 
-const treeData = ref<any[]>([]);
+interface PermissionTreeNode {
+  id: string;
+  label: string;
+  children?: PermissionTreeNode[];
+}
+
+interface ToggleableNode {
+  expanded?: boolean;
+  collapse?: () => void;
+  expand?: () => void;
+}
+
+const treeData = ref<PermissionTreeNode[]>([]);
 const checkedKeys = ref<string[]>([]);
 const tree = ref<InstanceType<typeof ElTree>>();
 const treeProps = { label: 'label', children: 'children' } as const;
+const ENABLED_PERMISSION_FLAG = 0;
 
-const buildTree = (data: Permission[]): any[] => {
+const filterEnabledPermissions = (data: Permission[]): Permission[] => {
+  return (data || []).flatMap((item) => {
+    if (item.disableFlag !== ENABLED_PERMISSION_FLAG) {
+      return [];
+    }
+    return [{
+      ...item,
+      children: filterEnabledPermissions(item.children || []),
+    }];
+  });
+};
+
+const buildTree = (data: Permission[]): PermissionTreeNode[] => {
   return (data || []).map(item => {
-    const node: any = { id: item.id, label: item.name };
+    const node: PermissionTreeNode = { id: item.id, label: item.name };
     if (Array.isArray(item.children) && item.children.length) {
       node.children = buildTree(item.children);
     }
@@ -53,20 +79,44 @@ const buildTree = (data: Permission[]): any[] => {
   });
 };
 
+const collectPermissionIds = (permissions: Permission[]): string[] => {
+  return (permissions || []).flatMap((permission) => {
+    const currentIds = permission.id ? [String(permission.id)] : [];
+    const childIds = Array.isArray(permission.children) ? collectPermissionIds(permission.children) : [];
+    return [...currentIds, ...childIds];
+  });
+};
+
+const collectVisibleTreeIds = (nodes: PermissionTreeNode[]): Set<string> => {
+  return (nodes || []).reduce((ids, node) => {
+    ids.add(node.id);
+    if (Array.isArray(node.children) && node.children.length) {
+      collectVisibleTreeIds(node.children).forEach((childId) => ids.add(childId));
+    }
+    return ids;
+  }, new Set<string>());
+};
+
+const resolveCheckedIds = (permissionPackage: PermissionPackage | undefined): string[] => {
+  if (!permissionPackage) {
+    return [];
+  }
+  if (Array.isArray(permissionPackage.permissionIds) && permissionPackage.permissionIds.length) {
+    return permissionPackage.permissionIds.map((id) => String(id));
+  }
+  if (Array.isArray(permissionPackage.permissions)) {
+    return collectPermissionIds(permissionPackage.permissions);
+  }
+  return [];
+};
+
 onMounted(async () => {
   const permRes = await getPermissionTree({});
-  treeData.value = buildTree(permRes.data || []);
+  const enabledPermissions = filterEnabledPermissions(permRes.data || []);
+  treeData.value = buildTree(enabledPermissions);
+  const visibleIds = collectVisibleTreeIds(treeData.value);
   const pkgRes = await getPermissionPackage(props.packageId);
-  const ids = (() => {
-    const permList = (pkgRes.data as any)?.permissions as any[] | undefined;
-    if (!Array.isArray(permList)) return [] as string[];
-    const collect = (arr: any[]): string[] => arr.flatMap((p: any) => {
-      const selfId = p?.id ? [String(p.id)] : [];
-      const childIds = Array.isArray(p?.children) ? collect(p.children) : [];
-      return [...selfId, ...childIds];
-    });
-    return collect(permList);
-  })();
+  const ids = resolveCheckedIds(pkgRes.data).filter((id) => visibleIds.has(id));
   checkedKeys.value = ids;
   await nextTick();
   if (tree.value && Array.isArray(ids)) {
@@ -84,14 +134,14 @@ const onSubmit = async () => {
   emit('saved');
 };
 
-const toggleNode = (node: any) => {
+const toggleNode = (node: ToggleableNode) => {
   if (node.expanded && typeof node.collapse === 'function') node.collapse();
   else if (!node.expanded && typeof node.expand === 'function') node.expand();
   else node.expanded = !node.expanded;
 };
 
 // Parent check cascades children; child does not affect parent
-const onCheckChange = (data: any, checked: boolean) => {
+const onCheckChange = (data: PermissionTreeNode, checked: boolean) => {
   if (!tree.value) return;
   if (data && Array.isArray(data.children) && data.children.length) {
     tree.value.setChecked(data.id, checked, true);

@@ -1,3 +1,5 @@
+import type { Permission } from '@/types/permission';
+
 export interface PermissionPackage {
   id: string;
   name: string;
@@ -7,7 +9,7 @@ export interface PermissionPackage {
   // 为了前端反显勾选，后端 get/{id} 可能额外返回权限ID列表
   permissionIds?: string[];
   // 兼容后端返回的完整权限对象列表
-  permissions?: any[];
+  permissions?: Permission[];
 }
 
 export interface PermissionPackageCreateRequest {
